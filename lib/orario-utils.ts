@@ -1,5 +1,3 @@
-// Utilities per parsare e formattare i dati dell'orario
-
 export interface ParsedEvent {
   time: string;
   materia: string;
@@ -13,56 +11,78 @@ export interface DaySchedule {
   events: ParsedEvent[];
 }
 
-const giorni = ['Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato', 'Domenica'];
+const giorni = [
+  "Lunedì",
+  "Martedì",
+  "Mercoledì",
+  "Giovedì",
+  "Venerdì",
+  "Sabato",
+  "Domenica",
+];
 
 export function getDayName(dayIndex: number): string {
   return giorni[dayIndex] || `Giorno ${dayIndex}`;
 }
 
-export function parseEventTitle(title: string): { materia: string; aula: string; docente: string; tipo: string } {
-  // Formato esempio: "BASI DI DATIAula 2 SEP (Pad. Seppilli) E. FERRARIOrario provvisorioLezioneSEDI\VarINFO"
+export function parseEventTitle(title: string): {
+  materia: string;
+  aula: string;
+  docente: string;
+  tipo: string;
+} {
 
-  // Estrai la materia (tutto prima di "Aula")
   const aulaMatch = title.match(/^(.+?)Aula/);
   const materia = aulaMatch ? aulaMatch[1].trim() : title;
 
-  // Estrai l'aula (da "Aula" fino al primo nome in maiuscolo con punto)
   const aulaFullMatch = title.match(/Aula\s+(.+?)\s+([A-Z]\.\s*[A-Z]+)/);
-  const aula = aulaFullMatch ? `Aula ${aulaFullMatch[1].trim()}` : '';
+  const aula = aulaFullMatch ? `Aula ${aulaFullMatch[1].trim()}` : "";
 
-  // Estrai il docente
-  const docente = aulaFullMatch ? aulaFullMatch[2].trim() : '';
+  const docente = aulaFullMatch ? aulaFullMatch[2].trim() : "";
 
-  // Estrai il tipo (Lezione o Laboratorio)
-  const tipo = title.includes('Laboratorio') ? 'Laboratorio' : 'Lezione';
+  const tipo = title.includes("Laboratorio") ? "Laboratorio" : "Lezione";
 
   return { materia, aula, docente, tipo };
 }
 
-export function parseOrarioData(rawData: { day: number; events: { time: string; title: string }[] }[]): DaySchedule[] {
-  return rawData.map(day => ({
+export function parseOrarioData(
+  rawData: { day: number; events: { time: string; title: string }[] }[],
+): DaySchedule[] {
+  return rawData.map((day) => ({
     day: day.day,
-    events: day.events.map(event => {
+    events: day.events.map((event) => {
       const parsed = parseEventTitle(event.title);
       return {
         time: event.time,
-        ...parsed
+        ...parsed,
       };
-    })
+    }),
   }));
 }
 
-// Colori Nothing OS per le materie - LED-like accent colors
-export function getMateriaColor(materia: string): string {
-  const colors: Record<string, string> = {
-    'BASI DI DATI': '#00D4FF',
-    'PROBABILITA E STATISTICA PER L\'INFORMATICA': '#FF3366',
-    'SISTEMI OPERATIVI': '#00FF88',
-    'PROGETTAZIONE DEL SOFTWARE': '#FFAA00',
-  };
+const COLOR_PALETTE = [
+  "#00D4FF", // azzurro
+  "#FF3366", // rosa
+  "#00FF88", // verde
+  "#FFAA00", // arancione
+  "#A259FF", // viola
+  "#FF6F00", // arancio scuro
+  "#FFB300", // giallo
+  "#009688", // teal
+  "#C51162", // magenta
+  "#1976D2", // blu
+  "#43A047", // verde scuro
+  "#F44336", // rosso
+  "#8D6E63", // marrone
+  "#607D8B", // grigio blu
+];
 
-  // Normalizza il nome della materia rimuovendo accenti per il matching
-  const normalizedMateria = materia.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
 
-  return colors[normalizedMateria] || colors[materia] || '#666666';
+export function getMateriaColorMap(materie: string[]): Record<string, string> {
+  const uniqueMaterie = Array.from(new Set(materie.map(m => m.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase())));
+  const colorMap: Record<string, string> = {};
+  uniqueMaterie.forEach((mat, idx) => {
+    colorMap[mat] = COLOR_PALETTE[idx % COLOR_PALETTE.length];
+  });
+  return colorMap;
 }

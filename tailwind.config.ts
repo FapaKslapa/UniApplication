@@ -9,8 +9,9 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["Inter", "system-ui", "sans-serif"],
-        ndot: ["Ndot", "Inter", "system-ui", "sans-serif"],
+        sans: ["var(--font-inter-tight)", "system-ui", "sans-serif"],
+        ndot: ["Ndot", "var(--font-inter-tight)", "system-ui", "sans-serif"],
+        serif: ["var(--font-noto-serif)", "Georgia", "serif"],
       },
     },
   },
