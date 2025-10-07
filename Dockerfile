@@ -10,10 +10,10 @@ COPY server ./server
 COPY tailwind.config.ts ./
 RUN npm run build
 RUN npm prune --omit=dev
-EXPOSE 3000
-ENV PORT=3000
+EXPOSE 6000
+ENV PORT=6000
 CMD ["npm", "start"]
 
 
 # docker build -t uniapplication .
-# docker run -p 6000:6000 uniapplication
+# docker run -d -p 6000:6000 --restart unless-stopped --name uniapplication uniapplication:latest
