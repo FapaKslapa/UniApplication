@@ -1,3 +1,4 @@
+import { DateTime } from "luxon";
 import dayjs from "dayjs";
 import timezone from "dayjs/plugin/timezone";
 import utc from "dayjs/plugin/utc";
@@ -5,6 +6,7 @@ import { useState } from "react";
 import { CalendarDayDialog } from "@/app/components/CalendarDayDialog";
 import type { DaySchedule, ParsedEvent } from "@/lib/orario-utils";
 import { getMateriaColorMap } from "@/lib/orario-utils";
+import { getCurrentItalianDateTime, getDayOfWeek } from "@/lib/date-utils";
 
 // Configura dayjs con i plugin per timezone
 dayjs.extend(utc);
@@ -22,10 +24,25 @@ export function CalendarView({ schedule }: CalendarViewProps) {
   );
   const materiaColorMap = getMateriaColorMap(allMaterie);
 
+  // Ottieni la data corrente in fuso orario italiano
+  const today = getCurrentItalianDateTime();
+  const todayDayOfWeek = getDayOfWeek(today);
+
+  // Calcola il primo giorno della settimana (Lunedì)
+  const startOfWeek = today.minus({ days: todayDayOfWeek });
+
+  // Crea l'array dei giorni della settimana con i numeri effettivi del mese
   const weekDays = Array.from({ length: 7 }, (_, index) => {
-    const dayData = schedule.find((s) => s.day === index);
+    const currentDate = startOfWeek.plus({ days: index });
+    const dayOfMonth = currentDate.day; // Giorno del mese (1-31)
+    const dayOfWeek = getDayOfWeek(currentDate);
+
+    const dayData = schedule.find((s) => s.day === dayOfWeek);
+
     return {
-      day: index,
+      day: dayOfWeek,
+      dayOfMonth: dayOfMonth,
+      date: currentDate,
       events: dayData?.events || [],
       hasEvents: (dayData?.events.length || 0) > 0,
     };
@@ -44,9 +61,6 @@ export function CalendarView({ schedule }: CalendarViewProps) {
     return materiaColorMap[normalizedMateria] || "#666666";
   };
 
-  const today = dayjs().tz("Europe/Rome").day();
-  const todayIndex = today === 0 ? 6 : today - 1;
-
   const weekDayHeaders = [
     { label: "L", name: "Lunedì" },
     { label: "M", name: "Martedì" },
@@ -64,6 +78,9 @@ export function CalendarView({ schedule }: CalendarViewProps) {
           <h1 className="text-xl font-light tracking-wide mb-1 font-serif">
             Orario
           </h1>
+          <div className="text-xs text-gray-400">
+            {today.toFormat("d MMMM yyyy")}
+          </div>
         </div>
 
         <div className="p-4">
@@ -76,9 +93,8 @@ export function CalendarView({ schedule }: CalendarViewProps) {
               </div>
             ))}
 
-            {weekDays.map((dayData, index) => {
-              const dayNumber = index + 1; // Simuliamo i giorni 1-7 del mese
-              const isToday = index === todayIndex;
+            {weekDays.map((dayData) => {
+              const isToday = dayData.date.hasSame(today, "day");
 
               return (
                 <button
@@ -104,7 +120,7 @@ export function CalendarView({ schedule }: CalendarViewProps) {
                       dayData.hasEvents ? "text-white" : "text-gray-600"
                     }`}
                   >
-                    {dayNumber}
+                    {dayData.dayOfMonth}
                   </span>
 
                   {dayData.hasEvents && (
