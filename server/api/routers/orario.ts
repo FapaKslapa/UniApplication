@@ -1,6 +1,13 @@
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import puppeteer from "puppeteer";
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
+
+// Configura dayjs con i plugin per timezone
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // Tipo per i dati dell'orario
 type OrarioData = Array<{
@@ -14,19 +21,15 @@ const CACHE_TTL = 1000 * 60 * 30; // 30 minuti
 
 // Utility per ottenere la data/ora italiana
 const getItalianDate = () => {
-  return new Date(
-    new Date().toLocaleString("en-US", { timeZone: "Europe/Rome" }),
-  );
+  return dayjs().tz("Europe/Rome");
 };
 
 const scrap = async (): Promise<OrarioData> => {
   // Controlla se abbiamo dati in cache ancora validi
   if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL) {
-    console.log("Returning cached data");
     return cachedData.data;
   }
 
-  console.log("Scraping new data...");
   const browser = await puppeteer.launch({
     headless: true,
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
@@ -51,11 +54,9 @@ const scrap = async (): Promise<OrarioData> => {
     // Debug: controlla cosa c'è sulla pagina
     const pageContent = await page.evaluate(() => {
       const cols = document.querySelectorAll(".fc-content-col");
-      console.log("Found columns:", cols.length);
 
       return Array.from(cols).map((col, dayIndex) => {
         const events = Array.from(col.querySelectorAll(".fc-event"));
-        console.log(`Day ${dayIndex}: ${events.length} events`);
 
         const parsedEvents = events
           .map((card) => {
@@ -63,7 +64,6 @@ const scrap = async (): Promise<OrarioData> => {
               card.querySelector(".fc-time")?.textContent?.trim() ?? "";
             const title =
               card.querySelector(".fc-title")?.textContent?.trim() ?? "";
-            console.log(`Event - Time: ${time}, Title: ${title}`);
             return { time, title };
           })
           .filter((event) => event.title.includes("Var"));
@@ -71,8 +71,6 @@ const scrap = async (): Promise<OrarioData> => {
         return { day: dayIndex, events: parsedEvents };
       });
     });
-
-    console.log("Page content scraped:", JSON.stringify(pageContent, null, 2));
 
     // Salva in cache solo se abbiamo dati
     if (pageContent.some((day) => day.events.length > 0)) {
@@ -93,7 +91,7 @@ const scrap = async (): Promise<OrarioData> => {
 // Utility per trovare la prossima lezione
 const findNextLesson = (
   lessons: { time: string; title: string }[],
-  currentTime: Date,
+  currentTime: dayjs.Dayjs,
   isToday: boolean,
 ) => {
   // Se non è oggi, non cerchiamo la "prossima" lezione basata sull'ora
@@ -101,7 +99,7 @@ const findNextLesson = (
     return null;
   }
 
-  const now = currentTime.getHours() * 60 + currentTime.getMinutes();
+  const now = currentTime.hour() * 60 + currentTime.minute();
 
   const parsedLessons = lessons
     .map((lesson) => {
@@ -158,23 +156,12 @@ export const orarioRouter = createTRPCRouter({
       const orarioData = await scrap();
 
       // Debug log
-      console.log("Scraped data:", JSON.stringify(orarioData, null, 2));
 
       const currentDate = getItalianDate();
-      const targetDate = new Date(currentDate);
-      targetDate.setDate(currentDate.getDate() + input.dayOffset);
+      const targetDate = currentDate.add(input.dayOffset, "day");
 
-      const dayOfWeek = targetDate.getDay(); // 0 = domenica, 1 = lunedì, etc.
+      const dayOfWeek = targetDate.day(); // 0 = domenica, 1 = lunedì, etc.
       const adjustedDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Converti per array 0-based lunedì-domenica
-
-      console.log(
-        "Day of week:",
-        dayOfWeek,
-        "Adjusted day:",
-        adjustedDay,
-        "DayOffset:",
-        input.dayOffset,
-      );
 
       const daySchedule = orarioData.find(
         (day: {
@@ -182,8 +169,6 @@ export const orarioRouter = createTRPCRouter({
           events: Array<{ time: string; title: string }>;
         }) => day.day === adjustedDay,
       );
-
-      console.log("Day schedule found:", daySchedule);
 
       if (!daySchedule || daySchedule.events.length === 0) {
         return {
@@ -197,7 +182,7 @@ export const orarioRouter = createTRPCRouter({
             "Sabato",
             "Domenica",
           ][adjustedDay],
-          date: targetDate.toISOString().split("T")[0],
+          date: targetDate.format("YYYY-MM-DD"),
           lessons: [],
         };
       }
@@ -221,7 +206,7 @@ export const orarioRouter = createTRPCRouter({
           "Sabato",
           "Domenica",
         ][adjustedDay],
-        date: targetDate.toISOString().split("T")[0],
+        date: targetDate.format("YYYY-MM-DD"),
         lessons: daySchedule.events,
         nextLesson: nextLessonInfo,
         totalLessons: daySchedule.events.length,

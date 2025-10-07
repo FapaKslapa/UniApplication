@@ -1,7 +1,14 @@
+import dayjs from "dayjs";
+import timezone from "dayjs/plugin/timezone";
+import utc from "dayjs/plugin/utc";
 import { useState } from "react";
 import { CalendarDayDialog } from "@/app/components/CalendarDayDialog";
 import type { DaySchedule, ParsedEvent } from "@/lib/orario-utils";
 import { getMateriaColorMap } from "@/lib/orario-utils";
+
+// Configura dayjs con i plugin per timezone
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 interface CalendarViewProps {
   schedule: DaySchedule[];
@@ -37,7 +44,7 @@ export function CalendarView({ schedule }: CalendarViewProps) {
     return materiaColorMap[normalizedMateria] || "#666666";
   };
 
-  const today = new Date().getDay();
+  const today = dayjs().tz("Europe/Rome").day();
   const todayIndex = today === 0 ? 6 : today - 1;
 
   const weekDayHeaders = [

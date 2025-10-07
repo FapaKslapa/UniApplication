@@ -136,23 +136,34 @@ export function CalendarDayDialog({
                   return (
                     <div
                       key={eventIndex}
-                      className="absolute w-full px-2"
+                      className="absolute w-full px-3"
                       style={{
                         top: `${top}px`,
-                        height: `${height}px`,
+                        height: `${Math.max(height - 8, 30)}px`,
+                        paddingBottom: "4px", // Aggiungo un piccolo spazio sotto
                       }}
                     >
                       <div
-                        className="h-full rounded-lg p-3 text-xs overflow-hidden"
+                        className="h-full rounded-lg p-3 text-xs overflow-hidden flex flex-col"
                         style={{
                           backgroundColor: `${color}15`,
-                          borderLeft: `3px solid ${color}`,
+                          boxShadow: `0 1px 3px rgba(0,0,0,0.1), inset 0 -2px 0 ${color}`, // Solo un sottile accento in basso
+                          minHeight: "100%", // Assicura che la card si espanda per contenere tutto il contenuto
                         }}
                       >
-                        <div className="font-medium text-white mb-2 text-sm leading-relaxed">
-                          {event.materia}
+                        <div className="font-medium text-white mb-2 text-sm leading-relaxed flex items-center flex-wrap gap-2">
+                          <span className="flex-1">{event.materia}</span>
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded-full font-mono flex-shrink-0 ${
+                              event.tipo === "Laboratorio"
+                                ? "bg-orange-500 bg-opacity-20 text-orange-300"
+                                : "bg-blue-500 bg-opacity-20 text-blue-300"
+                            }`}
+                          >
+                            {event.tipo}
+                          </span>
                         </div>
-                        <div className="text-gray-400 space-y-1.5">
+                        <div className="text-gray-400 space-y-1.5 flex-1">
                           <div className="flex items-center gap-2">
                             <svg
                               className="w-3 h-3 flex-shrink-0"
@@ -208,17 +219,6 @@ export function CalendarDayDialog({
                               </span>
                             </div>
                           )}
-                          <div className="pt-1">
-                            <span
-                              className={`text-xs px-2 py-0.5 rounded-full font-mono ${
-                                event.tipo === "Laboratorio"
-                                  ? "bg-orange-500 bg-opacity-20 text-orange-300"
-                                  : "bg-blue-500 bg-opacity-20 text-blue-300"
-                              }`}
-                            >
-                              {event.tipo}
-                            </span>
-                          </div>
                         </div>
                       </div>
                     </div>

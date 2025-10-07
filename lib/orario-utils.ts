@@ -40,7 +40,7 @@ export function parseEventTitle(title: string): {
   let docente = aulaFullMatch ? aulaFullMatch[2].trim() : "";
 
   // Rimuovi eventuali "L" finali aggiunte erroneamente
-  if (docente && docente.endsWith('L')) {
+  if (docente?.endsWith("L")) {
     docente = docente.slice(0, -1);
   }
 
