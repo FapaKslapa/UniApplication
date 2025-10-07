@@ -1,5 +1,18 @@
 FROM node:20-alpine
 
+# Installa Chromium e le dipendenze necessarie per Puppeteer
+RUN apk add --no-cache \
+    chromium \
+    nss \
+    freetype \
+    harfbuzz \
+    ca-certificates \
+    ttf-freefont
+
+# Indica a Puppeteer di usare il Chromium installato
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
+    PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
+
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY next.config.ts tsconfig.json ./
@@ -8,6 +21,8 @@ COPY app ./app
 COPY lib ./lib
 COPY server ./server
 COPY tailwind.config.ts ./
+COPY public ./public
+COPY components.json ./
 RUN npm run build
 RUN npm prune --omit=dev
 EXPOSE 3001
