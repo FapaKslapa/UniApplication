@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { api } from "@/lib/api";
-import { getMateriaColorMap } from "@/lib/orario-utils";
 import type { DaySchedule } from "@/lib/orario-utils";
+import { getMateriaColorMap } from "@/lib/orario-utils";
 
 const parseEventTitle = (title: string) => {
   const aulaMatch = title.match(/^(.+?)Aula/);
@@ -73,7 +73,9 @@ export default function NextLessonCard({
   }
 
   const lessons = data?.lessons || [];
-  const allMaterie = lessons.map(lesson => parseEventTitle(lesson.title).materia);
+  const allMaterie = lessons.map(
+    (lesson) => parseEventTitle(lesson.title).materia,
+  );
   const materiaColorMap = getMateriaColorMap(allMaterie);
 
   const getMateriaColorDot = (materia: string) => {

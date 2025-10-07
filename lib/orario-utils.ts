@@ -31,7 +31,6 @@ export function parseEventTitle(title: string): {
   docente: string;
   tipo: string;
 } {
-
   const aulaMatch = title.match(/^(.+?)Aula/);
   const materia = aulaMatch ? aulaMatch[1].trim() : title;
 
@@ -77,9 +76,17 @@ const COLOR_PALETTE = [
   "#607D8B", // grigio blu
 ];
 
-
 export function getMateriaColorMap(materie: string[]): Record<string, string> {
-  const uniqueMaterie = Array.from(new Set(materie.map(m => m.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase())));
+  const uniqueMaterie = Array.from(
+    new Set(
+      materie.map((m) =>
+        m
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toUpperCase(),
+      ),
+    ),
+  );
   const colorMap: Record<string, string> = {};
   uniqueMaterie.forEach((mat, idx) => {
     colorMap[mat] = COLOR_PALETTE[idx % COLOR_PALETTE.length];

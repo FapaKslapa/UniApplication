@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { CalendarDayDialog } from "@/app/components/CalendarDayDialog";
 import type { DaySchedule, ParsedEvent } from "@/lib/orario-utils";
 import { getMateriaColorMap } from "@/lib/orario-utils";
-import { CalendarDayDialog } from "@/app/components/CalendarDayDialog";
 
 interface CalendarViewProps {
   schedule: DaySchedule[];
@@ -10,7 +10,9 @@ interface CalendarViewProps {
 export function CalendarView({ schedule }: CalendarViewProps) {
   const [selectedDay, setSelectedDay] = useState<DaySchedule | null>(null);
 
-  const allMaterie = schedule.flatMap((day) => day.events.map((ev) => ev.materia));
+  const allMaterie = schedule.flatMap((day) =>
+    day.events.map((ev) => ev.materia),
+  );
   const materiaColorMap = getMateriaColorMap(allMaterie);
 
   const weekDays = Array.from({ length: 7 }, (_, index) => {
