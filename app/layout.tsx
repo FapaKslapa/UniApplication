@@ -18,6 +18,10 @@ const notoSerif = Noto_Serif({
 export const metadata: Metadata = {
   title: "Orario Universitario",
   description: "App per visualizzare l'orario delle lezioni universitarie",
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/favicon.ico',
+  },
 };
 
 export default function RootLayout({
