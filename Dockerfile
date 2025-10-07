@@ -1,5 +1,9 @@
 FROM node:20-alpine
 
+# Installa tzdata per supportare i fusi orari e imposta TZ a Europe/Rome
+RUN apk add --no-cache tzdata
+ENV TZ=Europe/Rome
+
 # Installa Chromium e le dipendenze necessarie per Puppeteer
 RUN apk add --no-cache \
     chromium \

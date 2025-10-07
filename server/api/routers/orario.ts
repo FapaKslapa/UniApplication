@@ -1,13 +1,14 @@
-import dayjs from "dayjs";
-import timezone from "dayjs/plugin/timezone";
-import utc from "dayjs/plugin/utc";
+import type { DateTime } from "luxon";
 import puppeteer from "puppeteer";
 import { z } from "zod";
+import {
+  addDays,
+  formatDate,
+  getCurrentItalianDateTime,
+  getDayOfWeek,
+  timeToMinutes,
+} from "@/lib/date-utils";
 import { createTRPCRouter, publicProcedure } from "../trpc";
-
-// Configura dayjs con i plugin per timezone
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 // Tipo per i dati dell'orario
 type OrarioData = Array<{
@@ -18,11 +19,6 @@ type OrarioData = Array<{
 // Cache in-memory per i dati dell'orario
 let cachedData: { data: OrarioData; timestamp: number } | null = null;
 const CACHE_TTL = 1000 * 60 * 30; // 30 minuti
-
-// Utility per ottenere la data/ora italiana
-const getItalianDate = () => {
-  return dayjs().tz("Europe/Rome");
-};
 
 const scrap = async (): Promise<OrarioData> => {
   // Controlla se abbiamo dati in cache ancora validi
@@ -48,8 +44,6 @@ const scrap = async (): Promise<OrarioData> => {
       "https://unins.prod.up.cineca.it/calendarioPubblico/linkCalendarioId=68cb8d7de418fc00412a332a",
       { waitUntil: "networkidle2", timeout: 30000 }, // Aumentato timeout e ritorno a networkidle2
     );
-
-    // Aggiungi un piccolo delay per assicurarsi che tutto sia renderizzato
 
     // Debug: controlla cosa c'è sulla pagina
     const pageContent = await page.evaluate(() => {
@@ -91,7 +85,7 @@ const scrap = async (): Promise<OrarioData> => {
 // Utility per trovare la prossima lezione
 const findNextLesson = (
   lessons: { time: string; title: string }[],
-  currentTime: dayjs.Dayjs,
+  currentTime: DateTime,
   isToday: boolean,
 ) => {
   // Se non è oggi, non cerchiamo la "prossima" lezione basata sull'ora
@@ -99,20 +93,22 @@ const findNextLesson = (
     return null;
   }
 
-  const now = currentTime.hour() * 60 + currentTime.minute();
+  const now = currentTime.hour * 60 + currentTime.minute;
 
   const parsedLessons = lessons
     .map((lesson) => {
       const timeRange = lesson.time.split(" - ");
       if (timeRange.length !== 2) return null;
 
-      const [startHour, startMin] = timeRange[0].split(":").map(Number);
-      const [endHour, endMin] = timeRange[1].split(":").map(Number);
+      const startMinutes = timeToMinutes(timeRange[0]);
+      const endMinutes = timeToMinutes(timeRange[1]);
+
+      if (startMinutes === null || endMinutes === null) return null;
 
       return {
         ...lesson,
-        startMinutes: startHour * 60 + startMin,
-        endMinutes: endHour * 60 + endMin,
+        startMinutes,
+        endMinutes,
       };
     })
     .filter((lesson): lesson is NonNullable<typeof lesson> => lesson !== null);
@@ -155,13 +151,10 @@ export const orarioRouter = createTRPCRouter({
     .query(async ({ input }) => {
       const orarioData = await scrap();
 
-      // Debug log
+      const currentDate = getCurrentItalianDateTime();
+      const targetDate = addDays(currentDate, input.dayOffset);
 
-      const currentDate = getItalianDate();
-      const targetDate = currentDate.add(input.dayOffset, "day");
-
-      const dayOfWeek = targetDate.day(); // 0 = domenica, 1 = lunedì, etc.
-      const adjustedDay = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Converti per array 0-based lunedì-domenica
+      const adjustedDay = getDayOfWeek(targetDate);
 
       const daySchedule = orarioData.find(
         (day: {
@@ -182,7 +175,7 @@ export const orarioRouter = createTRPCRouter({
             "Sabato",
             "Domenica",
           ][adjustedDay],
-          date: targetDate.format("YYYY-MM-DD"),
+          date: formatDate(targetDate),
           lessons: [],
         };
       }
@@ -206,7 +199,7 @@ export const orarioRouter = createTRPCRouter({
           "Sabato",
           "Domenica",
         ][adjustedDay],
-        date: targetDate.format("YYYY-MM-DD"),
+        date: formatDate(targetDate),
         lessons: daySchedule.events,
         nextLesson: nextLessonInfo,
         totalLessons: daySchedule.events.length,
