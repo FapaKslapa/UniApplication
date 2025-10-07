@@ -3,12 +3,14 @@ FROM node:20-alpine
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY next.config.ts tsconfig.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 COPY app ./app
 COPY lib ./lib
 COPY server ./server
+COPY public ./public
 COPY tailwind.config.ts ./
 RUN npm run build
+RUN npm prune --omit=dev
 EXPOSE 3000
 ENV PORT=3000
 CMD ["npm", "start"]
