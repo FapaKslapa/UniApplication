@@ -12,6 +12,13 @@ type OrarioData = Array<{
 let cachedData: { data: OrarioData; timestamp: number } | null = null;
 const CACHE_TTL = 1000 * 60 * 30; // 30 minuti
 
+// Utility per ottenere la data/ora italiana
+const getItalianDate = () => {
+  return new Date(
+    new Date().toLocaleString("en-US", { timeZone: "Europe/Rome" }),
+  );
+};
+
 const scrap = async (): Promise<OrarioData> => {
   // Controlla se abbiamo dati in cache ancora validi
   if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL) {
@@ -153,7 +160,7 @@ export const orarioRouter = createTRPCRouter({
       // Debug log
       console.log("Scraped data:", JSON.stringify(orarioData, null, 2));
 
-      const currentDate = new Date();
+      const currentDate = getItalianDate();
       const targetDate = new Date(currentDate);
       targetDate.setDate(currentDate.getDate() + input.dayOffset);
 

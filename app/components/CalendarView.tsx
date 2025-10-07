@@ -145,6 +145,7 @@ export function CalendarView({ schedule }: CalendarViewProps) {
           day={selectedDay}
           isOpen={!!selectedDay}
           onClose={() => setSelectedDay(null)}
+          materiaColorMap={materiaColorMap}
         />
       )}
     </>
