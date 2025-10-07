@@ -21,7 +21,6 @@ COPY app ./app
 COPY lib ./lib
 COPY server ./server
 COPY tailwind.config.ts ./
-COPY public ./public
 COPY components.json ./
 RUN npm run build
 RUN npm prune --omit=dev
