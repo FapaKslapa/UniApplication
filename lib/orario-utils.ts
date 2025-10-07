@@ -31,17 +31,25 @@ export function parseEventTitle(title: string): {
   docente: string;
   tipo: string;
 } {
+  // Estrai la materia (tutto prima di "Aula")
   const aulaMatch = title.match(/^(.+?)Aula/);
   const materia = aulaMatch ? aulaMatch[1].trim() : title;
 
-  const aulaFullMatch = title.match(/Aula\s+(.+?)\s+([A-Z]\.\s*[A-Z]+)/);
+  // Estrai l'aula completa (incluso eventuali descrizioni tra parentesi)
+  // Cattura tutto tra "Aula" e il docente (che inizia con "Iniziale. COGNOME")
+  const aulaFullMatch = title.match(/Aula\s+(.+?)(?=\s+[A-Z]\.\s+[A-Z]+)/);
   const aula = aulaFullMatch ? `Aula ${aulaFullMatch[1].trim()}` : "";
 
-  let docente = aulaFullMatch ? aulaFullMatch[2].trim() : "";
+  // Estrai il docente: cerca il pattern [Iniziale]. [COGNOME] che appare dopo l'aula
+  // Il docente è nel formato "X. COGNOME" dove X è l'iniziale del nome
+  const docenteMatch = title.match(
+    /\s([A-Z]\.\s+[A-Z][A-Z\s]+?)(?=Orario|Lezione|Laboratorio|SEDI|$)/,
+  );
+  let docente = docenteMatch ? docenteMatch[1].trim() : "";
 
   // Rimuovi eventuali "L" finali aggiunte erroneamente
   if (docente?.endsWith("L")) {
-    docente = docente.slice(0, -1);
+    docente = docente.slice(0, -1).trim();
   }
 
   const tipo = title.includes("Laboratorio") ? "Laboratorio" : "Lezione";

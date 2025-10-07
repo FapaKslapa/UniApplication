@@ -12,25 +12,7 @@ import {
 import { useState } from "react";
 import { api } from "@/lib/api";
 import type { DaySchedule } from "@/lib/orario-utils";
-import { getMateriaColorMap } from "@/lib/orario-utils";
-
-const parseEventTitle = (title: string) => {
-  const aulaMatch = title.match(/^(.+?)Aula/);
-  const materia = aulaMatch ? aulaMatch[1].trim() : title;
-
-  const aulaFullMatch = title.match(/Aula\s+(.+?)\s+([A-Z]\.\s*[A-Z]+)/);
-  const aula = aulaFullMatch ? `Aula ${aulaFullMatch[1].trim()}` : "";
-  let docente = aulaFullMatch ? aulaFullMatch[2].trim() : "";
-
-  // Rimuovi eventuali "L" finali aggiunte erroneamente
-  if (docente?.endsWith("L")) {
-    docente = docente.slice(0, -1);
-  }
-
-  const tipo = title.includes("Laboratorio") ? "Laboratorio" : "Lezione";
-
-  return { materia, aula, docente, tipo };
-};
+import { getMateriaColorMap, parseEventTitle } from "@/lib/orario-utils";
 
 export default function NextLessonCard({
   schedule,

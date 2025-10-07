@@ -23,9 +23,11 @@ const CACHE_TTL = 1000 * 60 * 30; // 30 minuti
 const scrap = async (): Promise<OrarioData> => {
   // Controlla se abbiamo dati in cache ancora validi
   if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL) {
+    console.log("[DEBUG] Usando dati dalla cache");
     return cachedData.data;
   }
 
+  console.log("[DEBUG] Avvio scraper per ottenere i dati dell'orario");
   const browser = await puppeteer.launch({
     headless: true,
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
@@ -52,31 +54,50 @@ const scrap = async (): Promise<OrarioData> => {
       return Array.from(cols).map((col, dayIndex) => {
         const events = Array.from(col.querySelectorAll(".fc-event"));
 
-        const parsedEvents = events
-          .map((card) => {
-            const time =
-              card.querySelector(".fc-time")?.textContent?.trim() ?? "";
-            const title =
-              card.querySelector(".fc-title")?.textContent?.trim() ?? "";
-            return { time, title };
-          })
-          .filter((event) => event.title.includes("Var"));
+        // Estrai tutti i dati senza filtri per il debug
+        const allEvents = events.map((card) => {
+          const time =
+            card.querySelector(".fc-time")?.textContent?.trim() ?? "";
+          const title =
+            card.querySelector(".fc-title")?.textContent?.trim() ?? "";
+          return { time, title };
+        });
 
-        return { day: dayIndex, events: parsedEvents };
+        // Applica il filtro per mantenere solo gli eventi con "Var"
+        const parsedEvents = allEvents.filter((event) =>
+          event.title.includes("Var"),
+        );
+
+        return {
+          day: dayIndex,
+          events: parsedEvents,
+          allEvents, // Aggiungi tutti gli eventi per il debug
+        };
       });
     });
 
+    // Log completo dei dati grezzi
+    console.log("[DEBUG] Dati grezzi ottenuti dallo scraper:");
+    console.log(JSON.stringify(pageContent, null, 2));
+
+    // Rimuovi allEvents prima di salvare nella cache
+    const filteredContent = pageContent.map((day) => ({
+      day: day.day,
+      events: day.events,
+    }));
+
     // Salva in cache solo se abbiamo dati
-    if (pageContent.some((day) => day.events.length > 0)) {
+    if (filteredContent.some((day) => day.events.length > 0)) {
       cachedData = {
-        data: pageContent,
+        data: filteredContent,
         timestamp: Date.now(),
       };
+      console.log("[DEBUG] Dati salvati nella cache");
     } else {
       console.warn("No events found on page! Not caching empty data.");
     }
 
-    return pageContent;
+    return filteredContent;
   } finally {
     await browser.close();
   }
