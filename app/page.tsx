@@ -60,7 +60,7 @@ export default function Home() {
     <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Contenuto principale */}
       <main className="w-full px-4 py-4 space-y-6 flex-1">
-        <h1 className="text-lg font-semibold mb-4 text-white font-serif">
+        <h1 className="text-4xl font-semibold mb-4 text-white font-serif">
           Orario Insubria
         </h1>
         <section>
