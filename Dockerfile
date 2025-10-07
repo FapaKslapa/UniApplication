@@ -7,7 +7,6 @@ RUN npm ci --omit=dev
 COPY app ./app
 COPY lib ./lib
 COPY server ./server
-COPY public ./public
 COPY tailwind.config.ts ./
 RUN npm run build
 EXPOSE 3000
