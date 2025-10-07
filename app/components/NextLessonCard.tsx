@@ -20,7 +20,13 @@ const parseEventTitle = (title: string) => {
 
   const aulaFullMatch = title.match(/Aula\s+(.+?)\s+([A-Z]\.\s*[A-Z]+)/);
   const aula = aulaFullMatch ? `Aula ${aulaFullMatch[1].trim()}` : "";
-  const docente = aulaFullMatch ? aulaFullMatch[2].trim() : "";
+  let docente = aulaFullMatch ? aulaFullMatch[2].trim() : "";
+
+  // Rimuovi eventuali "L" finali aggiunte erroneamente
+  if (docente && docente.endsWith("L")) {
+    docente = docente.slice(0, -1);
+  }
+
   const tipo = title.includes("Laboratorio") ? "Laboratorio" : "Lezione";
 
   return { materia, aula, docente, tipo };
