@@ -30,7 +30,6 @@ RUN npm ci
 COPY app ./app
 COPY lib ./lib
 COPY server ./server
-COPY public ./public
 
 # Build dell'applicazione
 RUN npm run build
