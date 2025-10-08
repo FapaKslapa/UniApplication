@@ -29,24 +29,30 @@ export function CalendarDayDialog({
     return hours * 60 + minutes;
   };
 
+  const formatTime = (time: string) => {
+    const [hours, minutes] = time.split(":");
+    return `${hours}.${minutes}`;
+  };
+
   const generateTimeSlots = () => {
     const slots = [];
     for (let hour = 8; hour <= 20; hour++) {
       slots.push(`${hour.toString().padStart(2, "0")}:00`);
+      slots.push(`${hour.toString().padStart(2, "0")}:30`);
     }
     return slots;
   };
 
   const timeSlots = generateTimeSlots();
 
-  // Altezza di un'ora in pixel
-  const HOUR_HEIGHT = 80;
+  // Altezza di mezz'ora in pixel
+  const HALF_HOUR_HEIGHT = 40;
   const START_HOUR = 8;
 
   // Calcola posizione e altezza per ogni evento
   const getEventPosition = (event: ParsedEvent) => {
     if (!event.time.includes(" - ")) {
-      return { top: 0, height: HOUR_HEIGHT };
+      return { top: 0, height: HALF_HOUR_HEIGHT };
     }
 
     const [startTime, endTime] = event.time.split(" - ");
@@ -58,28 +64,28 @@ export function CalendarDayDialog({
     const startMinuteOffset = startMinutes % 60;
 
     const top =
-      (startHour - START_HOUR) * HOUR_HEIGHT +
-      (startMinuteOffset / 60) * HOUR_HEIGHT;
-    const height = (duration / 60) * HOUR_HEIGHT;
+      (startHour - START_HOUR) * HALF_HOUR_HEIGHT * 2 +
+      (startMinuteOffset / 30) * HALF_HOUR_HEIGHT;
+    const height = (duration / 30) * HALF_HOUR_HEIGHT;
 
     return { top, height };
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 backdrop-blur-sm">
-      <div className="w-full h-full mx-0 bg-black border border-gray-800 rounded-none overflow-hidden flex flex-col">
-        <div className="p-4 border-b border-gray-800 text-center relative">
-          <h2 className="text-lg font-medium text-white font-serif">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 dark:bg-black/90 backdrop-blur-sm">
+      <div className="w-full h-full mx-0 bg-white dark:bg-black border border-gray-200 dark:border-gray-800 rounded-none overflow-hidden flex flex-col">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-800 text-center relative">
+          <h2 className="text-lg font-medium text-gray-900 dark:text-white font-serif">
             {getDayName(day.day)}
           </h2>
-          <p className="text-xs text-gray-400 font-mono mt-1">
+          <p className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-1">
             {day.events.length}{" "}
             {day.events.length === 1 ? "lezione" : "lezioni"}
           </p>
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white transition-colors active:scale-95"
+            className="absolute top-4 right-4 p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors active:scale-95"
           >
             <svg
               className="w-5 h-5"
@@ -106,24 +112,28 @@ export function CalendarDayDialog({
                 {timeSlots.map((slot) => (
                   <div
                     key={slot}
-                    className="text-right pr-3 text-xs font-mono text-gray-400"
-                    style={{ height: `${HOUR_HEIGHT}px` }}
+                    className="text-right pr-3 text-xs font-mono text-gray-500 dark:text-gray-400"
+                    style={{ height: `${HALF_HOUR_HEIGHT}px` }}
                   >
-                    {slot}
+                    {formatTime(slot)}
                   </div>
                 ))}
               </div>
 
               {/* Colonna degli eventi */}
-              <div className="flex-1 relative border-l border-gray-800">
+              <div className="flex-1 relative border-l border-gray-200 dark:border-gray-800">
                 {/* Linee orarie di sfondo */}
                 {timeSlots.map((slot, index) => (
                   <div
                     key={slot}
-                    className="absolute w-full border-b border-gray-800 border-opacity-30"
+                    className={`absolute w-full border-b ${
+                      slot.includes(":00")
+                        ? "border-gray-200 dark:border-gray-800"
+                        : "border-gray-100 dark:border-gray-800/30"
+                    }`}
                     style={{
-                      top: `${index * HOUR_HEIGHT}px`,
-                      height: `${HOUR_HEIGHT}px`,
+                      top: `${index * HALF_HOUR_HEIGHT}px`,
+                      height: `${HALF_HOUR_HEIGHT}px`,
                     }}
                   />
                 ))}
@@ -140,30 +150,30 @@ export function CalendarDayDialog({
                       style={{
                         top: `${top}px`,
                         height: `${Math.max(height - 8, 30)}px`,
-                        paddingBottom: "4px", // Aggiungo un piccolo spazio sotto
+                        paddingBottom: "4px",
                       }}
                     >
                       <div
                         className="h-full rounded-lg p-3 text-xs overflow-hidden flex flex-col"
                         style={{
-                          backgroundColor: `${color}15`,
-                          boxShadow: `0 1px 3px rgba(0,0,0,0.1), inset 0 -2px 0 ${color}`, // Solo un sottile accento in basso
-                          minHeight: "100%", // Assicura che la card si espanda per contenere tutto il contenuto
+                          backgroundColor: `${color}40`,
+                          boxShadow: `0 1px 3px rgba(0,0,0,0.1), inset 0 -2px 0 ${color}`,
+                          minHeight: "100%",
                         }}
                       >
-                        <div className="font-medium text-white mb-2 text-sm leading-relaxed flex items-center flex-wrap gap-2">
+                        <div className="font-medium text-gray-900 dark:text-white mb-2 text-sm leading-relaxed flex items-center flex-wrap gap-2">
                           <span className="flex-1">{event.materia}</span>
                           <span
                             className={`text-xs px-2 py-0.5 rounded-full font-mono flex-shrink-0 ${
                               event.tipo === "Laboratorio"
-                                ? "bg-orange-500 bg-opacity-20 text-orange-300"
-                                : "bg-blue-500 bg-opacity-20 text-blue-300"
+                                ? "bg-orange-500 bg-opacity-40 text-orange-800 dark:text-orange-300"
+                                : "bg-blue-500 bg-opacity-40 text-blue-800 dark:text-blue-300"
                             }`}
                           >
                             {event.tipo}
                           </span>
                         </div>
-                        <div className="text-gray-400 space-y-1.5 flex-1">
+                        <div className="text-gray-600 dark:text-gray-400 space-y-1.5 flex-1">
                           <div className="flex items-center gap-2">
                             <svg
                               className="w-3 h-3 flex-shrink-0"
@@ -178,7 +188,10 @@ export function CalendarDayDialog({
                               />
                             </svg>
                             <span className="font-mono text-xs">
-                              {event.time}
+                              {event.time
+                                .split(" - ")
+                                .map(formatTime)
+                                .join(" - ")}
                             </span>
                           </div>
                           {event.aula && (
@@ -229,11 +242,11 @@ export function CalendarDayDialog({
           </div>
         </div>
 
-        <div className="p-4 border-t border-gray-800 text-center">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-800 text-center">
           <button
             type="button"
             onClick={onClose}
-            className="text-xs font-mono text-gray-400 hover:text-white transition-colors"
+            className="text-xs font-mono text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
           >
             Tocca per chiudere
           </button>

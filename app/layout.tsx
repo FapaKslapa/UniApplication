@@ -30,9 +30,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="it" className="light">
       <body
-        className={`${interTight.variable} ${notoSerif.variable} font-sans antialiased`}
+        className={`${interTight.variable} ${notoSerif.variable} font-sans antialiased bg-white dark:bg-black`}
       >
         <TRPCProvider>{children}</TRPCProvider>
       </body>

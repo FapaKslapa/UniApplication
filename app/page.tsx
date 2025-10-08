@@ -4,6 +4,7 @@ import { api } from "@/lib/api";
 import { parseOrarioData } from "@/lib/orario-utils";
 import { CalendarView } from "./components/CalendarView";
 import NextLessonCard from "./components/NextLessonCard";
+import { ThemeToggle } from "./components/ThemeToggle";
 
 export default function Home() {
   const {
@@ -16,20 +17,21 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-gray-600 border-t-white rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400 font-mono text-sm">
+          <div className="w-8 h-8 border-2 border-gray-300 dark:border-gray-600 border-t-gray-900 dark:border-t-white rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400 font-mono text-sm">
             Caricamento orario...
           </p>
         </div>
+        <ThemeToggle />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 rounded-full bg-red-500 bg-opacity-20 flex items-center justify-center mx-auto mb-4">
             <svg
@@ -52,15 +54,16 @@ export default function Home() {
           </p>
           <p className="text-gray-500 text-xs">{error.message}</p>
         </div>
+        <ThemeToggle />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-white dark:bg-black text-gray-900 dark:text-white flex flex-col">
       {/* Contenuto principale */}
       <main className="w-full px-4 py-4 space-y-6 flex-1">
-        <h1 className="text-4xl font-semibold mb-4 text-white font-serif">
+        <h1 className="text-4xl font-semibold mb-4 text-gray-900 dark:text-white font-serif">
           Orario Insubria
         </h1>
         <section>
@@ -72,6 +75,8 @@ export default function Home() {
           <CalendarView schedule={schedule} />
         </section>
       </main>
+
+      <ThemeToggle />
     </div>
   );
 }

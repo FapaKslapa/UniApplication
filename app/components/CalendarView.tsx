@@ -72,12 +72,12 @@ export function CalendarView({ schedule }: CalendarViewProps) {
 
   return (
     <>
-      <div className="w-full max-w-md mx-auto bg-black text-white">
-        <div className="p-6 text-center border-b border-gray-800">
+      <div className="w-full max-w-md mx-auto bg-white dark:bg-black text-gray-900 dark:text-white">
+        <div className="p-6 text-center border-b border-gray-200 dark:border-gray-800">
           <h1 className="text-xl font-light tracking-wide mb-1 font-serif">
             Orario
           </h1>
-          <div className="text-xs text-gray-400">
+          <div className="text-xs text-gray-500 dark:text-gray-400">
             {today.toFormat("d MMMM yyyy")}
           </div>
         </div>
@@ -86,7 +86,7 @@ export function CalendarView({ schedule }: CalendarViewProps) {
           <div className="grid grid-cols-7 gap-1">
             {weekDayHeaders.map((day) => (
               <div key={day.name} className="text-center py-3">
-                <span className="text-xs font-mono text-white">
+                <span className="text-xs font-mono text-gray-900 dark:text-white">
                   {day.label}
                 </span>
               </div>
@@ -108,15 +108,17 @@ export function CalendarView({ schedule }: CalendarViewProps) {
                     transition-all duration-200 active:scale-95
                     ${
                       dayData.hasEvents
-                        ? "bg-gray-900 hover:bg-gray-800 cursor-pointer"
+                        ? "bg-gray-100 dark:bg-gray-900 hover:bg-gray-200 dark:hover:bg-gray-800 cursor-pointer"
                         : "cursor-default"
                     }
-                    ${isToday ? "ring-1 ring-white ring-opacity-30" : ""}
+                    ${isToday ? "ring-1 ring-gray-400 dark:ring-white ring-opacity-50 dark:ring-opacity-30" : ""}
                   `}
                 >
                   <span
                     className={`text-sm font-mono mb-1 ${
-                      dayData.hasEvents ? "text-white" : "text-gray-600"
+                      dayData.hasEvents
+                        ? "text-gray-900 dark:text-white"
+                        : "text-gray-300 dark:text-gray-600"
                     }`}
                   >
                     {dayData.dayOfMonth}
@@ -144,7 +146,9 @@ export function CalendarView({ schedule }: CalendarViewProps) {
 
         <div className="px-4 pb-6">
           <div className="space-y-2">
-            <h3 className="text-xs font-mono text-white mb-3">Materie</h3>
+            <h3 className="text-xs font-mono text-gray-900 dark:text-white mb-3">
+              Materie
+            </h3>
             {Array.from(
               new Set(schedule.flatMap((s) => s.events.map((e) => e.materia))),
             ).map((materia) => (
@@ -153,7 +157,7 @@ export function CalendarView({ schedule }: CalendarViewProps) {
                   className="w-2 h-2 rounded-full flex-shrink-0"
                   style={{ backgroundColor: getMateriaColor(materia) }}
                 />
-                <span className="text-xs text-white font-mono truncate">
+                <span className="text-xs text-gray-900 dark:text-white font-mono truncate">
                   {materia.toLowerCase()}
                 </span>
               </div>
