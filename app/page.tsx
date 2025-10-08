@@ -72,21 +72,6 @@ export default function Home() {
           <CalendarView schedule={schedule} />
         </section>
       </main>
-
-      {/* Footer */}
-      <footer className="text-center py-3 border-t border-gray-900">
-        <p className="text-gray-400 text-sm">
-          powered by{" "}
-          <a
-            href="https://stackhorizon.it"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-400 hover:text-blue-300 transition-colors"
-          >
-            StackHorizon
-          </a>
-        </p>
-      </footer>
     </div>
   );
 }

@@ -23,11 +23,9 @@ const CACHE_TTL = 1000 * 60 * 30; // 30 minuti
 const scrap = async (): Promise<OrarioData> => {
   // Controlla se abbiamo dati in cache ancora validi
   if (cachedData && Date.now() - cachedData.timestamp < CACHE_TTL) {
-    console.log("[DEBUG] Usando dati dalla cache");
     return cachedData.data;
   }
 
-  console.log("[DEBUG] Avvio scraper per ottenere i dati dell'orario");
   const browser = await puppeteer.launch({
     headless: true,
     executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || undefined,
@@ -76,10 +74,6 @@ const scrap = async (): Promise<OrarioData> => {
       });
     });
 
-    // Log completo dei dati grezzi
-    console.log("[DEBUG] Dati grezzi ottenuti dallo scraper:");
-    console.log(JSON.stringify(pageContent, null, 2));
-
     // Rimuovi allEvents prima di salvare nella cache
     const filteredContent = pageContent.map((day) => ({
       day: day.day,
@@ -92,7 +86,6 @@ const scrap = async (): Promise<OrarioData> => {
         data: filteredContent,
         timestamp: Date.now(),
       };
-      console.log("[DEBUG] Dati salvati nella cache");
     } else {
       console.warn("No events found on page! Not caching empty data.");
     }
