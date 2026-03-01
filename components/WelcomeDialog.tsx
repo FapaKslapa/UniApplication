@@ -3,14 +3,14 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   BellRing,
-  Calendar,
   ChevronRight,
-  Layers,
-  LayoutGrid,
+  GraduationCap,
+  Heart,
   Sparkles,
-  Zap,
+  UserCircle,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 const SPRING_CONFIG = {
@@ -27,63 +27,54 @@ interface WelcomeDialogProps {
 
 const slides = [
   {
-    id: "welcome",
+    id: "role-selection",
     icon: Sparkles,
-    title: "Tutto l'Ateneo in tasca",
+    title: "Benvenuto su UniOrario",
     description:
-      "UniOrario si rinnova. Ora puoi seguire qualsiasi corso di laurea dell'Insubria e gestire il tuo tempo in modo smart.",
+      "L'orario di tutto l'Ateneo Insubria in un'unica app. Prima di iniziare, dimmi chi sei.",
     color: "text-amber-500",
     bgColor: "bg-amber-500/10",
+    isRoleSelection: true,
   },
   {
-    id: "live-info",
-    icon: Zap,
-    title: "Cosa succede ora?",
+    id: "how-it-works",
+    icon: Sparkles,
+    title: "Come funziona",
     description:
-      "Visualizza istantaneamente la lezione in corso, l'aula e il docente. Saprai sempre dove devi essere senza dover cercare tra mille righe.",
+      "Seleziona i tuoi corsi dalle impostazioni e l'app costruirà il tuo orario personalizzato. Puoi vedere la settimana corrente, navigare tra i mesi e scoprire in tempo reale la lezione in corso, l'aula e il docente.",
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
-  },
-  {
-    id: "navigation",
-    icon: LayoutGrid,
-    title: "Navigazione fluida",
-    description:
-      "Usa gli swipe laterali per muoverti tra le settimane. Cambia schermata per passare dai dettagli del giorno alla pianificazione mensile.",
-    color: "text-purple-500",
-    bgColor: "bg-purple-500/10",
-  },
-  {
-    id: "date-picker",
-    icon: Calendar,
-    title: "Salta nel tempo",
-    description:
-      "Tocca la data o il mese in alto per aprire il calendario. Puoi saltare velocemente a qualsiasi giorno dell'anno con un semplice tocco.",
-    color: "text-red-500",
-    bgColor: "bg-red-500/10",
-  },
-  {
-    id: "customization",
-    icon: Layers,
-    title: "Corsi e Materie",
-    description:
-      "Aggiungi più corsi contemporaneamente e nascondi le materie che non ti interessano. L'orario diventerà esattamente come lo vuoi tu.",
-    color: "text-pink-500",
-    bgColor: "bg-pink-500/10",
+    bullets: [
+      "📅  Vista settimanale e mensile",
+      "⚡  Lezione in corso sempre visibile",
+      "🔔  Notifiche su cambi orario",
+    ],
   },
   {
     id: "notifications",
     icon: BellRing,
-    title: "Avvisi Intelligenti",
+    title: "Resta sempre aggiornato",
     description:
-      "Attiva le notifiche per i corsi che segui. Ti avviseremo noi sul telefono se una lezione viene spostata, cambia aula o viene annullata.",
+      "Attiva le notifiche push: ti avvisiamo in tempo reale se una lezione viene spostata, cambia aula o viene annullata. Puoi scegliere per quali materie ricevere avvisi.",
     color: "text-green-500",
     bgColor: "bg-green-500/10",
+  },
+  {
+    id: "community",
+    icon: Heart,
+    title: "Progetto della community",
+    description:
+      "UniOrario è un progetto open source fatto da studenti per studenti. Se manca il tuo corso puoi aggiungerlo tu stesso: verrà revisionato e reso disponibile a tutti.",
+    color: "text-pink-500",
+    bgColor: "bg-pink-500/10",
+    communityNote:
+      "Trovato un bug o hai un'idea? Apri una issue su GitHub o scrivici.",
   },
 ];
 
 export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const { userRole, setUserRole } = useAppStore();
 
   useEffect(() => {
     if (isOpen) {
@@ -121,7 +112,7 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
               transition={{ duration: 0.2, ease: "easeOut" }}
-              className="flex flex-col items-center space-y-6"
+              className="flex flex-col items-center space-y-6 w-full"
             >
               <div
                 className={cn(
@@ -140,6 +131,63 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
                   {slide.description}
                 </p>
               </div>
+
+              {/* Scelta ruolo */}
+              {slide.isRoleSelection && (
+                <div className="grid grid-cols-2 gap-3 w-full pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setUserRole("student")}
+                    className={cn(
+                      "flex flex-col items-center gap-3 p-4 rounded-3xl border-2 transition-all active:scale-95",
+                      userRole === "student"
+                        ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white text-white dark:text-black shadow-lg"
+                        : "bg-white dark:bg-black border-zinc-100 dark:border-zinc-900 text-zinc-400 hover:border-zinc-200 dark:hover:border-zinc-800",
+                    )}
+                  >
+                    <GraduationCap className="w-8 h-8" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      Studente
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setUserRole("professor")}
+                    className={cn(
+                      "flex flex-col items-center gap-3 p-4 rounded-3xl border-2 transition-all active:scale-95",
+                      userRole === "professor"
+                        ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white text-white dark:text-black shadow-lg"
+                        : "bg-white dark:bg-black border-zinc-100 dark:border-zinc-900 text-zinc-400 hover:border-zinc-200 dark:hover:border-zinc-800",
+                    )}
+                  >
+                    <UserCircle className="w-8 h-8" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      Docente
+                    </span>
+                  </button>
+                </div>
+              )}
+
+              {/* Bullet points informativi */}
+              {"bullets" in slide && slide.bullets && (
+                <ul className="w-full space-y-2 pt-1">
+                  {slide.bullets.map((b) => (
+                    <li
+                      key={b}
+                      className="text-left text-sm text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900 rounded-2xl px-4 py-2.5 font-medium"
+                    >
+                      {b}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              {/* Nota community */}
+              {"communityNote" in slide && slide.communityNote && (
+                <p className="text-xs text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-900 rounded-2xl px-4 py-3 leading-relaxed w-full text-left">
+                  {slide.communityNote}
+                </p>
+              )}
             </motion.div>
           </AnimatePresence>
 

@@ -28,8 +28,8 @@ import {
   getCurrentItalianDateTime,
   getDayOfWeek,
 } from "@/lib/date-utils";
-import { useLocalStorage } from "@/lib/hooks";
 import type { DaySchedule } from "@/lib/orario-utils";
+import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 dayjs.extend(utc);
@@ -54,7 +54,7 @@ interface CalendarViewProps {
   materiaColorMap: Record<string, string>;
 }
 
-const INITIAL_HIDDEN_SUBJECTS: string[] = [];
+const _INITIAL_HIDDEN_SUBJECTS: string[] = [];
 
 export function CalendarView({
   schedule,
@@ -68,10 +68,7 @@ export function CalendarView({
   materiaColorMap,
 }: CalendarViewProps) {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [hiddenSubjects, setHiddenSubjects] = useLocalStorage<string[]>(
-    "hiddenSubjects",
-    INITIAL_HIDDEN_SUBJECTS,
-  );
+  const { hiddenSubjects, setHiddenSubjects } = useAppStore();
   const [direction, setDirection] = useState(0);
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
   const [_isMobile, setIsMobile] = useState(false);
@@ -483,7 +480,7 @@ export function CalendarView({
       <div
         className={cn(
           "flex-1 min-h-0 overflow-y-auto custom-scrollbar",
-          showTabs && activeTab !== "calendar" && "hidden",
+          showTabs && activeTab !== "filters" && "hidden",
         )}
       >
         <div className="px-5 pb-6">

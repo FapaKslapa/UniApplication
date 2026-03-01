@@ -1,5 +1,6 @@
 import { DateTime } from "luxon";
 import { z } from "zod";
+import { getVisibleCourses } from "@/lib/courses";
 import {
   addDays,
   formatDate,
@@ -7,6 +8,7 @@ import {
   getDayOfWeek,
   timeToMinutes,
 } from "@/lib/date-utils";
+import { toTitleCase } from "@/lib/utils";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 
 type OrarioData = Array<{
@@ -82,93 +84,115 @@ const fetchRawEvents = async (
 const processEvents = (
   events: CinecaEvent[],
   locationFilter: "Varese" | "Como" | "Tutte",
+  professorName?: string,
 ): OrarioData => {
   const result: OrarioData = Array.from({ length: 7 }, (_, d) => ({
     day: d,
     events: [],
   }));
 
-  for (const event of events) {
-    const rawTitle = event.nome || "Lezione";
-    const aulaMatch = rawTitle.match(/^(.+?)Aula/);
-    const title = aulaMatch ? aulaMatch[1].trim() : rawTitle;
+  const processed = events
+    .map((event) => {
+      const date = DateTime.fromISO(event.dataInizio).setZone("Europe/Rome");
+      const rawTitle = event.nome || "Lezione";
+      const aulaMatch = rawTitle.match(/^(.+?)Aula/);
+      const title = toTitleCase(aulaMatch ? aulaMatch[1].trim() : rawTitle);
 
-    const hasComoRooms = (event.aule || []).some(
-      (a) =>
-        (a.edificio?.comune || "").toUpperCase().includes("COMO") ||
-        a.descrizione.toUpperCase().includes("COMO"),
-    );
+      const professor = event.docenti?.[0]
+        ? toTitleCase(`${event.docenti[0].cognome} ${event.docenti[0].nome}`)
+        : "N/A";
 
-    const isVideoConference =
-      ["VIDEOCONFERENZA", "TEAMS", "VIDEOCHIAMATA"].some((term) =>
-        title.toUpperCase().includes(term),
-      ) ||
-      hasComoRooms ||
-      (event.aule || []).some((a) =>
-        ["VIDEOCONFERENZA", "TEAMS"].some((term) =>
-          a.descrizione.toUpperCase().includes(term),
-        ),
+      // Filtro per nome docente (case insensitive comparison)
+      if (
+        professorName &&
+        professor.toLowerCase() !== professorName.toLowerCase()
+      )
+        return null;
+
+      const hasComoRooms = (event.aule || []).some(
+        (a) =>
+          (a.edificio?.comune || "").toUpperCase().includes("COMO") ||
+          a.descrizione.toUpperCase().includes("COMO"),
       );
 
-    let matchesLocation = locationFilter === "Tutte" || isVideoConference;
+      const isVideoConference =
+        ["VIDEOCONFERENZA", "TEAMS", "VIDEOCHIAMATA"].some((term) =>
+          title.toUpperCase().includes(term),
+        ) ||
+        hasComoRooms ||
+        (event.aule || []).some((a) =>
+          ["VIDEOCONFERENZA", "TEAMS"].some((term) =>
+            a.descrizione.toUpperCase().includes(term),
+          ),
+        );
 
-    const filteredAule = (event.aule || []).filter((aula) => {
-      if (locationFilter === "Tutte") return true;
-      const name = aula.descrizione.toUpperCase();
-      const city = (aula.edificio?.comune || "Unknown").toUpperCase();
+      let matchesLocation = locationFilter === "Tutte" || isVideoConference;
 
-      if (locationFilter === "Varese") {
-        return city.includes("VARESE") || name.includes("VARESE");
+      const filteredAule = (event.aule || []).filter((aula) => {
+        if (locationFilter === "Tutte") return true;
+        const name = aula.descrizione.toUpperCase();
+        const city = (aula.edificio?.comune || "Unknown").toUpperCase();
+
+        if (locationFilter === "Varese") {
+          return city.includes("VARESE") || name.includes("VARESE");
+        }
+        if (locationFilter === "Como") {
+          return city.includes("COMO") || name.includes("COMO");
+        }
+        return true;
+      });
+
+      if (locationFilter !== "Tutte" && !matchesLocation) {
+        matchesLocation = filteredAule.length > 0;
       }
-      if (locationFilter === "Como") {
-        return city.includes("COMO") || name.includes("COMO");
-      }
-      return true;
-    });
 
-    if (locationFilter !== "Tutte" && !matchesLocation) {
-      matchesLocation = filteredAule.length > 0;
-    }
+      if (!matchesLocation) return null;
 
-    if (!matchesLocation) continue;
+      const location =
+        filteredAule
+          .map(
+            (aula) =>
+              `${aula.descrizione} (${aula.edificio?.comune || "Unknown"})`,
+          )
+          .join(" | ") ||
+        (isVideoConference ? "Videoconferenza Online" : "N/A");
 
-    const location =
-      filteredAule
-        .map(
-          (aula) =>
-            `${aula.descrizione} (${aula.edificio?.comune || "Unknown"})`,
-        )
-        .join(" | ") || (isVideoConference ? "Videoconferenza Online" : "N/A");
+      const dayIdx = getDayOfWeek(date);
+      const start = date.toFormat("HH:mm");
+      const end = DateTime.fromISO(event.dataFine)
+        .setZone("Europe/Rome")
+        .toFormat("HH:mm");
 
-    const date = DateTime.fromISO(event.dataInizio).setZone("Europe/Rome");
-    const dayIdx = getDayOfWeek(date);
+      const time = `${start} - ${end}`;
 
-    const start = date.toFormat("HH:mm");
-    const end = DateTime.fromISO(event.dataFine)
-      .setZone("Europe/Rome")
-      .toFormat("HH:mm");
+      return {
+        date: date.toISODate(),
+        day: dayIdx,
+        time,
+        title,
+        location,
+        professor,
+        isVideo: isVideoConference,
+      };
+    })
+    .filter((e): e is NonNullable<typeof e> => e !== null);
 
-    const professor = event.docenti?.[0]
-      ? `${event.docenti[0].cognome} ${event.docenti[0].nome}`
-      : "N/A";
-
-    const time = `${start} - ${end}`;
-
-    if (dayIdx >= 0 && dayIdx <= 6) {
-      const isDuplicate = result[dayIdx].events.some(
+  for (const event of processed) {
+    if (event.day >= 0 && event.day <= 6) {
+      const isDuplicate = result[event.day].events.some(
         (existing) =>
-          existing.title === title &&
-          existing.time === time &&
-          existing.location === location,
+          existing.title === event.title &&
+          existing.time === event.time &&
+          existing.location === event.location,
       );
 
       if (!isDuplicate) {
-        result[dayIdx].events.push({
-          time,
-          title,
-          location,
-          professor,
-          isVideo: isVideoConference,
+        result[event.day].events.push({
+          time: event.time,
+          title: event.title,
+          location: event.location,
+          professor: event.professor,
+          isVideo: event.isVideo,
         });
       }
     }
@@ -225,17 +249,29 @@ export const orarioRouter = createTRPCRouter({
         dayOffset: z.number().default(0),
         linkId: z.string().optional(),
         linkIds: z.array(z.string()).optional(),
+        professorName: z.string().optional(),
       }),
     )
     .query(async ({ input }) => {
-      const ids = input.linkIds || (input.linkId ? [input.linkId] : []);
+      let ids = input.linkIds || (input.linkId ? [input.linkId] : []);
+
+      // Se c'è un nome docente, cerchiamo in TUTTI i corsi approvati (indipendente dai linkIds dello studente)
+      if (input.professorName || ids.length === 0) {
+        const visibleCourses = await getVisibleCourses();
+        ids = visibleCourses.map((c) => c.linkId);
+      }
+
       if (ids.length === 0) return [];
 
       const allRawEvents = await Promise.all(
         ids.map((id) => fetchRawEvents(input.dayOffset, id)),
       );
 
-      return processEvents(allRawEvents.flat(), input.location);
+      return processEvents(
+        allRawEvents.flat(),
+        input.location,
+        input.professorName,
+      );
     }),
 
   getMonthlyOrario: publicProcedure
@@ -247,10 +283,17 @@ export const orarioRouter = createTRPCRouter({
         month: z.number(),
         linkId: z.string().optional(),
         linkIds: z.array(z.string()).optional(),
+        professorName: z.string().optional(),
       }),
     )
     .query(async ({ input }) => {
-      const ids = input.linkIds || (input.linkId ? [input.linkId] : []);
+      let ids = input.linkIds || (input.linkId ? [input.linkId] : []);
+
+      if (input.professorName || ids.length === 0) {
+        const visibleCourses = await getVisibleCourses();
+        ids = visibleCourses.map((c) => c.linkId);
+      }
+
       if (ids.length === 0) return [];
 
       const startRange = DateTime.fromObject(
@@ -298,7 +341,19 @@ export const orarioRouter = createTRPCRouter({
           );
           const rawTitle = event.nome || "Lezione";
           const aulaMatch = rawTitle.match(/^(.+?)Aula/);
-          const title = aulaMatch ? aulaMatch[1].trim() : rawTitle;
+          const title = toTitleCase(aulaMatch ? aulaMatch[1].trim() : rawTitle);
+
+          const professor = event.docenti?.[0]
+            ? toTitleCase(
+                `${event.docenti[0].cognome} ${event.docenti[0].nome}`,
+              )
+            : "N/A";
+
+          if (
+            input.professorName &&
+            professor.toLowerCase() !== input.professorName.toLowerCase()
+          )
+            return null;
 
           const hasComoRooms = (event.aule || []).some(
             (a) =>
@@ -358,9 +413,7 @@ export const orarioRouter = createTRPCRouter({
             time: `${start} - ${end}`,
             title,
             location,
-            professor: event.docenti?.[0]
-              ? `${event.docenti[0].cognome} ${event.docenti[0].nome}`
-              : "N/A",
+            professor,
             isVideo: isVideoConference,
           };
         })
@@ -386,10 +439,17 @@ export const orarioRouter = createTRPCRouter({
         location: z.enum(["Varese", "Como", "Tutte"]).default("Tutte"),
         linkId: z.string().optional(),
         linkIds: z.array(z.string()).optional(),
+        professorName: z.string().optional(),
       }),
     )
     .query(async ({ input }) => {
-      const ids = input.linkIds || (input.linkId ? [input.linkId] : []);
+      let ids = input.linkIds || (input.linkId ? [input.linkId] : []);
+
+      if (input.professorName || ids.length === 0) {
+        const visibleCourses = await getVisibleCourses();
+        ids = visibleCourses.map((c) => c.linkId);
+      }
+
       if (ids.length === 0) {
         return { hasLessons: false, lessons: [], dayName: "" };
       }
@@ -398,7 +458,11 @@ export const orarioRouter = createTRPCRouter({
         ids.map((id) => fetchRawEvents(input.dayOffset, id)),
       );
 
-      const orarioData = processEvents(allRawEvents.flat(), input.location);
+      const orarioData = processEvents(
+        allRawEvents.flat(),
+        input.location,
+        input.professorName,
+      );
 
       const currentDate = getCurrentItalianDateTime();
       const targetDate = addDays(currentDate, input.dayOffset);
@@ -446,10 +510,17 @@ export const orarioRouter = createTRPCRouter({
       z.object({
         linkId: z.string().optional(),
         linkIds: z.array(z.string()).optional(),
+        professorName: z.string().optional(),
       }),
     )
     .query(async ({ input }) => {
-      const ids = input.linkIds || (input.linkId ? [input.linkId] : []);
+      let ids = input.linkIds || (input.linkId ? [input.linkId] : []);
+
+      if (input.professorName || ids.length === 0) {
+        const visibleCourses = await getVisibleCourses();
+        ids = visibleCourses.map((c) => c.linkId);
+      }
+
       if (ids.length === 0) return [];
 
       const currentDate = getCurrentItalianDateTime();
@@ -481,11 +552,19 @@ export const orarioRouter = createTRPCRouter({
             ? rawData
             : rawData.impegni || [];
 
-          return rawEvents.map((e) => {
-            const title = e.nome || "Lezione";
-            const aulaMatch = title.match(/^(.+?)Aula/);
-            return aulaMatch ? aulaMatch[1].trim() : title;
-          });
+          return rawEvents
+            .filter((e) => {
+              if (!input.professorName) return true;
+              const prof = e.docenti?.[0]
+                ? toTitleCase(`${e.docenti[0].cognome} ${e.docenti[0].nome}`)
+                : "N/A";
+              return prof.toLowerCase() === input.professorName?.toLowerCase();
+            })
+            .map((e) => {
+              const title = e.nome || "Lezione";
+              const aulaMatch = title.match(/^(.+?)Aula/);
+              return toTitleCase(aulaMatch ? aulaMatch[1].trim() : title);
+            });
         } catch (error) {
           console.error(`Failed to fetch subjects for ${id}:`, error);
           return [];
@@ -496,5 +575,69 @@ export const orarioRouter = createTRPCRouter({
       const combinedSubjects = new Set(allSubjectsLists.flat());
 
       return Array.from(combinedSubjects).sort();
+    }),
+
+  getProfessors: publicProcedure
+    .input(
+      z.object({
+        linkIds: z.array(z.string()).optional(),
+      }),
+    )
+    .query(async ({ input }) => {
+      let ids = input?.linkIds || [];
+
+      if (ids.length === 0) {
+        const visibleCourses = await getVisibleCourses();
+        ids = visibleCourses.map((c) => c.linkId);
+      }
+
+      if (ids.length === 0) return [];
+
+      const currentDate = getCurrentItalianDateTime();
+      const startRange = currentDate.startOf("day");
+      const endRange = startRange.plus({ months: 3 }).endOf("day");
+
+      const fetchProfessorsForId = async (id: string) => {
+        try {
+          const response = await fetch(
+            "https://unins.prod.up.cineca.it/api/Impegni/getImpegniCalendarioPubblico",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                mostraImpegniAnnullati: true,
+                mostraIndisponibilitaTotali: false,
+                linkCalendarioId: id,
+                clienteId: "59f05192a635f443422fe8fd",
+                pianificazioneTemplate: false,
+                dataInizio: startRange.toISO(),
+                dataFine: endRange.toISO(),
+              }),
+            },
+          );
+
+          if (!response.ok) throw new Error(`API error: ${response.status}`);
+          const rawData = await response.json();
+          const rawEvents: CinecaEvent[] = Array.isArray(rawData)
+            ? rawData
+            : rawData.impegni || [];
+
+          return rawEvents.flatMap((e) =>
+            (e.docenti || []).map((d) => toTitleCase(`${d.cognome} ${d.nome}`)),
+          );
+        } catch (error) {
+          console.error(`Failed to fetch professors for ${id}:`, error);
+          return [];
+        }
+      };
+
+      const allProfessorsLists = await Promise.all(
+        ids.map(fetchProfessorsForId),
+      );
+      const combinedProfessors = new Set(allProfessorsLists.flat());
+
+      return Array.from(combinedProfessors)
+        .filter((p) => p !== "N/A" && p.trim() !== "")
+        .sort();
     }),
 });

@@ -1,6 +1,7 @@
 import { and, eq, ne, or } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { courses } from "@/lib/db/schema";
+import { toTitleCase } from "@/lib/utils";
 
 export type CourseStatus = "pending" | "approved" | "rejected";
 
@@ -33,6 +34,7 @@ interface DbCourse {
 function mapCourse(dbCourse: DbCourse): Course {
   return {
     ...dbCourse,
+    name: toTitleCase(dbCourse.name),
     status: dbCourse.status as CourseStatus,
     createdAt: dbCourse.createdAt.toISOString(),
   };

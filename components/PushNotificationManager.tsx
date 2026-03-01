@@ -3,18 +3,23 @@
 import { Bell, BellRing } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "@/lib/api";
-import { useLocalStorage, useUserId } from "@/lib/hooks";
+import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 
-export function PushNotificationManager({ linkId }: { linkId: string }) {
+export function PushNotificationManager({
+  linkId,
+  compact = false,
+}: {
+  linkId: string;
+  compact?: boolean;
+}) {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [_permission, setPermission] =
     useState<NotificationPermission>("default");
   const [loading, setLoading] = useState(false);
-  const _userId = useUserId();
-  const [hiddenSubjects] = useLocalStorage<string[]>("hiddenSubjects", []);
+  const { hiddenSubjects } = useAppStore();
 
   const subscribeMutation = api.notifications.subscribe.useMutation();
   const unsubscribeMutation = api.notifications.unsubscribe.useMutation();
@@ -126,6 +131,31 @@ export function PushNotificationManager({ linkId }: { linkId: string }) {
 
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
     return null;
+  }
+
+  if (compact) {
+    return (
+      <button
+        type="button"
+        onClick={isSubscribed ? handleUnsubscribe : handleSubscribe}
+        disabled={loading}
+        title={isSubscribed ? "Disattiva notifiche" : "Attiva notifiche"}
+        className={cn(
+          "flex items-center justify-center w-8 h-8 rounded-xl border transition-all active:scale-90",
+          isSubscribed
+            ? "border-green-300 dark:border-green-500/40 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-500/20"
+            : "border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-300",
+        )}
+      >
+        {loading ? (
+          <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+        ) : isSubscribed ? (
+          <BellRing className="w-3.5 h-3.5" />
+        ) : (
+          <Bell className="w-3.5 h-3.5" />
+        )}
+      </button>
+    );
   }
 
   return (

@@ -29,8 +29,8 @@ import {
 } from "@/components/ui/tooltip";
 import { api } from "@/lib/api";
 import { timeToMinutes } from "@/lib/date-utils";
-import { useLocalStorage } from "@/lib/hooks";
 import type { DaySchedule } from "@/lib/orario-utils";
+import { useActiveLinkIds, useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 const SPRING_CONFIG = {
@@ -51,12 +51,8 @@ export default function NextLessonCard({
   const [isLandscape, setIsLandscape] = useState(false);
   const [direction, setDirection] = useState(0);
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
-  const [calendarIds] = useLocalStorage<string[]>("calendarIds", []);
-  const [calendarId] = useLocalStorage<string>("calendarId", "");
-  const [hiddenSubjects] = useLocalStorage<string[]>("hiddenSubjects", []);
-
-  const activeLinkIds =
-    calendarIds.length > 0 ? calendarIds : calendarId ? [calendarId] : [];
+  const { hiddenSubjects, professorName, userRole } = useAppStore();
+  const activeLinkIds = useActiveLinkIds();
 
   const handleCalendarDragEnd = (_: unknown, info: PanInfo) => {
     const threshold = 50;
@@ -130,9 +126,16 @@ export default function NextLessonCard({
   }, []);
 
   const { data, isFetching } = api.orario.getNextLesson.useQuery(
-    { dayOffset, linkIds: activeLinkIds, location: "Varese" },
     {
-      enabled: activeLinkIds.length > 0,
+      dayOffset,
+      linkIds: activeLinkIds.length > 0 ? activeLinkIds : undefined,
+      location: "Varese",
+      professorName: userRole === "professor" ? professorName : undefined,
+    },
+    {
+      enabled:
+        activeLinkIds.length > 0 ||
+        (userRole === "professor" && !!professorName),
       placeholderData: (previousData) => previousData,
     },
   );

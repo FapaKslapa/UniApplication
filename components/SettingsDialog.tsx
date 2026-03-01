@@ -8,6 +8,7 @@ import {
   BookOpen,
   Check,
   Copy,
+  GraduationCap,
   Info,
   Link2,
   Mail,
@@ -17,6 +18,7 @@ import {
   Settings2,
   ShieldAlert,
   Sparkles,
+  UserCircle,
   X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -128,7 +130,10 @@ const CoursePanel = ({
       <div className="flex border-b border-zinc-100 dark:border-zinc-900 -mx-4 px-4 mb-3">
         <button
           type="button"
-          onClick={() => setActiveTab("select")}
+          onClick={() => {
+            setActiveTab("select");
+            setSearchQuery("");
+          }}
           className={cn(
             "pb-3 px-3 text-xs font-bold border-b-2 transition-all relative font-serif",
             activeTab === "select"
@@ -143,7 +148,10 @@ const CoursePanel = ({
         </button>
         <button
           type="button"
-          onClick={() => setActiveTab("add")}
+          onClick={() => {
+            setActiveTab("add");
+            setSearchQuery("");
+          }}
           className={cn(
             "pb-3 px-3 text-xs font-bold border-b-2 transition-all relative font-serif",
             activeTab === "add"
@@ -415,6 +423,109 @@ const CoursePanel = ({
   </motion.div>
 );
 
+interface ProfessorPanelProps {
+  isLoading: boolean;
+  professors: string[];
+  selectedProfessor: string;
+  setSelectedProfessor: (name: string) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+}
+
+const ProfessorPanel = ({
+  isLoading,
+  professors,
+  selectedProfessor,
+  setSelectedProfessor,
+  searchQuery,
+  setSearchQuery,
+}: ProfessorPanelProps) => (
+  <motion.div
+    key="professor-panel"
+    custom={1}
+    initial="hidden"
+    animate="visible"
+    exit="exit"
+    variants={panelVariants}
+    transition={SPRING_CONFIG}
+    className="flex flex-col h-full"
+  >
+    <div className="px-4 pt-4 pb-3 border-b border-zinc-100 dark:border-zinc-900 bg-white dark:bg-black sticky top-0 z-10">
+      <p className="text-xs text-zinc-500 mb-3 px-1 font-serif italic">
+        Cerca il tuo nome nell'elenco dei docenti dell'ateneo per caricare il
+        tuo orario personale.
+      </p>
+      <div className="relative group">
+        <input
+          type="text"
+          id="professor-search"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Cerca il tuo nome..."
+          className="w-full pl-10 pr-4 py-2.5 bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white focus:outline-none transition-all text-sm font-medium"
+        />
+        <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 group-focus-within:text-zinc-900 dark:group-focus-within:text-white transition-colors" />
+      </div>
+    </div>
+    <div className="flex-1 overflow-y-auto custom-scrollbar px-4 pb-4">
+      {isLoading ? (
+        <div className="grid grid-cols-1 gap-2 animate-pulse pt-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div
+              key={i}
+              className="h-12 bg-zinc-100 dark:bg-zinc-900 rounded-xl"
+            />
+          ))}
+        </div>
+      ) : (
+        <div className="space-y-2 pt-2">
+          {professors
+            .filter((p) => p.toLowerCase().includes(searchQuery.toLowerCase()))
+            .map((prof) => {
+              const isSelected = selectedProfessor === prof;
+              return (
+                <button
+                  key={prof}
+                  type="button"
+                  onClick={() => setSelectedProfessor(prof)}
+                  className={cn(
+                    "w-full flex items-center gap-3 p-4 rounded-xl border transition-all text-left relative overflow-hidden",
+                    isSelected
+                      ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white shadow-md text-white dark:text-black"
+                      : "bg-white dark:bg-black border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 text-zinc-900 dark:text-white",
+                  )}
+                >
+                  <div
+                    className={cn(
+                      "w-5 h-5 rounded-md border-2 transition-colors shrink-0 flex items-center justify-center",
+                      isSelected
+                        ? "border-white dark:border-black bg-white dark:bg-black"
+                        : "border-zinc-300 dark:border-zinc-700",
+                    )}
+                  >
+                    {isSelected && (
+                      <Check
+                        className={cn(
+                          "w-3.5 h-3.5",
+                          isSelected
+                            ? "text-zinc-900 dark:text-white"
+                            : "text-white dark:text-black",
+                        )}
+                      />
+                    )}
+                  </div>
+                  <span className="font-bold text-xs truncate uppercase tracking-tight">
+                    {prof}
+                  </span>
+                </button>
+              );
+            })}
+        </div>
+      )}
+    </div>
+  </motion.div>
+);
+
 interface SubjectsPanelProps {
   isLoading: boolean;
   availableSubjects: string[] | undefined;
@@ -524,7 +635,7 @@ export function SettingsDialog({
     "calendarIds",
     [],
   );
-  const [courseNames, setCourseNames] = useLocalStorage<string[]>(
+  const [_courseNames, setCourseNames] = useLocalStorage<string[]>(
     "courseNames",
     [],
   );
@@ -546,6 +657,15 @@ export function SettingsDialog({
     "hiddenSubjects",
     INITIAL_HIDDEN_SUBJECTS,
   );
+  const [userRole, setUserRole] = useLocalStorage<"student" | "professor">(
+    "userRole",
+    "student",
+  );
+  const [professorName, setProfessorName] = useLocalStorage<string>(
+    "professorName",
+    "",
+  );
+
   const [error, setError] = useState<string | null>(null);
   const [previewIds, setPreviewIds] = useState<string[]>([]);
 
@@ -564,6 +684,14 @@ export function SettingsDialog({
 
   const { data: allCourses = [], refetch: refetchCourses } =
     api.courses.getAll.useQuery({ userId });
+  const { data: professors = [], isLoading: isLoadingProfessors } =
+    api.orario.getProfessors.useQuery(
+      {},
+      {
+        enabled: userRole === "professor",
+      },
+    );
+
   const addCourseMutation = api.courses.add.useMutation({
     onSuccess: () => {
       refetchCourses();
@@ -628,8 +756,20 @@ export function SettingsDialog({
 
   const { data: availableSubjects, isLoading } =
     api.orario.getSubjects.useQuery(
-      { linkIds: previewIds },
-      { enabled: previewIds.length > 0 },
+      {
+        linkIds:
+          userRole === "student"
+            ? previewIds.length > 0
+              ? previewIds
+              : undefined
+            : undefined,
+        professorName: userRole === "professor" ? professorName : undefined,
+      },
+      {
+        enabled:
+          (userRole === "student" && previewIds.length > 0) ||
+          (userRole === "professor" && !!professorName),
+      },
     );
 
   const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -697,6 +837,28 @@ export function SettingsDialog({
   };
 
   const handleSave = async () => {
+    if (userRole === "professor") {
+      if (!professorName) {
+        setError("Seleziona il tuo nome docente.");
+        return;
+      }
+
+      // Salvataggio modalità Docente: svuota COMPLETAMENTE i dati studente
+      setCalendarIds([]);
+      setCourseNames([]);
+      setCourseIds([]);
+      setCalendarId("");
+      setCourseName("");
+      setStoredCourseId("");
+      setCalendarUrlStore("");
+      setHiddenSubjects([]); // Reset filtri materie per il nuovo ruolo
+      setSearchQuery(""); // Reset ricerca
+
+      onClose();
+      return;
+    }
+
+    // Salvataggio modalità Studente
     if (activeTab === "add") {
       if (previewIds.length === 0) {
         setError("Link calendario non valido.");
@@ -721,13 +883,16 @@ export function SettingsDialog({
           addedBy: "user",
         });
 
-        const newIds = [...calendarIds, previewIds[0]];
-        const newNames = [...courseNames, newCourseName.trim()];
-        const newCourseIds = [...courseIds, newCourse.id];
+        const newIds = [previewIds[0]]; // Sostituisci invece di aggiungere per pulizia
+        const newNames = [newCourseName.trim()];
+        const newCourseIds = [newCourse.id];
 
         setCalendarIds(newIds);
         setCourseNames(newNames);
         setCourseIds(newCourseIds);
+        setProfessorName(""); // Svuota il nome docente se salvi come studente
+        setHiddenSubjects([]); // Reset filtri materie
+        setSearchQuery(""); // Reset ricerca
 
         setCalendarId("");
         setCourseName("");
@@ -747,6 +912,10 @@ export function SettingsDialog({
       setCalendarIds(selectedCourses.map((c) => c.linkId));
       setCourseNames(selectedCourses.map((c) => c.name));
       setCourseIds(selectedCourses.map((c) => c.id));
+      setProfessorName(""); // Svuota il nome docente se salvi come studente
+      setHiddenSubjects([]); // Reset filtri materie
+      setSearchQuery(""); // Reset ricerca
+
       setCalendarId("");
       setCourseName("");
       setStoredCourseId("");
@@ -767,7 +936,9 @@ export function SettingsDialog({
   };
 
   if (!isOpen && !forceOpen) return null;
-  const hasConfigured = calendarIds.length > 0 || calendarId;
+  const hasConfigured =
+    (userRole === "student" && (calendarIds.length > 0 || calendarId)) ||
+    (userRole === "professor" && !!professorName);
   const canClose = !forceOpen || (forceOpen && hasConfigured);
 
   return (
@@ -796,7 +967,7 @@ export function SettingsDialog({
             <div>
               <h2 className="text-lg font-bold text-zinc-900 dark:text-white tracking-tight font-serif">
                 {dialogStep === "course"
-                  ? "Configura Corsi"
+                  ? "Configura App"
                   : "Seleziona Materie"}
               </h2>
               <p className="text-xs text-zinc-500 font-medium font-serif italic opacity-80 -mt-0.5">
@@ -815,35 +986,94 @@ export function SettingsDialog({
           )}
         </div>
 
+        <div className="flex flex-col flex-shrink-0 px-4 pt-4 pb-2 bg-white dark:bg-black">
+          <div className="flex bg-zinc-100 dark:bg-zinc-900 p-1 rounded-2xl gap-1">
+            <button
+              type="button"
+              onClick={() => {
+                setUserRole("student");
+                setDialogStep("course");
+                setSearchQuery(""); // Reset barra di ricerca al cambio ruolo
+                setProfessorName("");
+                setError(null);
+              }}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all",
+                userRole === "student"
+                  ? "bg-white dark:bg-black text-zinc-900 dark:text-white shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300",
+              )}
+            >
+              <span className="shrink-0">
+                <GraduationCap className="w-4 h-4" />
+              </span>
+              <span>Studente</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setUserRole("professor");
+                setDialogStep("course");
+                setSearchQuery(""); // Reset barra di ricerca al cambio ruolo
+                setSelectedCourses([]);
+                setPreviewIds([]);
+                setError(null);
+              }}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-all",
+                userRole === "professor"
+                  ? "bg-white dark:bg-black text-zinc-900 dark:text-white shadow-sm"
+                  : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300",
+              )}
+            >
+              <span className="shrink-0">
+                <UserCircle className="w-4 h-4" />
+              </span>
+              <span>Docente</span>
+            </button>
+          </div>
+        </div>
+
         <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
           <AnimatePresence
             mode="wait"
             custom={dialogStep === "course" ? 1 : -1}
           >
             {dialogStep === "course" ? (
-              <CoursePanel
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
-                searchQuery={searchQuery}
-                setSearchQuery={setSearchQuery}
-                courses={allCourses}
-                selectedCourseIds={selectedCourses.map((c) => c.id)}
-                toggleCourseSelection={toggleCourseSelection}
-                setError={setError}
-                copiedCourseId={copiedCourseId}
-                handleCopyCourseLink={handleCopyCourseLink}
-                newCourseName={newCourseName}
-                setNewCourseName={setNewCourseName}
-                previewIds={previewIds}
-                handleCopyLink={handleCopyLink}
-                copiedLink={copiedLink}
-                calendarUrl={calendarUrl}
-                handleUrlChange={handleUrlChange}
-                newCourseYear={newCourseYear}
-                setNewCourseYear={setNewCourseYear}
-                newAcademicYear={newAcademicYear}
-                setNewAcademicYear={setNewAcademicYear}
-              />
+              userRole === "student" ? (
+                <CoursePanel
+                  activeTab={activeTab}
+                  setActiveTab={setActiveTab}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                  courses={allCourses}
+                  selectedCourseIds={selectedCourses.map((c) => c.id)}
+                  toggleCourseSelection={toggleCourseSelection}
+                  setError={setError}
+                  copiedCourseId={copiedCourseId}
+                  handleCopyCourseLink={handleCopyCourseLink}
+                  newCourseName={newCourseName}
+                  setNewCourseName={setNewCourseName}
+                  previewIds={previewIds}
+                  handleCopyLink={handleCopyLink}
+                  copiedLink={copiedLink}
+                  calendarUrl={calendarUrl}
+                  handleUrlChange={handleUrlChange}
+                  newCourseYear={newCourseYear}
+                  setNewCourseYear={setNewCourseYear}
+                  newAcademicYear={newAcademicYear}
+                  setNewAcademicYear={setNewAcademicYear}
+                />
+              ) : (
+                <ProfessorPanel
+                  isLoading={isLoadingProfessors}
+                  professors={professors}
+                  selectedProfessor={professorName}
+                  setSelectedProfessor={setProfessorName}
+                  searchQuery={searchQuery}
+                  setSearchQuery={setSearchQuery}
+                />
+              )
             ) : (
               <SubjectsPanel
                 isLoading={isLoading}
@@ -868,9 +1098,18 @@ export function SettingsDialog({
           {dialogStep === "course" ? (
             <button
               type="button"
-              onClick={() => setDialogStep("subjects")}
-              disabled={previewIds.length === 0}
-              className="w-full flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-black py-2.5 rounded-xl font-extrabold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs shadow-lg active:scale-[0.98] font-mono uppercase tracking-widest"
+              onClick={() => {
+                if (userRole === "professor" && !professorName) {
+                  setError("Seleziona prima un docente.");
+                  return;
+                }
+                if (userRole === "student" && previewIds.length === 0) {
+                  setError("Seleziona o aggiungi almeno un corso.");
+                  return;
+                }
+                setDialogStep("subjects");
+              }}
+              className="w-full flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-black py-2.5 rounded-xl font-extrabold hover:opacity-90 transition-all text-xs shadow-lg active:scale-[0.98] font-mono uppercase tracking-widest"
             >
               <span>Prosegui</span>
               <ArrowRight className="w-4 h-4" />
@@ -888,8 +1127,7 @@ export function SettingsDialog({
               <button
                 type="button"
                 onClick={handleSave}
-                disabled={previewIds.length === 0}
-                className="flex-[2] flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-black py-2.5 rounded-xl font-extrabold hover:opacity-90 transition-all disabled:opacity-50 disabled:cursor-not-allowed text-xs shadow-lg active:scale-[0.98] font-mono uppercase tracking-widest"
+                className="flex-[2] flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-black py-2.5 rounded-xl font-extrabold hover:opacity-90 transition-all text-xs shadow-lg active:scale-[0.98] font-mono uppercase tracking-widest"
               >
                 <Save className="w-4 h-4" />
                 <span>Salva e Chiudi</span>

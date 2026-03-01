@@ -27,9 +27,9 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { api } from "@/lib/api";
-import { useLocalStorage } from "@/lib/hooks";
 import type { DaySchedule } from "@/lib/orario-utils";
-import { parseEventTitle } from "@/lib/orario-utils";
+import { getMateriaColorMap, parseEventTitle } from "@/lib/orario-utils";
+import { useActiveLinkIds, useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 const SPRING_CONFIG = {
@@ -51,15 +51,9 @@ export function MonthlyView({
   const [currentDate, setCurrentDate] = useState(
     DateTime.now().setLocale("it"),
   );
-  const [calendarIds] = useLocalStorage<string[]>("calendarIds", []);
-  const [calendarId] = useLocalStorage<string>("calendarId", "");
-  const [hiddenSubjects, setHiddenSubjects] = useLocalStorage<string[]>(
-    "hiddenSubjects",
-    [],
-  );
-
-  const activeLinkIds =
-    calendarIds.length > 0 ? calendarIds : calendarId ? [calendarId] : [];
+  const { hiddenSubjects, setHiddenSubjects, professorName, userRole } =
+    useAppStore();
+  const activeLinkIds = useActiveLinkIds();
 
   const [direction, setDirection] = useState(0);
   const [isLandscape, setIsLandscape] = useState(false);
@@ -94,22 +88,41 @@ export function MonthlyView({
       {
         year: currentDate.year,
         month: currentDate.month,
-        linkIds: activeLinkIds,
+        linkIds: activeLinkIds.length > 0 ? activeLinkIds : undefined,
         location: "Varese",
+        professorName: userRole === "professor" ? professorName : undefined,
       },
       {
-        enabled: activeLinkIds.length > 0,
+        enabled:
+          activeLinkIds.length > 0 ||
+          (userRole === "professor" && !!professorName),
         placeholderData: (previousData) => previousData,
       },
     );
 
   const allMaterie = useMemo(() => {
     const subjects = new Set<string>();
-    monthlyEvents.forEach((e) => {
+    for (const e of monthlyEvents) {
       subjects.add(parseEventTitle(e.title).materia);
-    });
+    }
     return Array.from(subjects).sort();
   }, [monthlyEvents]);
+
+  // Color map costruita dai dati mensili — indipendente dalla prop esterna
+  const internalColorMap = useMemo(
+    () => getMateriaColorMap(allMaterie),
+    [allMaterie],
+  );
+
+  const getMateriaColor = (materia: string) => {
+    const normalized = materia
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toUpperCase();
+    return (
+      internalColorMap[normalized] ?? materiaColorMap[normalized] ?? "#666666"
+    );
+  };
 
   const toggleSubject = (materia: string) => {
     const newHidden = hiddenSubjects.includes(materia)
@@ -167,14 +180,6 @@ export function MonthlyView({
 
     return days;
   }, [currentDate]);
-
-  const getMateriaColor = (materia: string) => {
-    const normalized = materia
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toUpperCase();
-    return materiaColorMap[normalized] || "#666666";
-  };
 
   const handlePrevMonth = () => {
     setDirection(-1);
@@ -396,7 +401,7 @@ export function MonthlyView({
                           if (isCurrent) setSelectedDate(day.date);
                         }}
                         className={cn(
-                          "aspect-square rounded-lg flex flex-col items-center justify-center relative transition-all",
+                          "rounded-lg flex flex-col items-center justify-between py-1.5 min-h-[44px] relative transition-all",
                           !isCurrent && "opacity-0 pointer-events-none",
                           isCurrent && isSelected
                             ? "bg-zinc-900 dark:bg-white shadow-md scale-105 z-10"
@@ -412,38 +417,56 @@ export function MonthlyView({
                             isSelected
                               ? "text-white dark:text-black"
                               : "text-zinc-500",
-                            uniqueMaterie.length > 0 && "mb-1",
                           )}
                         >
                           {day.date.day}
                         </span>
-                        {uniqueMaterie.length > 0 && (
-                          <div className="grid grid-cols-2 gap-0.5 overflow-hidden p-0.5">
-                            {uniqueMaterie
-                              .slice(0, uniqueMaterie.length > 4 ? 3 : 4)
-                              .map((m) => (
-                                <div
-                                  key={m}
-                                  className="w-1 h-1 rounded-full shadow-sm"
-                                  style={{
-                                    backgroundColor: isSelected
-                                      ? "white"
-                                      : getMateriaColor(m),
-                                  }}
-                                />
-                              ))}
-                            {uniqueMaterie.length > 4 && (
-                              <div
-                                className="w-1 h-1 rounded-full shadow-sm"
-                                style={{
-                                  backgroundColor: isSelected
-                                    ? "rgba(255,255,255,0.3)"
-                                    : "#d1d5db",
-                                }}
-                              />
-                            )}
-                          </div>
-                        )}
+                        <div className="flex flex-col items-center justify-center mb-0.5">
+                          {uniqueMaterie.length > 0 && (
+                            <div className="grid grid-cols-2 gap-0.5 p-0.5">
+                              {(() => {
+                                const displayMaterie =
+                                  uniqueMaterie.length > 4
+                                    ? uniqueMaterie.slice(0, 3)
+                                    : uniqueMaterie.slice(0, 4);
+                                const hasMore = uniqueMaterie.length > 4;
+                                return (
+                                  <>
+                                    {displayMaterie.map((m) => (
+                                      <div
+                                        key={m}
+                                        className={cn(
+                                          "w-1 h-1 rounded-full shrink-0",
+                                          isSelected
+                                            ? "bg-white/75 dark:bg-black/75"
+                                            : "",
+                                        )}
+                                        style={
+                                          !isSelected
+                                            ? {
+                                                backgroundColor:
+                                                  getMateriaColor(m),
+                                              }
+                                            : {}
+                                        }
+                                      />
+                                    ))}
+                                    {hasMore && (
+                                      <div
+                                        className={cn(
+                                          "w-1 h-1 rounded-full shrink-0",
+                                          isSelected
+                                            ? "bg-white/30 dark:bg-black/30"
+                                            : "bg-zinc-300 dark:bg-zinc-600",
+                                        )}
+                                      />
+                                    )}
+                                  </>
+                                );
+                              })()}
+                            </div>
+                          )}
+                        </div>
                       </button>
                     );
                   })}
@@ -591,7 +614,7 @@ export function MonthlyView({
     >
       <div className="px-6 py-4 lg:px-8 lg:py-6 border-b border-zinc-100 dark:border-zinc-900 flex items-center justify-between bg-zinc-50/20 dark:bg-zinc-900/10 z-10">
         <div className="flex flex-col min-w-0">
-          <h2 className="text-xl lg:text-2xl font-bold text-zinc-900 dark:text-white font-serif capitalize leading-none tracking-tight truncate">
+          <h2 className="text-xl lg:text-2xl font-bold text-zinc-900 dark:text-white font-serif capitalize leading-tight tracking-tight truncate">
             {monthName}
           </h2>
           <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-[0.3em] mt-1 lg:mt-2">
@@ -607,7 +630,7 @@ export function MonthlyView({
       </div>
 
       {(!showTabs || activeTab === "calendar") && (
-        <div className="grid grid-cols-7 px-4 border-b border-zinc-50 dark:border-zinc-900/50 shrink-0">
+        <div className="grid grid-cols-7 px-3 lg:px-5 border-b border-zinc-100 dark:border-zinc-900 shrink-0">
           {[
             { l: "L", id: "mon" },
             { l: "M", id: "tue" },
@@ -617,7 +640,7 @@ export function MonthlyView({
             { l: "S", id: "sat" },
             { l: "D", id: "sun" },
           ].map((d) => (
-            <div key={d.id} className="py-3 lg:py-4 text-center">
+            <div key={d.id} className="py-2.5 lg:py-4 text-center">
               <span className="text-[9px] lg:text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-300 dark:text-zinc-700">
                 {d.l}
               </span>
@@ -626,8 +649,8 @@ export function MonthlyView({
         </div>
       )}
 
-      <div className="flex-1 relative bg-zinc-50/10 dark:bg-zinc-950/10 flex flex-col items-center p-2 lg:p-8 overflow-hidden">
-        <div className="w-full max-w-4xl mx-auto flex flex-col h-full gap-4 lg:gap-8">
+      <div className="flex-1 relative flex flex-col items-center px-2 lg:px-6 py-1.5 lg:py-3 overflow-hidden">
+        <div className="w-full max-w-4xl mx-auto flex flex-col h-full gap-1 lg:gap-4">
           {(!showTabs || activeTab === "calendar") && (
             <AnimatePresence mode="wait" custom={direction}>
               {isFetching && monthlyEvents.length === 0 ? (
@@ -636,10 +659,13 @@ export function MonthlyView({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="flex-1 flex flex-col items-center justify-center min-h-[300px]"
+                  className="flex-1 flex flex-col items-center justify-center min-h-[300px] gap-4"
                 >
-                  <div className="w-12 h-12 border-4 border-zinc-200 dark:border-zinc-800 border-t-zinc-900 dark:border-t-white rounded-full animate-spin" />
-                  <p className="mt-4 text-xs font-mono font-bold text-zinc-400 uppercase tracking-widest animate-pulse">
+                  <div className="w-10 h-10 relative">
+                    <div className="absolute inset-0 rounded-full border-2 border-zinc-100 dark:border-zinc-900" />
+                    <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-zinc-400 dark:border-t-zinc-500 animate-spin" />
+                  </div>
+                  <p className="text-[10px] font-mono font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-[0.25em]">
                     Caricamento...
                   </p>
                 </motion.div>
@@ -662,7 +688,7 @@ export function MonthlyView({
                     else if (swipe > swipeConfidenceThreshold)
                       handlePrevMonth();
                   }}
-                  className="grid grid-cols-7 gap-1.5 lg:gap-6 w-full touch-pan-y overflow-y-auto custom-scrollbar min-h-0 px-1 py-1 shrink-0 max-h-full"
+                  className="grid grid-cols-7 gap-1 lg:gap-3 w-full touch-pan-y shrink-0"
                 >
                   {daysInMonth.map((day) => {
                     const isoDate = day.date.toISODate();
@@ -676,18 +702,24 @@ export function MonthlyView({
                     );
                     const isToday = day.date.hasSame(DateTime.now(), "day");
                     const isCurrentMonth = day.isCurrentMonth;
+                    const hasEvents = dayEvents.length > 0;
                     const uniqueMaterie = Array.from(
                       new Set(
                         dayEvents.map((e) => parseEventTitle(e.title).materia),
                       ),
                     );
+                    const displayMaterie =
+                      uniqueMaterie.length > 4
+                        ? uniqueMaterie.slice(0, 3)
+                        : uniqueMaterie.slice(0, 4);
+                    const hasMore = uniqueMaterie.length > 4;
 
                     return (
                       <button
                         key={isoDate}
                         type="button"
                         onClick={() => {
-                          if (dayEvents.length > 0) {
+                          if (hasEvents) {
                             onDaySelect({
                               day: day.date.weekday - 1,
                               dayOfMonth: day.date.day,
@@ -709,47 +741,69 @@ export function MonthlyView({
                           }
                         }}
                         className={cn(
-                          "relative flex flex-col items-center justify-center min-h-[50px] lg:min-h-[80px] w-full rounded-xl lg:rounded-[2rem] transition-all border shadow-sm py-2",
+                          "relative flex flex-col items-center justify-between py-2.5 lg:py-3 min-h-[58px] lg:min-h-[80px] w-full rounded-2xl lg:rounded-3xl transition-all border",
                           !isCurrentMonth && "opacity-0 pointer-events-none",
                           isCurrentMonth &&
-                            "bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800",
+                            !isToday &&
+                            !hasEvents &&
+                            "bg-zinc-50 dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900",
                           isCurrentMonth &&
-                            dayEvents.length > 0 &&
-                            "bg-zinc-50/30 dark:bg-zinc-900/30 border-zinc-200/50 dark:border-zinc-800/50 hover:border-zinc-300 dark:hover:border-zinc-600 hover:shadow-md active:scale-95 cursor-pointer",
+                            hasEvents &&
+                            !isToday &&
+                            "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 active:scale-[0.96] cursor-pointer",
                           isToday &&
-                            "ring-2 ring-zinc-900 dark:ring-white ring-offset-1 lg:ring-offset-2 dark:ring-offset-black z-10",
+                            !hasEvents &&
+                            "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white",
+                          isToday &&
+                            hasEvents &&
+                            "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white active:scale-[0.96] cursor-pointer shadow-md",
                         )}
                       >
+                        {/* Numero giorno */}
                         <span
                           className={cn(
-                            "text-xs lg:text-sm font-mono font-bold leading-none",
+                            "text-xs lg:text-sm font-bold font-mono leading-none",
                             isToday
-                              ? "text-zinc-900 dark:text-white"
-                              : "text-zinc-400 group-hover:text-zinc-900 dark:group-hover:text-zinc-100",
-                            uniqueMaterie.length > 0 && "mb-1 lg:mb-2",
+                              ? "text-white dark:text-black"
+                              : hasEvents
+                                ? "text-zinc-800 dark:text-zinc-100"
+                                : "text-zinc-300 dark:text-zinc-700",
                           )}
                         >
                           {day.date.day}
                         </span>
-                        {uniqueMaterie.length > 0 && (
-                          <div className="grid grid-cols-2 gap-1 lg:gap-1.5 p-1">
-                            {uniqueMaterie
-                              .slice(0, uniqueMaterie.length > 4 ? 3 : 4)
-                              .map((materiaName) => (
-                                <div
-                                  key={materiaName}
-                                  className="w-1.5 h-1.5 lg:w-2.5 lg:h-2.5 rounded-full shadow-sm opacity-90"
-                                  style={{
-                                    backgroundColor:
-                                      getMateriaColor(materiaName),
-                                  }}
-                                />
-                              ))}
-                            {uniqueMaterie.length > 4 && (
-                              <div className="w-1.5 h-1.5 lg:w-2.5 lg:h-2.5 rounded-full shadow-sm bg-zinc-300 dark:bg-zinc-600 opacity-90" />
-                            )}
-                          </div>
-                        )}
+
+                        {/* Dot colorati — sempre presenti per mantenere altezza fissa */}
+                        <div className="grid grid-cols-2 gap-0.5 lg:gap-1 p-0.5">
+                          {displayMaterie.map((m) => (
+                            <div
+                              key={m}
+                              className="w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full shrink-0"
+                              style={{
+                                backgroundColor: isToday
+                                  ? "rgba(255,255,255,0.75)"
+                                  : getMateriaColor(m),
+                              }}
+                            />
+                          ))}
+                          {hasMore && (
+                            <div
+                              className={cn(
+                                "w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full shrink-0",
+                                isToday
+                                  ? "bg-white/30 dark:bg-black/30"
+                                  : "bg-zinc-300 dark:bg-zinc-600",
+                              )}
+                            />
+                          )}
+                          {/* Placeholder invisibili per mantenere altezza quando non ci sono eventi */}
+                          {uniqueMaterie.length === 0 && (
+                            <>
+                              <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full shrink-0 opacity-0" />
+                              <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full shrink-0 opacity-0" />
+                            </>
+                          )}
+                        </div>
                       </button>
                     );
                   })}
@@ -759,15 +813,15 @@ export function MonthlyView({
           )}
 
           {(!showTabs || activeTab === "filters") && (
-            <div className="w-full flex-1 min-h-0 flex flex-col pt-4">
-              <div className="px-6 pb-2 flex items-center gap-2 shrink-0">
-                <Filter className="w-4 h-4 text-zinc-400" />
-                <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-zinc-400">
+            <div className="w-full flex-1 min-h-0 flex flex-col pt-2">
+              <div className="px-2 pb-2 flex items-center gap-2 shrink-0">
+                <Filter className="w-3.5 h-3.5 text-zinc-400" />
+                <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400">
                   Filtra Materie
                 </h3>
               </div>
-              <div className="flex-1 overflow-y-auto custom-scrollbar px-6 pb-6">
-                <div className="grid grid-cols-1 gap-2">
+              <div className="flex-1 overflow-y-auto custom-scrollbar px-1 pb-4">
+                <div className="grid grid-cols-1 gap-1.5">
                   {allMaterie.map((materia) => {
                     const isHidden = hiddenSubjects.includes(materia);
                     return (
@@ -776,19 +830,17 @@ export function MonthlyView({
                         type="button"
                         onClick={() => toggleSubject(materia)}
                         className={cn(
-                          "flex items-center gap-3 p-4 rounded-2xl border transition-all text-left",
+                          "flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all text-left",
                           isHidden
-                            ? "bg-zinc-50 dark:bg-zinc-900/20 border-transparent opacity-40"
-                            : "bg-white dark:bg-zinc-900/10 border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 active:scale-[0.98]",
+                            ? "bg-transparent border-zinc-100 dark:border-zinc-900 opacity-40"
+                            : "bg-white dark:bg-zinc-900/30 border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 active:scale-[0.98]",
                         )}
                       >
                         <div
-                          className="w-3 h-3 rounded-full shrink-0 shadow-sm"
-                          style={{
-                            backgroundColor: getMateriaColor(materia),
-                          }}
+                          className="w-2.5 h-2.5 rounded-full shrink-0"
+                          style={{ backgroundColor: getMateriaColor(materia) }}
                         />
-                        <span className="text-[10px] font-bold uppercase tracking-tight truncate flex-1 font-mono">
+                        <span className="text-[10px] font-bold uppercase tracking-tight truncate flex-1 font-mono text-zinc-700 dark:text-zinc-300">
                           {materia.toLowerCase()}
                         </span>
                       </button>
@@ -801,15 +853,15 @@ export function MonthlyView({
         </div>
       </div>
 
-      <div className="px-6 py-3 lg:px-8 lg:py-4 border-t border-zinc-100 dark:border-zinc-900 flex justify-between items-center bg-zinc-50/20 dark:bg-zinc-900/10 z-10 shrink-0">
-        <div className="flex items-center gap-2">
-          <CalendarIcon className="w-3.5 h-3.5 text-zinc-300" />
-          <span className="text-[9px] font-mono font-bold text-zinc-400 uppercase tracking-widest">
+      <div className="px-5 py-2.5 lg:px-8 lg:py-3 border-t border-zinc-100 dark:border-zinc-900 flex justify-between items-center shrink-0">
+        <div className="flex items-center gap-1.5">
+          <CalendarIcon className="w-3 h-3 text-zinc-300 dark:text-zinc-700" />
+          <span className="text-[9px] font-mono font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">
             {monthlyEvents.length} lezioni
           </span>
         </div>
         {isFetching && (
-          <div className="w-3 h-3 border-2 border-zinc-200 dark:border-zinc-800 border-t-zinc-900 dark:border-t-white rounded-full animate-spin" />
+          <div className="w-3 h-3 border-2 border-zinc-200 dark:border-zinc-800 border-t-zinc-500 dark:border-t-zinc-400 rounded-full animate-spin" />
         )}
       </div>
     </motion.div>

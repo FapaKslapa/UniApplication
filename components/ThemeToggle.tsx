@@ -53,9 +53,9 @@ export function ThemeToggle() {
           transition={{ duration: 0.2, ease: "easeInOut" }}
         >
           {theme === "light" ? (
-            <Moon className="w-5 h-5" />
-          ) : (
             <Sun className="w-5 h-5" />
+          ) : (
+            <Moon className="w-5 h-5" />
           )}
         </motion.div>
       </AnimatePresence>
