@@ -108,7 +108,6 @@ export function MonthlyView({
     return Array.from(subjects).sort();
   }, [monthlyEvents]);
 
-  // Color map costruita dai dati mensili — indipendente dalla prop esterna
   const internalColorMap = useMemo(
     () => getMateriaColorMap(allMaterie),
     [allMaterie],
@@ -759,7 +758,6 @@ export function MonthlyView({
                             "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white active:scale-[0.96] cursor-pointer shadow-md",
                         )}
                       >
-                        {/* Numero giorno */}
                         <span
                           className={cn(
                             "text-xs lg:text-sm font-bold font-mono leading-none",
@@ -773,7 +771,6 @@ export function MonthlyView({
                           {day.date.day}
                         </span>
 
-                        {/* Dot colorati — sempre presenti per mantenere altezza fissa */}
                         <div className="grid grid-cols-2 gap-0.5 lg:gap-1 p-0.5">
                           {displayMaterie.map((m) => (
                             <div
@@ -796,7 +793,6 @@ export function MonthlyView({
                               )}
                             />
                           )}
-                          {/* Placeholder invisibili per mantenere altezza quando non ci sono eventi */}
                           {uniqueMaterie.length === 0 && (
                             <>
                               <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full shrink-0 opacity-0" />

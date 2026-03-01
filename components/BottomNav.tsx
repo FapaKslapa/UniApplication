@@ -9,7 +9,6 @@ interface BottomNavProps {
   activeView?: "week" | "month";
   onViewChange?: (v: "week" | "month") => void;
   onSettings?: () => void;
-  /** se "settings", evidenzia l'icona Impostazioni invece della vista */
   activeSection?: "calendar" | "settings";
 }
 

@@ -102,7 +102,6 @@ const processEvents = (
         ? toTitleCase(`${event.docenti[0].cognome} ${event.docenti[0].nome}`)
         : "N/A";
 
-      // Filtro per nome docente (case insensitive comparison)
       if (
         professorName &&
         professor.toLowerCase() !== professorName.toLowerCase()
@@ -255,7 +254,6 @@ export const orarioRouter = createTRPCRouter({
     .query(async ({ input }) => {
       let ids = input.linkIds || (input.linkId ? [input.linkId] : []);
 
-      // Se c'è un nome docente, cerchiamo in TUTTI i corsi approvati (indipendente dai linkIds dello studente)
       if (input.professorName || ids.length === 0) {
         const visibleCourses = await getVisibleCourses();
         ids = visibleCourses.map((c) => c.linkId);

@@ -15,18 +15,13 @@ export interface AppState {
   courseName: string;
   storedCourseId: string;
   calendarUrlStore: string;
-  // Materie nascoste
   hiddenSubjects: string[];
-  // Ruolo
   userRole: "student" | "professor";
   professorName: string;
-  // UI
   hasSeenWelcome: boolean;
   hasSeenNotifIntro: boolean;
-  // UserId
   userId: string;
 
-  // Actions
   setCalendarIds: (v: string[]) => void;
   setCourseNames: (v: string[]) => void;
   setCourseIds: (v: string[]) => void;
@@ -86,10 +81,8 @@ export const useAppStore = create<AppState>()(
     {
       name: "uni-app-storage",
       storage: createJSONStorage(() => localStorage),
-      // Migrazione dalle chiavi legacy separate
       onRehydrateStorage: () => (state) => {
         if (!state) return;
-        // Leggi le chiavi legacy e migra
         try {
           const migrate = (key: string) => {
             const raw = localStorage.getItem(key);
@@ -139,7 +132,6 @@ export const useAppStore = create<AppState>()(
   ),
 );
 
-/** Hook convenienza per i link IDs attivi */
 export function useActiveLinkIds(): string[] {
   const { calendarIds, calendarId } = useAppStore();
   return calendarIds.length > 0 ? calendarIds : calendarId ? [calendarId] : [];

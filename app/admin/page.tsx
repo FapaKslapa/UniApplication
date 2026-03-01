@@ -22,6 +22,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import type React from "react";
 import { useEffect, useMemo, useState } from "react";
 import {
   Bar,
@@ -292,7 +293,7 @@ export default function AdminPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="h-[100dvh] bg-white dark:bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      <div className="h-dvh bg-white dark:bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
         <div className="absolute inset-0 bg-zinc-50/50 dark:bg-zinc-900/10 pointer-events-none" />
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -309,7 +310,7 @@ export default function AdminPage() {
           </button>
 
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] p-8 lg:p-10 shadow-xl shadow-zinc-200/50 dark:shadow-none">
-            <div className="w-16 h-16 rounded-[1.5rem] bg-zinc-900 dark:bg-white text-white dark:text-black flex items-center justify-center mb-8 mx-auto shadow-lg">
+            <div className="w-16 h-16 rounded-3xl bg-zinc-900 dark:bg-white text-white dark:text-black flex items-center justify-center mb-8 mx-auto shadow-lg">
               <Shield className="h-8 w-8" />
             </div>
             <h1 className="text-2xl font-bold text-center mb-2 text-zinc-900 dark:text-white font-serif">
@@ -360,7 +361,7 @@ export default function AdminPage() {
   const rejectedCourses = courses?.filter((c) => c.status === "rejected") || [];
 
   return (
-    <div className="h-[100dvh] bg-white dark:bg-black text-zinc-900 dark:text-white flex flex-col overflow-hidden fixed inset-0">
+    <div className="h-dvh bg-white dark:bg-black text-zinc-900 dark:text-white flex flex-col overflow-hidden fixed inset-0">
       <main className="w-full px-4 py-3 portrait:py-4 lg:px-8 lg:py-6 flex-1 max-w-screen-2xl mx-auto flex flex-col overflow-hidden">
         <header className="flex items-center justify-between mb-4 lg:mb-8 flex-shrink-0 gap-4">
           <div className="flex-1 min-w-0">

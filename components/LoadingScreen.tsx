@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 
-/** Schermata di caricamento full-page */
 export function LoadingScreen({
   label = "Caricamento...",
 }: {
@@ -16,17 +15,13 @@ export function LoadingScreen({
         transition={{ duration: 0.25, ease: "easeOut" }}
         className="flex flex-col items-center gap-5"
       >
-        {/* Logo / icona pulsante */}
         <div className="relative w-14 h-14">
-          {/* anello esterno che ruota */}
           <div className="absolute inset-0 rounded-full border-2 border-zinc-100 dark:border-zinc-900" />
           <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-zinc-900 dark:border-t-white animate-spin" />
-          {/* cerchio interno */}
           <div className="absolute inset-2 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
             <div className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600 animate-pulse" />
           </div>
         </div>
-
         <p className="text-[10px] font-mono font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-[0.3em]">
           {label}
         </p>
@@ -35,7 +30,6 @@ export function LoadingScreen({
   );
 }
 
-/** Schermata di errore full-page */
 export function ErrorScreen({
   message,
   onRetryAction,
@@ -93,7 +87,6 @@ export function ErrorScreen({
 
 const SKELETON_KEYS = ["a", "b", "c", "d", "e", "f", "g", "h"];
 
-/** Skeleton bar — usato per placeholder liste */
 export function SkeletonList({ rows = 4 }: { rows?: number }) {
   return (
     <div className="space-y-2 animate-pulse">

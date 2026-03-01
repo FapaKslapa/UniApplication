@@ -843,7 +843,6 @@ export function SettingsDialog({
         return;
       }
 
-      // Salvataggio modalità Docente: svuota COMPLETAMENTE i dati studente
       setCalendarIds([]);
       setCourseNames([]);
       setCourseIds([]);
@@ -851,14 +850,13 @@ export function SettingsDialog({
       setCourseName("");
       setStoredCourseId("");
       setCalendarUrlStore("");
-      setHiddenSubjects([]); // Reset filtri materie per il nuovo ruolo
-      setSearchQuery(""); // Reset ricerca
+      setHiddenSubjects([]);
+      setSearchQuery("");
 
       onClose();
       return;
     }
 
-    // Salvataggio modalità Studente
     if (activeTab === "add") {
       if (previewIds.length === 0) {
         setError("Link calendario non valido.");
@@ -883,16 +881,16 @@ export function SettingsDialog({
           addedBy: "user",
         });
 
-        const newIds = [previewIds[0]]; // Sostituisci invece di aggiungere per pulizia
+        const newIds = [previewIds[0]];
         const newNames = [newCourseName.trim()];
         const newCourseIds = [newCourse.id];
 
         setCalendarIds(newIds);
         setCourseNames(newNames);
         setCourseIds(newCourseIds);
-        setProfessorName(""); // Svuota il nome docente se salvi come studente
-        setHiddenSubjects([]); // Reset filtri materie
-        setSearchQuery(""); // Reset ricerca
+        setProfessorName("");
+        setHiddenSubjects([]);
+        setSearchQuery("");
 
         setCalendarId("");
         setCourseName("");
@@ -912,9 +910,9 @@ export function SettingsDialog({
       setCalendarIds(selectedCourses.map((c) => c.linkId));
       setCourseNames(selectedCourses.map((c) => c.name));
       setCourseIds(selectedCourses.map((c) => c.id));
-      setProfessorName(""); // Svuota il nome docente se salvi come studente
-      setHiddenSubjects([]); // Reset filtri materie
-      setSearchQuery(""); // Reset ricerca
+      setProfessorName("");
+      setHiddenSubjects([]);
+      setSearchQuery("");
 
       setCalendarId("");
       setCourseName("");
@@ -993,7 +991,7 @@ export function SettingsDialog({
               onClick={() => {
                 setUserRole("student");
                 setDialogStep("course");
-                setSearchQuery(""); // Reset barra di ricerca al cambio ruolo
+                setSearchQuery("");
                 setProfessorName("");
                 setError(null);
               }}
@@ -1014,7 +1012,7 @@ export function SettingsDialog({
               onClick={() => {
                 setUserRole("professor");
                 setDialogStep("course");
-                setSearchQuery(""); // Reset barra di ricerca al cambio ruolo
+                setSearchQuery("");
                 setSelectedCourses([]);
                 setPreviewIds([]);
                 setError(null);

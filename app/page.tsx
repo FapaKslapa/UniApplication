@@ -60,12 +60,10 @@ function HomeContent() {
   const [isClient, setIsClient] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
-  // Garantisce userId al mount
   useEffect(() => {
     ensureUserId();
   }, [ensureUserId]);
 
-  // Leggi ?view= dal query string (arriva da BottomNav in settings)
   useEffect(() => {
     const v = searchParams.get("view");
     if (v === "month" || v === "week") setActiveView(v);
@@ -186,7 +184,6 @@ function HomeContent() {
         }}
       >
         <header className="flex items-center justify-between mb-4 lg:mb-8 flex-shrink-0 gap-4">
-          {/* Titolo */}
           <div className="flex-1 min-w-0">
             <h1 className="text-base lg:text-lg font-bold text-zinc-900 dark:text-white font-serif tracking-tight truncate leading-none">
               {displayTitle}
@@ -196,7 +193,6 @@ function HomeContent() {
             </p>
           </div>
 
-          {/* Controlli vista + theme + settings — solo desktop */}
           <div className="hidden md:flex items-center gap-2">
             <div className="flex bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-1 rounded-2xl shadow-sm">
               <button
@@ -322,7 +318,6 @@ function HomeContent() {
         onConfigure={() => handleNotifIntroComplete(true)}
       />
 
-      {/* Floating bottom nav — solo mobile */}
       <BottomNav
         activeView={activeView}
         onViewChange={setActiveView}

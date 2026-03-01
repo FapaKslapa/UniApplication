@@ -50,9 +50,6 @@ const _INITIAL_HIDDEN_SUBJECTS: string[] = [];
 
 type Screen = "menu" | "courses" | "subjects";
 
-/* ─────────────────────────────────────────────
-   Schermata: lista corsi selezionabili
-───────────────────────────────────────────── */
 function CoursesScreen({
   allCourses,
   selectedCourses,
@@ -119,7 +116,6 @@ function CoursesScreen({
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      {/* Switcher ruolo — stile pill identico a page.tsx */}
       <div className="px-4 pt-4 pb-3 shrink-0">
         <div className="flex bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800/60 p-1 rounded-2xl gap-1">
           <button
@@ -167,7 +163,6 @@ function CoursesScreen({
             transition={{ duration: 0.15 }}
             className="flex flex-col flex-1 min-h-0"
           >
-            {/* Tab switcher stile pill */}
             <div className="px-4 pb-3 shrink-0">
               <div className="flex bg-zinc-100 dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800/60 p-1 rounded-2xl gap-1">
                 <button
@@ -215,7 +210,6 @@ function CoursesScreen({
                   transition={{ duration: 0.12 }}
                   className="flex flex-col flex-1 min-h-0"
                 >
-                  {/* Search */}
                   <div className="px-4 pb-2 shrink-0">
                     <div className="relative">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-600" />
@@ -228,7 +222,6 @@ function CoursesScreen({
                       />
                     </div>
                   </div>
-                  {/* Lista */}
                   <div className="flex-1 overflow-y-auto overscroll-contain px-4 pb-4 space-y-1.5">
                     {allCourses.length === 0 && searchQuery === "" ? (
                       <SkeletonList rows={5} />
@@ -286,7 +279,6 @@ function CoursesScreen({
                               )}
                             </div>
                           </button>
-                          {/* Notifiche compact + copia link */}
                           <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
                             {isSel && (
                               // biome-ignore lint/a11y/noStaticElementInteractions: stop propagation wrapper
@@ -442,7 +434,6 @@ function CoursesScreen({
             </AnimatePresence>
           </motion.div>
         ) : (
-          /* ── Vista docente ── */
           <motion.div
             key="professor"
             initial={{ opacity: 0, x: 12 }}
@@ -523,9 +514,6 @@ function CoursesScreen({
   );
 }
 
-/* ─────────────────────────────────────────────
-   Schermata: filtro materie
-───────────────────────────────────────────── */
 function SubjectsScreen({
   availableSubjects,
   isLoadingSubjects,
@@ -612,9 +600,6 @@ function SubjectsScreen({
   );
 }
 
-/* ─────────────────────────────────────────────
-   Pagina principale
-───────────────────────────────────────────── */
 export default function SettingsPage() {
   return (
     <Suspense>
@@ -628,7 +613,6 @@ function SettingsContent() {
   const searchParams = useSearchParams();
   const isSetup = searchParams.get("setup") === "true";
 
-  // ── store zustand ──
   const {
     calendarIds,
     setCalendarIds,
@@ -651,7 +635,6 @@ function SettingsContent() {
     ensureUserId,
   } = useAppStore();
 
-  // ── stato locale temporaneo (non persistito finché non si salva) ──
   const [draftRole, setDraftRole] = useState<"student" | "professor">(
     savedUserRole,
   );
@@ -689,7 +672,6 @@ function SettingsContent() {
   const updateFiltersMutation =
     api.notifications.updateAllFilters.useMutation();
 
-  // Init store → stato locale
   useEffect(() => {
     if (calendarIds.length === 0 && calendarId) {
       setCalendarIds([calendarId]);
@@ -800,7 +782,6 @@ function SettingsContent() {
   };
 
   const handleSaveAndBack = async () => {
-    // Salva il ruolo draft → persistito
     if (draftRole === "professor") {
       if (!draftProfessorName) {
         setError("Seleziona il tuo nome docente.");
@@ -819,7 +800,6 @@ function SettingsContent() {
       setScreen("subjects");
       return;
     }
-    // Studente — tab "aggiungi"
     if (newCourseName.trim() && previewIds.length > 0) {
       if (newCourseYear === "") {
         setError("Specifica l'anno del corso.");
@@ -899,12 +879,10 @@ function SettingsContent() {
     else setScreen("menu");
   };
 
-  // Schermata "courses": nasconde la BottomNav, mostra tasti navigazione
   const _isCoursesScreen = screen === "courses";
 
   return (
     <div className="fixed inset-0 flex flex-col bg-white dark:bg-black text-zinc-900 dark:text-white">
-      {/* ── HEADER ── */}
       <header className="shrink-0 flex items-center gap-3 px-4 py-3 border-b border-zinc-100 dark:border-zinc-900 bg-white dark:bg-black">
         {!isSetup && (
           <button
@@ -940,10 +918,8 @@ function SettingsContent() {
         )}
       </header>
 
-      {/* ── CONTENUTO ── */}
       <div className="flex-1 min-h-0 relative overflow-hidden bg-zinc-50 dark:bg-black">
         <AnimatePresence mode="wait" initial={false}>
-          {/* ───── MENU PRINCIPALE ───── */}
           {screen === "menu" && (
             <motion.div
               key="menu"
@@ -1013,10 +989,8 @@ function SettingsContent() {
                 <p className="text-[10px] font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest font-mono px-1 pt-4 mb-3">
                   Altro
                 </p>{" "}
-                {/* Tema */}
                 <div className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl border bg-white dark:bg-black border-zinc-200 dark:border-zinc-800/60 text-left">
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
-                    {/* Mostra il tema corrente: Sole in light, Luna in dark */}
                     <Sun className="w-4 h-4 block dark:hidden" />
                     <Moon className="w-4 h-4 hidden dark:block" />
                   </div>
@@ -1040,13 +1014,11 @@ function SettingsContent() {
                   }}
                   noChevron
                 />
-                {/* Opzioni sviluppatore — collassabile */}
                 <DevSection onAdmin={() => router.push("/admin")} />
               </div>
             </motion.div>
           )}
 
-          {/* ───── CORSI ───── */}
           {screen === "courses" && (
             <motion.div
               key="courses"
@@ -1065,7 +1037,6 @@ function SettingsContent() {
                 handleCopyCourseLink={handleCopyCourseLink}
                 userRole={draftRole}
                 setUserRole={(r) => {
-                  // cambia solo il draft, non il valore salvato
                   setDraftRole(r);
                 }}
                 professorName={draftProfessorName}
@@ -1090,14 +1061,12 @@ function SettingsContent() {
                   <span className="font-bold font-serif">{error}</span>
                 </div>
               )}
-              {/* Footer fisso — sostituisce la BottomNav in questa schermata */}
               <div
                 className="shrink-0 px-4 pt-3 border-t border-zinc-100 dark:border-zinc-900 bg-white dark:bg-black flex gap-3"
                 style={{
                   paddingBottom: "max(1rem, env(safe-area-inset-bottom))",
                 }}
               >
-                {/* Tasto indietro — nascosto in setup */}
                 {!isSetup && (
                   <button
                     type="button"
@@ -1125,7 +1094,6 @@ function SettingsContent() {
             </motion.div>
           )}
 
-          {/* ───── MATERIE ───── */}
           {screen === "subjects" && (
             <motion.div
               key="subjects"
@@ -1169,7 +1137,6 @@ function SettingsContent() {
         </AnimatePresence>
       </div>
 
-      {/* ── BOTTOM NAV — nascosta in courses/subjects e in setup ── */}
       {screen !== "courses" && screen !== "subjects" && !isSetup && (
         <BottomNav
           activeView="week"
@@ -1182,12 +1149,10 @@ function SettingsContent() {
   );
 }
 
-/* ── DevSection: accordion "Opzioni sviluppatore" ── */
 function DevSection({ onAdmin }: { onAdmin: () => void }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800/60 overflow-hidden bg-white dark:bg-black">
-      {/* Header collassabile */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -1212,7 +1177,6 @@ function DevSection({ onAdmin }: { onAdmin: () => void }) {
         </motion.div>
       </button>
 
-      {/* Contenuto espandibile */}
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
@@ -1223,12 +1187,11 @@ function DevSection({ onAdmin }: { onAdmin: () => void }) {
             className="overflow-hidden"
           >
             <div className="border-t border-zinc-100 dark:border-zinc-900 divide-y divide-zinc-100 dark:divide-zinc-900">
-              {/* GitHub */}
               <button
                 type="button"
                 onClick={() =>
                   window.open(
-                    "https://github.com/StefanoMarocco/UniApplication",
+                    "https://github.com/FapaKslapa/UniApplication",
                     "_blank",
                   )
                 }
@@ -1242,13 +1205,12 @@ function DevSection({ onAdmin }: { onAdmin: () => void }) {
                     Repository GitHub
                   </p>
                   <p className="text-[10px] text-zinc-400 dark:text-zinc-600 font-mono truncate">
-                    StefanoMarocco/UniApplication
+                    FapaKslapa/UniApplication
                   </p>
                 </div>
                 <ExternalLink className="w-3.5 h-3.5 text-zinc-300 dark:text-zinc-700 shrink-0" />
               </button>
 
-              {/* Admin */}
               <button
                 type="button"
                 onClick={onAdmin}
@@ -1275,7 +1237,6 @@ function DevSection({ onAdmin }: { onAdmin: () => void }) {
   );
 }
 
-/* ── Componenti helper ── */
 function MenuRow({
   icon,
   iconBg,

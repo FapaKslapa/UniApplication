@@ -132,7 +132,6 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
                 </p>
               </div>
 
-              {/* Scelta ruolo */}
               {slide.isRoleSelection && (
                 <div className="grid grid-cols-2 gap-3 w-full pt-2">
                   <button
@@ -168,7 +167,6 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
                 </div>
               )}
 
-              {/* Bullet points informativi */}
               {"bullets" in slide && slide.bullets && (
                 <ul className="w-full space-y-2 pt-1">
                   {slide.bullets.map((b) => (
@@ -182,7 +180,6 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
                 </ul>
               )}
 
-              {/* Nota community */}
               {"communityNote" in slide && slide.communityNote && (
                 <p className="text-xs text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-900 rounded-2xl px-4 py-3 leading-relaxed w-full text-left">
                   {slide.communityNote}
