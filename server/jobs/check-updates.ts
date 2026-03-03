@@ -13,13 +13,22 @@ import { createCallerFactory } from "@/server/api/trpc";
 
 const createCaller = createCallerFactory(appRouter);
 
-interface TimetableEvent {
+type TimetableEvent = {
   title: string;
   date: string;
   time: string;
   location: string;
   professor: string;
-}
+};
+
+export type TimetableChange = TimetableEvent & {
+  type: "ADDED" | "CANCELED" | "MODIFIED";
+  diffs?: {
+    time?: { old: string; new: string };
+    location?: { old: string; new: string };
+    professor?: { old: string; new: string };
+  };
+};
 
 async function checkUpdates() {
   console.log("Checking updates...");
@@ -65,15 +74,30 @@ async function checkUpdates() {
       }
 
       if (snapshot.lastHash !== newHash) {
-        const oldData = snapshot.lastData
-          ? (JSON.parse(snapshot.lastData) as TimetableEvent[])
-          : [];
-        const changedSubjects = findChangedSubjects(oldData, orario);
+        let oldData: TimetableEvent[] = [];
+        if (snapshot.lastData) {
+          try {
+            oldData = JSON.parse(snapshot.lastData) as TimetableEvent[];
+            if (!Array.isArray(oldData)) oldData = [];
+          } catch (_e) {
+            console.error(
+              `Malformed JSON in lastData for ${linkId}. Content:`,
+              snapshot.lastData.substring(0, 100),
+            );
+            oldData = [];
+          }
+        }
 
-        if (changedSubjects.length === 0) {
+        const changes = findDetailedChanges(oldData, orario);
+
+        if (changes.length === 0) {
           await db
             .update(courseSnapshots)
-            .set({ lastHash: newHash, lastData: JSON.stringify(orario) })
+            .set({
+              lastHash: newHash,
+              lastData: JSON.stringify(orario),
+              lastChanges: null,
+            })
             .where(eq(courseSnapshots.linkId, linkId));
           continue;
         }
@@ -83,25 +107,36 @@ async function checkUpdates() {
         });
 
         for (const sub of subscriptions) {
-          const hidden = sub.filters
-            ? (JSON.parse(sub.filters) as string[])
-            : [];
-          const hasRelevantChange = changedSubjects.some(
-            (s) => !hidden.includes(s),
+          let hidden: string[] = [];
+          if (sub.filters) {
+            try {
+              hidden = JSON.parse(sub.filters) as string[];
+              if (!Array.isArray(hidden)) hidden = [];
+            } catch (_e) {
+              console.error(
+                `Malformed JSON in filters for user ${sub.userId}. Content:`,
+                sub.filters,
+              );
+              hidden = [];
+            }
+          }
+
+          const relevantChanges = changes.filter(
+            (c) => !hidden.includes(c.title),
           );
 
-          if (hasRelevantChange) {
+          if (relevantChanges.length > 0) {
             const subjectList =
-              changedSubjects
-                .filter((s) => !hidden.includes(s))
+              Array.from(new Set(relevantChanges.map((c) => c.title)))
                 .slice(0, 2)
-                .join(", ") + (changedSubjects.length > 2 ? "..." : "");
+                .join(", ") + (relevantChanges.length > 2 ? "..." : "");
 
             await sendPushNotification(
               sub.userId,
               linkId,
               "Aggiornamento Orario",
-              `Cambio rilevato per: ${subjectList}. Controlla i dettagli nell'app.`,
+              `Variazione rilevata per: ${subjectList}. Controlla i dettagli nell'app.`,
+              { changes: relevantChanges },
             );
           }
         }
@@ -111,6 +146,7 @@ async function checkUpdates() {
           .set({
             lastHash: newHash,
             lastData: JSON.stringify(orario),
+            lastChanges: JSON.stringify(changes),
             lastUpdated: new Date(),
           })
           .where(eq(courseSnapshots.linkId, linkId));
@@ -121,30 +157,84 @@ async function checkUpdates() {
   }
 }
 
-function findChangedSubjects(
+function findDetailedChanges(
   oldEvents: TimetableEvent[],
   newEvents: TimetableEvent[],
-): string[] {
-  const changed = new Set<string>();
-  const getEventKey = (e: TimetableEvent) =>
-    `${e.date}-${e.time}-${e.title}-${e.location}-${e.professor}`;
+): TimetableChange[] {
+  const changes: TimetableChange[] = [];
 
-  const oldKeys = new Set(oldEvents.map(getEventKey));
-  const newKeys = new Set(newEvents.map(getEventKey));
+  const getEventId = (e: TimetableEvent) => `${e.date}-${e.title}`;
 
-  for (const e of newEvents) {
-    if (!oldKeys.has(getEventKey(e))) {
-      changed.add(e.title);
-    }
-  }
-
+  // Mappa degli eventi vecchi per un confronto rapido
+  const oldMap = new Map<string, TimetableEvent[]>();
   for (const e of oldEvents) {
-    if (!newKeys.has(getEventKey(e))) {
-      changed.add(e.title);
+    const id = getEventId(e);
+    if (!oldMap.has(id)) oldMap.set(id, []);
+    oldMap.get(id)?.push(e);
+  }
+
+  // Mappa degli eventi nuovi
+  const newMap = new Map<string, TimetableEvent[]>();
+  for (const e of newEvents) {
+    const id = getEventId(e);
+    if (!newMap.has(id)) newMap.set(id, []);
+    newMap.get(id)?.push(e);
+  }
+
+  // 1. Cerchiamo Nuovi e Modificati
+  for (const e of newEvents) {
+    const id = getEventId(e);
+    const matchingOld = oldMap.get(id);
+
+    if (!matchingOld) {
+      // È una nuova lezione (non esisteva in quella data con quel titolo)
+      changes.push({ type: "ADDED", ...e });
+      continue;
+    }
+
+    // Cerchiamo se esiste un match esatto per tempo
+    const exactMatch = matchingOld.find(
+      (o) =>
+        o.time === e.time &&
+        o.location === e.location &&
+        o.professor === e.professor,
+    );
+
+    if (!exactMatch) {
+      // Se non c'è match esatto, cerchiamo quello con lo stesso orario ma campi diversi (Modifica)
+      const timeMatch = matchingOld.find((o) => o.time === e.time);
+      if (timeMatch) {
+        const diffs: TimetableChange["diffs"] = {};
+        if (timeMatch.location !== e.location)
+          diffs.location = { old: timeMatch.location, new: e.location };
+        if (timeMatch.professor !== e.professor)
+          diffs.professor = { old: timeMatch.professor, new: e.professor };
+
+        if (Object.keys(diffs).length > 0) {
+          changes.push({ type: "MODIFIED", ...e, diffs });
+        }
+      } else {
+        // Se cambia l'orario, lo consideriamo come modifica dell'orario della stessa lezione
+        const firstOld = matchingOld[0]; // Assunzione semplificata
+        changes.push({
+          type: "MODIFIED",
+          ...e,
+          diffs: { time: { old: firstOld.time, new: e.time } },
+        });
+      }
     }
   }
 
-  return Array.from(changed);
+  // 2. Cerchiamo Annullati
+  for (const o of oldEvents) {
+    const id = getEventId(o);
+    const matchingNew = newMap.get(id);
+    if (!matchingNew || !matchingNew.find((n) => n.time === o.time)) {
+      changes.push({ type: "CANCELED", ...o });
+    }
+  }
+
+  return changes;
 }
 
 if (process.argv.includes("--cron")) {

@@ -2,11 +2,21 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import superjson from "superjson";
 import { api } from "./api";
+import { useAppStore } from "./store";
 
 export function TRPCProvider({ children }: { children: ReactNode }) {
+  const setIsAdmin = useAppStore((state) => state.setIsAdmin);
+
+  useEffect(() => {
+    const adminToken = localStorage.getItem("adminToken");
+    if (adminToken) {
+      setIsAdmin(true);
+    }
+  }, [setIsAdmin]);
+
   const [queryClient] = useState(
     () =>
       new QueryClient({

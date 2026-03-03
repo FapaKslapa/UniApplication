@@ -53,6 +53,7 @@ export const courseSnapshots = mysqlTable("course_snapshots", {
   linkId: varchar("link_id", { length: 255 }).primaryKey(),
   lastHash: varchar("last_hash", { length: 255 }).notNull(),
   lastData: longtext("last_data"),
+  lastChanges: longtext("last_changes"),
   lastUpdated: timestamp("last_updated").notNull().defaultNow().onUpdateNow(),
 });
 

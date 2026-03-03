@@ -1,3 +1,4 @@
+import { inArray } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { z } from "zod";
 import { getVisibleCourses } from "@/lib/courses";
@@ -8,6 +9,8 @@ import {
   getDayOfWeek,
   timeToMinutes,
 } from "@/lib/date-utils";
+import { db } from "@/lib/db";
+import { courseSnapshots } from "@/lib/db/schema";
 import { toTitleCase } from "@/lib/utils";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 
@@ -237,6 +240,20 @@ const findNextLesson = (
     .sort((a, b) => a.startMinutes - b.startMinutes)[0];
 
   return nextLesson ? { lesson: nextLesson, status: "next" as const } : null;
+};
+
+type TimetableChange = {
+  type: "ADDED" | "CANCELED" | "MODIFIED";
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  professor: string;
+  diffs?: {
+    time?: { old: string; new: string };
+    location?: { old: string; new: string };
+    professor?: { old: string; new: string };
+  };
 };
 
 export const orarioRouter = createTRPCRouter({
@@ -637,5 +654,46 @@ export const orarioRouter = createTRPCRouter({
       return Array.from(combinedProfessors)
         .filter((p) => p !== "N/A" && p.trim() !== "")
         .sort();
+    }),
+
+  getLatestChanges: publicProcedure
+    .input(
+      z.object({
+        linkIds: z.array(z.string()),
+      }),
+    )
+    .query(async ({ input }) => {
+      if (input.linkIds.length === 0) return null;
+
+      const snapshots = await db.query.courseSnapshots.findMany({
+        where: inArray(courseSnapshots.linkId, input.linkIds),
+      });
+
+      if (snapshots.length === 0) return null;
+
+      // Uniamo tutti i cambiamenti recenti
+      const allChanges = snapshots
+        .filter((s) => s.lastChanges)
+        .flatMap((s) => {
+          try {
+            const lastChanges = s.lastChanges;
+            if (!lastChanges) return [];
+            return JSON.parse(lastChanges) as TimetableChange[];
+          } catch {
+            return [];
+          }
+        });
+
+      if (allChanges.length === 0) return null;
+
+      // Prendiamo il timestamp più recente per il "versioning" lato client
+      const latestUpdate = Math.max(
+        ...snapshots.map((s) => s.lastUpdated.getTime()),
+      );
+
+      return {
+        changes: allChanges,
+        updatedAt: latestUpdate,
+      };
     }),
 });

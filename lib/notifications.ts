@@ -47,6 +47,7 @@ export async function sendPushNotification(
   linkId: string,
   title: string,
   body: string,
+  data?: Record<string, unknown>,
 ) {
   const subs = await db.query.pushSubscriptions.findMany({
     where: (table, { and, eq }) =>
@@ -63,7 +64,7 @@ export async function sendPushNotification(
             auth: sub.auth,
           },
         },
-        JSON.stringify({ title, body }),
+        JSON.stringify({ title, body, ...data }),
       );
     } catch (error) {
       const webPushError = error as { statusCode?: number };

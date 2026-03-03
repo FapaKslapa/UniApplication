@@ -1,15 +1,22 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Calendar, LayoutGrid, Settings } from "lucide-react";
+import {
+  BarChart3,
+  Calendar,
+  LayoutGrid,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
 import type React from "react";
+import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 interface BottomNavProps {
-  activeView?: "week" | "month";
-  onViewChange?: (v: "week" | "month") => void;
+  activeView?: "week" | "month" | "stats" | "admin-courses";
+  onViewChange?: (v: "week" | "month" | "stats" | "admin-courses") => void;
   onSettings?: () => void;
-  activeSection?: "calendar" | "settings";
+  activeSection?: "calendar" | "settings" | "admin";
 }
 
 export function BottomNav({
@@ -18,6 +25,8 @@ export function BottomNav({
   onSettings,
   activeSection = "calendar",
 }: BottomNavProps) {
+  const isAdmin = useAppStore((state) => state.isAdmin);
+
   return (
     <nav
       className="md:hidden fixed bottom-0 left-0 right-0 z-30 px-4"
@@ -37,6 +46,25 @@ export function BottomNav({
           label="Mese"
           icon={<Calendar className="w-[18px] h-[18px]" />}
         />
+
+        {isAdmin && (
+          <>
+            <NavBtn
+              active={activeSection === "admin" && activeView === "stats"}
+              onClick={() => onViewChange?.("stats")}
+              label="Stats"
+              icon={<BarChart3 className="w-[18px] h-[18px]" />}
+            />
+            <NavBtn
+              active={
+                activeSection === "admin" && activeView === "admin-courses"
+              }
+              onClick={() => onViewChange?.("admin-courses")}
+              label="Corsi"
+              icon={<ShieldCheck className="w-[18px] h-[18px]" />}
+            />
+          </>
+        )}
 
         <NavBtn
           active={activeSection === "settings"}

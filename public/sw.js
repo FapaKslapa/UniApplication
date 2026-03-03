@@ -9,7 +9,9 @@ self.addEventListener("push", (event) => {
       icon: "/favicon.ico",
       badge: "/favicon.ico",
       data: {
-        url: "/",
+        url: data.changes
+          ? `/?changes=${btoa(JSON.stringify(data.changes))}`
+          : "/",
       },
     }),
   );

@@ -21,6 +21,7 @@ export interface AppState {
   hasSeenWelcome: boolean;
   hasSeenNotifIntro: boolean;
   userId: string;
+  isAdmin: boolean;
 
   setCalendarIds: (v: string[]) => void;
   setCourseNames: (v: string[]) => void;
@@ -35,6 +36,7 @@ export interface AppState {
   setHasSeenWelcome: (v: boolean) => void;
   setHasSeenNotifIntro: (v: boolean) => void;
   ensureUserId: () => string;
+  setIsAdmin: (v: boolean) => void;
 }
 
 function generateUserId(): string {
@@ -57,6 +59,7 @@ export const useAppStore = create<AppState>()(
       hasSeenWelcome: false,
       hasSeenNotifIntro: false,
       userId: "",
+      isAdmin: false,
 
       setCalendarIds: (v) => set({ calendarIds: v }),
       setCourseNames: (v) => set({ courseNames: v }),
@@ -77,6 +80,7 @@ export const useAppStore = create<AppState>()(
         set({ userId: newId });
         return newId;
       },
+      setIsAdmin: (v) => set({ isAdmin: v }),
     }),
     {
       name: "uni-app-storage",
