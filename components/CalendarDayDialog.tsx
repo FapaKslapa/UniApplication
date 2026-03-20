@@ -34,7 +34,10 @@ export function CalendarDayDialog({
       <div className="relative w-full h-full lg:w-full lg:max-w-4xl lg:h-auto lg:max-h-[85vh] animate-in zoom-in-95 slide-in-from-bottom-10 lg:slide-in-from-bottom-0 duration-300">
         <CalendarDayView day={day} onClose={onClose} />
       </div>
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2">
+      <div
+        className="absolute left-1/2 -translate-x-1/2"
+        style={{ bottom: "calc(24px + env(safe-area-inset-bottom))" }}
+      >
         <button
           type="button"
           onClick={onClose}

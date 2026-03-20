@@ -14,7 +14,8 @@ import {
   User,
   Video,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import type { CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
@@ -32,6 +33,45 @@ import { timeToMinutes } from "@/lib/date-utils";
 import type { DaySchedule } from "@/lib/orario-utils";
 import { useActiveLinkIds, useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
+
+function MarqueeText({
+  text,
+  className,
+}: {
+  text: string;
+  className?: string;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const [offset, setOffset] = useState(0);
+
+  useEffect(() => {
+    if (!containerRef.current || !textRef.current) return;
+    const overflow =
+      textRef.current.scrollWidth - containerRef.current.clientWidth;
+    setOffset(overflow > 0 ? overflow : 0);
+  }, []);
+
+  const style =
+    offset > 0
+      ? ({
+          animation: "marquee-text 7s ease-in-out infinite",
+          "--marquee-offset": `-${offset}px`,
+        } as CSSProperties)
+      : undefined;
+
+  return (
+    <div ref={containerRef} className="overflow-hidden w-full">
+      <span
+        ref={textRef}
+        className={cn("inline-block whitespace-nowrap", className)}
+        style={style}
+      >
+        {text}
+      </span>
+    </div>
+  );
+}
 
 const SPRING_CONFIG = {
   type: "spring",
@@ -51,7 +91,7 @@ export default function NextLessonCard({
   const [isLandscape, setIsLandscape] = useState(false);
   const [direction, setDirection] = useState(0);
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
-  const { hiddenSubjects, professorName, userRole } = useAppStore();
+  const { hiddenSubjects, professorName, userRole, location } = useAppStore();
   const activeLinkIds = useActiveLinkIds();
 
   const handleCalendarDragEnd = (_: unknown, info: PanInfo) => {
@@ -129,7 +169,7 @@ export default function NextLessonCard({
     {
       dayOffset,
       linkIds: activeLinkIds.length > 0 ? activeLinkIds : undefined,
-      location: "Varese",
+      location,
       professorName: userRole === "professor" ? professorName : undefined,
     },
     {
@@ -242,7 +282,7 @@ export default function NextLessonCard({
       onDragEnd={handleDragEnd}
       className={cn(
         "w-full bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden flex flex-col touch-none shadow-sm transition-all duration-300",
-        isLandscape ? "h-full min-h-[140px]" : "h-[280px]",
+        isLandscape ? "h-full min-h-[140px]" : "h-[240px]",
       )}
     >
       <div
@@ -398,7 +438,7 @@ export default function NextLessonCard({
                   <div
                     className={cn(
                       "flex items-center justify-between",
-                      isLandscape ? "mb-2" : "mb-3",
+                      isLandscape ? "mb-1" : "mb-2",
                     )}
                   >
                     <div className="flex items-center gap-2 text-zinc-900 dark:text-white">
@@ -428,14 +468,15 @@ export default function NextLessonCard({
                     </div>
                   </div>
 
-                  <h3
-                    className={cn(
-                      "font-bold text-zinc-900 dark:text-white leading-tight font-serif line-clamp-2 mb-2",
-                      isLandscape ? "text-base" : "text-lg",
-                    )}
-                  >
-                    {currentLesson.title}
-                  </h3>
+                  <div className="mb-2 w-full min-w-0">
+                    <MarqueeText
+                      text={currentLesson.title}
+                      className={cn(
+                        "font-bold text-zinc-900 dark:text-white leading-tight font-serif",
+                        isLandscape ? "text-base" : "text-lg",
+                      )}
+                    />
+                  </div>
 
                   <div
                     className={cn(
@@ -456,7 +497,7 @@ export default function NextLessonCard({
                           ) : (
                             <MapPin className="w-3 h-3 shrink-0 opacity-50 text-zinc-400" />
                           )}
-                          <span className="whitespace-normal">
+                          <span className="truncate">
                             {currentLesson.location}
                           </span>
                         </div>
@@ -464,7 +505,7 @@ export default function NextLessonCard({
                       {currentLesson.professor && (
                         <div className="flex items-center gap-2 text-[11px] text-zinc-400 italic font-serif min-w-0">
                           <User className="w-3 h-3 shrink-0 opacity-40" />
-                          <span className="whitespace-normal">
+                          <span className="truncate">
                             {currentLesson.professor}
                           </span>
                         </div>

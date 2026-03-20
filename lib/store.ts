@@ -22,6 +22,7 @@ export interface AppState {
   hasSeenNotifIntro: boolean;
   userId: string;
   isAdmin: boolean;
+  location: "Varese" | "Como" | "Tutte";
 
   setCalendarIds: (v: string[]) => void;
   setCourseNames: (v: string[]) => void;
@@ -37,6 +38,7 @@ export interface AppState {
   setHasSeenNotifIntro: (v: boolean) => void;
   ensureUserId: () => string;
   setIsAdmin: (v: boolean) => void;
+  setLocation: (v: "Varese" | "Como" | "Tutte") => void;
 }
 
 function generateUserId(): string {
@@ -60,6 +62,7 @@ export const useAppStore = create<AppState>()(
       hasSeenNotifIntro: false,
       userId: "",
       isAdmin: false,
+      location: "Varese",
 
       setCalendarIds: (v) => set({ calendarIds: v }),
       setCourseNames: (v) => set({ courseNames: v }),
@@ -81,10 +84,17 @@ export const useAppStore = create<AppState>()(
         return newId;
       },
       setIsAdmin: (v) => set({ isAdmin: v }),
+      setLocation: (v) => set({ location: v }),
     }),
     {
       name: "uni-app-storage",
       storage: createJSONStorage(() => localStorage),
+      partialize: (state) => {
+        const { isAdmin, setIsAdmin, ...rest } = state as AppState;
+        void isAdmin;
+        void setIsAdmin;
+        return rest as Omit<AppState, "isAdmin" | "setIsAdmin">;
+      },
       onRehydrateStorage: () => (state) => {
         if (!state) return;
         try {

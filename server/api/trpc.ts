@@ -2,17 +2,19 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import { sql } from "drizzle-orm";
 import superjson from "superjson";
 import { ZodError } from "zod";
-import { isValidAdminToken } from "@/lib/admin";
+import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { analyticsUsers, apiLogs } from "@/lib/db/schema";
 
 export const createTRPCContext = async (opts: { headers: Headers }) => {
-  const adminToken = opts.headers.get("x-admin-token");
+  const session = await auth.api.getSession({ headers: opts.headers });
+  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  const isAdmin =
+    !!session?.user && !!adminEmail && session.user.email === adminEmail;
   const userId = opts.headers.get("x-user-id");
-  const isAdmin = isValidAdminToken(adminToken);
 
   return {
-    ...opts,
+    headers: opts.headers,
     isAdmin,
     userId,
   };

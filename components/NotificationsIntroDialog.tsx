@@ -49,7 +49,7 @@ export function NotificationsIntroDialog({
 
           <div className="space-y-3">
             <h2 className="text-2xl font-bold text-zinc-900 dark:text-white font-serif tracking-tight leading-tight">
-              Novità: Arrivano le <br /> Notifiche Push!
+              Arrivano le Notifiche Push!
             </h2>
             <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium leading-relaxed font-serif italic">
               Non perderti più un cambio d'aula o una lezione annullata. Attiva

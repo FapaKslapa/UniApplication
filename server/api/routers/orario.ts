@@ -671,14 +671,15 @@ export const orarioRouter = createTRPCRouter({
 
       if (snapshots.length === 0) return null;
 
-      // Uniamo tutti i cambiamenti recenti
+      const today = new Date().toISOString().split("T")[0];
       const allChanges = snapshots
         .filter((s) => s.lastChanges)
         .flatMap((s) => {
           try {
             const lastChanges = s.lastChanges;
             if (!lastChanges) return [];
-            return JSON.parse(lastChanges) as TimetableChange[];
+            const parsed = JSON.parse(lastChanges) as TimetableChange[];
+            return parsed.filter((c) => c.date >= today);
           } catch {
             return [];
           }

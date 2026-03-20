@@ -51,8 +51,13 @@ export function MonthlyView({
   const [currentDate, setCurrentDate] = useState(
     DateTime.now().setLocale("it"),
   );
-  const { hiddenSubjects, setHiddenSubjects, professorName, userRole } =
-    useAppStore();
+  const {
+    hiddenSubjects,
+    setHiddenSubjects,
+    professorName,
+    userRole,
+    location,
+  } = useAppStore();
   const activeLinkIds = useActiveLinkIds();
 
   const [direction, setDirection] = useState(0);
@@ -89,7 +94,7 @@ export function MonthlyView({
         year: currentDate.year,
         month: currentDate.month,
         linkIds: activeLinkIds.length > 0 ? activeLinkIds : undefined,
-        location: "Varese",
+        location,
         professorName: userRole === "professor" ? professorName : undefined,
       },
       {

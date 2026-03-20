@@ -8,6 +8,7 @@ import cron from "node-cron";
 import { db } from "@/lib/db";
 import { courseSnapshots, pushSubscriptions } from "@/lib/db/schema";
 import { generateCourseHash, sendPushNotification } from "@/lib/notifications";
+import { scrapeAllCourses } from "@/scripts/scrape-courses";
 import { appRouter } from "@/server/api/root";
 import { createCallerFactory } from "@/server/api/trpc";
 
@@ -34,7 +35,7 @@ async function checkUpdates() {
   console.log("Checking updates...");
 
   const caller = createCaller({
-    headers: new Headers({ "x-admin-token": process.env.ADMIN_TOKEN || "" }),
+    headers: new Headers(),
     isAdmin: true,
     userId: "system-job",
   });
@@ -88,7 +89,14 @@ async function checkUpdates() {
           }
         }
 
-        const changes = findDetailedChanges(oldData, orario);
+        const today = new Date().toISOString().split("T")[0];
+        const filterCurrent = (events: TimetableEvent[]) =>
+          events.filter((e) => e.date >= today);
+
+        const changes = findDetailedChanges(
+          filterCurrent(oldData),
+          filterCurrent(orario as TimetableEvent[]),
+        );
 
         if (changes.length === 0) {
           await db
@@ -238,8 +246,15 @@ function findDetailedChanges(
 }
 
 if (process.argv.includes("--cron")) {
+  // Ogni 20 minuti: controlla aggiornamenti orario
   cron.schedule("*/20 * * * *", () => {
     checkUpdates().catch(console.error);
+  });
+
+  // Ogni domenica alle 03:00: scopri nuovi corsi e resetta anno precedente
+  cron.schedule("0 3 * * 0", () => {
+    console.log("[cron] Avvio scraping settimanale corsi Insubria...");
+    scrapeAllCourses({ verbose: true }).catch(console.error);
   });
 } else {
   checkUpdates()

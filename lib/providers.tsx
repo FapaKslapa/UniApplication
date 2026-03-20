@@ -5,16 +5,16 @@ import { httpBatchLink } from "@trpc/client";
 import { type ReactNode, useEffect, useState } from "react";
 import superjson from "superjson";
 import { api } from "./api";
+import { authClient } from "./auth-client";
 import { useAppStore } from "./store";
 
 export function TRPCProvider({ children }: { children: ReactNode }) {
   const setIsAdmin = useAppStore((state) => state.setIsAdmin);
 
   useEffect(() => {
-    const adminToken = localStorage.getItem("adminToken");
-    if (adminToken) {
-      setIsAdmin(true);
-    }
+    authClient.getSession().then(({ data }) => {
+      setIsAdmin(!!data?.user);
+    });
   }, [setIsAdmin]);
 
   const [queryClient] = useState(
@@ -42,7 +42,6 @@ export function TRPCProvider({ children }: { children: ReactNode }) {
           headers() {
             if (typeof window === "undefined") return {};
 
-            const adminToken = localStorage.getItem("adminToken");
             const userIdRaw = localStorage.getItem("userId");
             let userId: string | null = null;
 
@@ -54,8 +53,19 @@ export function TRPCProvider({ children }: { children: ReactNode }) {
               }
             }
 
+            if (!userId) {
+              try {
+                const zustand = localStorage.getItem("uni-app-storage");
+                if (zustand) {
+                  const parsed = JSON.parse(zustand);
+                  userId = parsed?.state?.userId ?? null;
+                }
+              } catch {
+                // ignore
+              }
+            }
+
             return {
-              ...(adminToken ? { "x-admin-token": adminToken } : {}),
               ...(userId ? { "x-user-id": String(userId) } : {}),
             };
           },

@@ -6,6 +6,7 @@ import {
   ArrowLeft,
   BellRing,
   BookOpen,
+  Building2,
   Check,
   ChevronRight,
   Code2,
@@ -42,6 +43,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { api } from "@/lib/api";
+import { authClient } from "@/lib/auth-client";
 import type { Course } from "@/lib/courses";
 import { extractCalendarId } from "@/lib/orario-utils";
 import { useAppStore } from "@/lib/store";
@@ -244,7 +246,8 @@ function CoursesScreen({
                               setError(null);
                             }}
                             className={cn(
-                              "w-full flex items-center gap-3 px-4 py-3.5 pr-20 rounded-2xl border transition-all text-left active:scale-[0.98]",
+                              "w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border transition-all text-left active:scale-[0.98]",
+                              isSel ? "pr-20" : "pr-12",
                               isSel
                                 ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white text-white dark:text-black"
                                 : "bg-white dark:bg-black border-zinc-200 dark:border-zinc-800/60 text-zinc-900 dark:text-white hover:border-zinc-300 dark:hover:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-950",
@@ -395,7 +398,7 @@ function CoursesScreen({
                         />
                       </div>
                     </Field>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <Field label="Anno">
                         <Select
                           value={
@@ -636,6 +639,8 @@ function SettingsContent() {
     ensureUserId,
     isAdmin,
     setIsAdmin,
+    location,
+    setLocation,
   } = useAppStore();
 
   const [draftRole, setDraftRole] = useState<"student" | "professor">(
@@ -1008,6 +1013,42 @@ function SettingsContent() {
                   </div>
                   <ThemeToggle />
                 </div>
+                {savedUserRole === "student" && (
+                  <div className="w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl border bg-white dark:bg-black border-zinc-200 dark:border-zinc-800/60 text-left">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0 bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400">
+                      <Building2 className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-bold text-zinc-900 dark:text-white">
+                        Sede
+                      </p>
+                      <p className="text-[11px] text-zinc-400 dark:text-zinc-500 mt-0.5">
+                        Filtra lezioni per sede
+                      </p>
+                    </div>
+                    <div className="flex bg-zinc-100 dark:bg-zinc-900 p-0.5 rounded-xl gap-0.5 shrink-0">
+                      {(["Varese", "Como", "Tutte"] as const).map((loc) => (
+                        <button
+                          key={loc}
+                          type="button"
+                          onClick={() => setLocation(loc)}
+                          className={cn(
+                            "px-2.5 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all",
+                            location === loc
+                              ? "bg-white dark:bg-black text-zinc-900 dark:text-white shadow-sm"
+                              : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300",
+                          )}
+                        >
+                          {loc === "Tutte"
+                            ? "Tutte"
+                            : loc === "Varese"
+                              ? "VA"
+                              : "CO"}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <MenuRow
                   icon={<Mail className="w-4 h-4" />}
                   iconBg="bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-400"
@@ -1021,8 +1062,8 @@ function SettingsContent() {
                 <DevSection
                   isAdmin={isAdmin}
                   onAdmin={() => setIsAdminLoginOpen(true)}
-                  onLogoutAdmin={() => {
-                    localStorage.removeItem("adminToken");
+                  onLogoutAdmin={async () => {
+                    await authClient.signOut();
                     setIsAdmin(false);
                   }}
                 />

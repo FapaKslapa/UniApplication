@@ -69,7 +69,7 @@ export function BottomNav({
         <NavBtn
           active={activeSection === "settings"}
           onClick={() => onSettings?.()}
-          label="Impost."
+          label="Impost"
           icon={<Settings className="w-[18px] h-[18px]" />}
         />
       </div>

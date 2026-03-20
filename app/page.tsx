@@ -10,6 +10,7 @@ import {
   Clock,
   LayoutGrid,
   MapPin,
+  RefreshCw,
   Settings,
   ShieldCheck,
   User,
@@ -65,7 +66,7 @@ export default function Home() {
 }
 
 function HomeContent() {
-  const _router = useRouter();
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState<DaySchedule | null>(null);
@@ -94,8 +95,10 @@ function HomeContent() {
     professorName,
     ensureUserId,
     isAdmin,
+    location,
   } = useAppStore();
   const activeLinkIds = useActiveLinkIds();
+  const utils = api.useUtils();
 
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const [isNotifIntroOpen, setIsNotifIntroOpen] = useState(false);
@@ -113,10 +116,12 @@ function HomeContent() {
     const changesParam = searchParams.get("changes");
     if (changesParam) {
       try {
-        const decoded = JSON.parse(atob(changesParam));
-        setNotificationChanges(decoded);
+        const decoded = JSON.parse(atob(changesParam)) as TimetableChange[];
+        const today = new Date().toISOString().split("T")[0];
+        const futureChanges = decoded.filter((c) => c.date >= today);
+        if (futureChanges.length === 0) return;
+        setNotificationChanges(futureChanges);
 
-        // Segniamo come visto l'aggiornamento corrente se arriviamo da una notifica
         localStorage.setItem(
           "last_seen_timetable_update",
           Date.now().toString(),
@@ -147,36 +152,30 @@ function HomeContent() {
     (userRole === "student" && activeLinkIds.length > 0) ||
     (userRole === "professor" && !!professorName);
 
-  const routerPush = _router.push;
+  const routerPush = router.push;
 
   useEffect(() => {
     if (isClient) {
       if (!hasSeenWelcome) {
         setIsWelcomeOpen(true);
-      } else if (!hasSeenNotifIntro) {
-        setIsNotifIntroOpen(true);
       } else if (!hasConfigured) {
         routerPush("/settings?setup=true");
+      } else if (!hasSeenNotifIntro) {
+        setIsNotifIntroOpen(true);
       }
     }
   }, [isClient, hasConfigured, hasSeenWelcome, hasSeenNotifIntro, routerPush]);
 
   const handleWelcomeComplete = () => {
     setHasSeenWelcome(true);
-    setHasSeenNotifIntro(true);
     setIsWelcomeOpen(false);
-    if (!hasConfigured) {
-      setTimeout(() => {
-        _router.push("/settings?setup=true");
-      }, 300);
-    }
   };
 
   const handleNotifIntroComplete = (openSettings = false) => {
     setHasSeenNotifIntro(true);
     setIsNotifIntroOpen(false);
     if (openSettings) {
-      setTimeout(() => _router.push("/settings"), 300);
+      setTimeout(() => router.push("/settings"), 300);
     }
   };
 
@@ -187,7 +186,7 @@ function HomeContent() {
   } = api.orario.getOrario.useQuery(
     {
       name: "INFORMATICA",
-      location: "Varese",
+      location: location,
       dayOffset: weekOffset,
       linkIds: activeLinkIds.length > 0 ? activeLinkIds : undefined,
       professorName: userRole === "professor" ? professorName : undefined,
@@ -225,7 +224,6 @@ function HomeContent() {
         parseInt(lastSeenUpdate, 10) < latestChanges.updatedAt
       ) {
         setNotificationChanges(latestChanges.changes);
-        // Salviamo subito che le abbiamo viste per non ri-mostrarle se l'app ricarica
         localStorage.setItem(
           "last_seen_timetable_update",
           latestChanges.updatedAt.toString(),
@@ -236,6 +234,10 @@ function HomeContent() {
 
   const schedule = orario ? parseOrarioData(orario) : [];
   const materiaColorMap = getMateriaColorMap(allSubjects);
+
+  useEffect(() => {
+    setSelectedDay(null);
+  }, []);
 
   const handleNextWeek = () => setWeekOffset((prev) => prev + 7);
   const handlePrevWeek = () => setWeekOffset((prev) => prev - 7);
@@ -253,7 +255,7 @@ function HomeContent() {
     return (
       <ErrorScreen
         message={error.message}
-        onRetryAction={() => _router.push("/settings")}
+        onRetryAction={() => router.push("/settings")}
       />
     );
   }
@@ -295,6 +297,16 @@ function HomeContent() {
                 : `Orario Insubria ${userRole === "professor" ? "• Docente" : ""}`}
             </p>
           </div>
+
+          {hasConfigured && activeSection === "calendar" && (
+            <button
+              type="button"
+              onClick={() => utils.orario.getOrario.invalidate()}
+              className="md:hidden p-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl text-zinc-500 active:scale-90 transition-all"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          )}
 
           <div className="hidden md:flex items-center gap-2">
             <div className="flex bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-1 rounded-2xl shadow-sm">
@@ -358,7 +370,14 @@ function HomeContent() {
             <ThemeToggle />
             <button
               type="button"
-              onClick={() => _router.push("/settings")}
+              onClick={() => utils.orario.getOrario.invalidate()}
+              className="p-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all active:scale-90"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => router.push("/settings")}
               className="p-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all active:scale-90"
             >
               <Settings className="w-5 h-5" />
@@ -439,7 +458,7 @@ function HomeContent() {
             </div>
             <button
               type="button"
-              onClick={() => _router.push("/settings")}
+              onClick={() => router.push("/settings")}
               className="px-10 py-4 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl font-bold text-sm shadow-xl hover:opacity-90 transition-all active:scale-95"
             >
               Configura Ora
@@ -462,13 +481,17 @@ function HomeContent() {
       <NotificationChangeDialog
         changes={notificationChanges}
         onClose={() => setNotificationChanges(null)}
+        onNavigate={(offset) => {
+          setWeekOffset(offset);
+          setNotificationChanges(null);
+        }}
       />
 
       <BottomNav
         activeView={activeView}
         activeSection={activeSection}
         onViewChange={setActiveView}
-        onSettings={() => _router.push("/settings")}
+        onSettings={() => router.push("/settings")}
       />
 
       <AnimatePresence>
@@ -506,9 +529,11 @@ function CalendarIcon({ className }: { className?: string }) {
 function NotificationChangeDialog({
   changes,
   onClose,
+  onNavigate,
 }: {
   changes: TimetableChange[] | null;
   onClose: () => void;
+  onNavigate?: (weekOffset: number) => void;
 }) {
   if (!changes) return null;
 
@@ -642,6 +667,25 @@ function NotificationChangeDialog({
         </div>
 
         <DialogFooter className="p-5 bg-zinc-50/50 dark:bg-zinc-950/30 border-t border-zinc-100 dark:border-zinc-800/50">
+          {onNavigate && changes?.[0] && (
+            <button
+              type="button"
+              onClick={() => {
+                const target = new Date(changes[0].date);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                target.setHours(0, 0, 0, 0);
+                const diffDays = Math.round(
+                  (target.getTime() - today.getTime()) / 86400000,
+                );
+                onNavigate(Math.floor(diffDays / 7) * 7);
+              }}
+              className="w-full py-3 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-2xl font-bold text-[11px] uppercase tracking-[0.2em] transition-all active:scale-[0.98] hover:opacity-90 flex items-center justify-center gap-2"
+            >
+              <Calendar className="w-3.5 h-3.5" />
+              Vai al Giorno
+            </button>
+          )}
           <button
             type="button"
             onClick={onClose}

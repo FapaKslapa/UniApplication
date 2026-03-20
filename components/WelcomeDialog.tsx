@@ -3,6 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
   BellRing,
+  ChevronLeft,
   ChevronRight,
   GraduationCap,
   Heart,
@@ -74,11 +75,13 @@ const slides = [
 
 export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [roleSelected, setRoleSelected] = useState(false);
   const { userRole, setUserRole } = useAppStore();
 
   useEffect(() => {
     if (isOpen) {
       setCurrentSlide(0);
+      setRoleSelected(false);
     }
   }, [isOpen]);
 
@@ -87,13 +90,25 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
   const isLastSlide = currentSlide === slides.length - 1;
   const slide = slides[currentSlide];
   const Icon = slide.icon;
+  const isRoleSlide = slide.isRoleSelection;
+  const canProceed = !isRoleSlide || roleSelected;
+
+  const handleRoleSelect = (role: "student" | "professor") => {
+    setUserRole(role);
+    setRoleSelected(true);
+  };
 
   const handleNext = () => {
+    if (!canProceed) return;
     if (isLastSlide) {
       onComplete();
     } else {
       setCurrentSlide((prev) => prev + 1);
     }
+  };
+
+  const handleBack = () => {
+    setCurrentSlide((prev) => prev - 1);
   };
 
   return (
@@ -136,10 +151,10 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
                 <div className="grid grid-cols-2 gap-3 w-full pt-2">
                   <button
                     type="button"
-                    onClick={() => setUserRole("student")}
+                    onClick={() => handleRoleSelect("student")}
                     className={cn(
                       "flex flex-col items-center gap-3 p-4 rounded-3xl border-2 transition-all active:scale-95",
-                      userRole === "student"
+                      userRole === "student" && roleSelected
                         ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white text-white dark:text-black shadow-lg"
                         : "bg-white dark:bg-black border-zinc-100 dark:border-zinc-900 text-zinc-400 hover:border-zinc-200 dark:hover:border-zinc-800",
                     )}
@@ -151,10 +166,10 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setUserRole("professor")}
+                    onClick={() => handleRoleSelect("professor")}
                     className={cn(
                       "flex flex-col items-center gap-3 p-4 rounded-3xl border-2 transition-all active:scale-95",
-                      userRole === "professor"
+                      userRole === "professor" && roleSelected
                         ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white text-white dark:text-black shadow-lg"
                         : "bg-white dark:bg-black border-zinc-100 dark:border-zinc-900 text-zinc-400 hover:border-zinc-200 dark:hover:border-zinc-800",
                     )}
@@ -204,16 +219,33 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
         </div>
 
         <div className="px-8 pb-8 flex flex-col gap-3">
-          <button
-            type="button"
-            onClick={handleNext}
-            className="w-full flex items-center justify-center gap-2 bg-zinc-900 dark:bg-white text-white dark:text-black py-4 rounded-2xl font-bold hover:opacity-90 transition-all active:scale-[0.98] shadow-xl text-sm uppercase tracking-widest font-mono"
-          >
-            <span>{isLastSlide ? "Inizia Ora" : "Continua"}</span>
-            <ChevronRight className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-3">
+            {currentSlide > 0 && (
+              <button
+                type="button"
+                onClick={handleBack}
+                className="flex items-center justify-center p-4 bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all active:scale-95 shrink-0"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleNext}
+              disabled={!canProceed}
+              className={cn(
+                "flex-1 flex items-center justify-center gap-2 py-4 rounded-2xl font-bold transition-all active:scale-[0.98] shadow-xl text-sm uppercase tracking-widest font-mono",
+                canProceed
+                  ? "bg-zinc-900 dark:bg-white text-white dark:text-black hover:opacity-90"
+                  : "bg-zinc-200 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed shadow-none",
+              )}
+            >
+              <span>{isLastSlide ? "Inizia Ora" : "Continua"}</span>
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
 
-          {!isLastSlide && (
+          {!isLastSlide && !isRoleSlide && (
             <button
               type="button"
               onClick={onComplete}

@@ -9,7 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { api } from "@/lib/api";
+import { authClient } from "@/lib/auth-client";
 import { useAppStore } from "@/lib/store";
 
 interface AdminLoginDialogProps {
@@ -25,28 +25,38 @@ export function AdminLoginDialog({
 }: AdminLoginDialogProps) {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isPending, setIsPending] = useState(false);
   const setIsAdmin = useAppStore((state) => state.setIsAdmin);
 
-  const loginMutation = api.admin.login.useMutation({
-    onSuccess: (data) => {
-      if (data.token) {
-        localStorage.setItem("adminToken", data.token);
-        setIsAdmin(true);
-        setPassword("");
-        setError("");
-        onSuccess?.();
-        onClose();
-      }
-    },
-    onError: (error) => {
-      setError(error.message);
-    },
-  });
-
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    loginMutation.mutate({ password });
+    setIsPending(true);
+
+    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+    if (!adminEmail) {
+      setError("NEXT_PUBLIC_ADMIN_EMAIL non configurato");
+      setIsPending(false);
+      return;
+    }
+
+    const result = await authClient.signIn.email({
+      email: adminEmail,
+      password,
+    });
+
+    setIsPending(false);
+
+    if (result.error) {
+      console.error("[AdminLogin] error:", result.error);
+      setError(result.error.message ?? "Password non corretta");
+      return;
+    }
+
+    setIsAdmin(true);
+    setPassword("");
+    onSuccess?.();
+    onClose();
   };
 
   return (
@@ -83,10 +93,10 @@ export function AdminLoginDialog({
             )}
             <button
               type="submit"
-              disabled={loginMutation.isPending}
+              disabled={isPending}
               className="w-full py-4 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl font-bold text-xs uppercase tracking-[0.2em] transition-all active:scale-[0.98] shadow-lg disabled:opacity-50"
             >
-              {loginMutation.isPending ? "Accesso..." : "Entra"}
+              {isPending ? "Accesso..." : "Entra"}
             </button>
             <button
               type="button"
