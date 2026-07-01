@@ -349,8 +349,8 @@ export default function NextLessonCard({
               exit={{ opacity: 0 }}
               className="flex flex-col items-center justify-center h-[160px] gap-2"
             >
-              <CalendarIcon className="w-8 h-8 text-white/30" strokeWidth={1} />
-              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+              <CalendarIcon className="w-8 h-8 text-white/70" strokeWidth={1} />
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/90">
                 Nessuna lezione
               </p>
             </motion.div>

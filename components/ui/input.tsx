@@ -1,8 +1,7 @@
 import type * as React from "react";
 import { cn } from "@/lib/utils";
 
-export interface InputProps
-  extends React.ComponentPropsWithRef<"input"> {}
+export interface InputProps extends React.ComponentPropsWithRef<"input"> {}
 
 const Input = ({ className, type, ref, ...props }: InputProps) => {
   return (

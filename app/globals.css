@@ -401,3 +401,18 @@
   background: rgba(255, 255, 255, 0.03);
   border-bottom-color: rgba(255, 255, 255, 0.06);
 }
+
+@keyframes wiggle {
+  0% {
+    transform: rotate(-0.5deg) translate(0.5px, 0.5px);
+  }
+  50% {
+    transform: rotate(0.5deg) translate(-0.5px, -0.5px);
+  }
+  100% {
+    transform: rotate(-0.5deg) translate(0.5px, 0.5px);
+  }
+}
+.animate-wiggle {
+  animation: wiggle 0.22s ease-in-out infinite;
+}

@@ -43,10 +43,11 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="fixed inset-0 z-[100] bg-white dark:bg-black flex flex-col"
+      className="fixed inset-0 z-[100] bg-white dark:bg-black flex flex-col overflow-hidden"
     >
-      {}
       <div className="absolute inset-0 bg-nothing-grid opacity-60 pointer-events-none" />
+      <div className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-[#FF2B2B] opacity-[0.03] dark:opacity-[0.06] blur-[100px] pointer-events-none" />
+      <div className="absolute -bottom-[10%] -right-[10%] w-[60%] h-[60%] rounded-full bg-[#3b82f6] opacity-[0.04] dark:opacity-[0.07] blur-[100px] pointer-events-none" />
 
       {}
       <div className="relative px-7 pt-14 pb-0 flex-shrink-0">

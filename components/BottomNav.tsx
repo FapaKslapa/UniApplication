@@ -26,10 +26,12 @@ export function BottomNav({
     id: "week" | "month";
     label: string;
     Icon: React.FC<{ className?: string; strokeWidth?: number }>;
-  }> = ([
-    { id: "week", label: "Oggi" },
-    { id: "month", label: "Mese" },
-  ] as const).map((x) => ({
+  }> = (
+    [
+      { id: "week", label: "Oggi" },
+      { id: "month", label: "Mese" },
+    ] as const
+  ).map((x) => ({
     ...x,
     Icon: x.id === "week" ? LayoutGrid : CalendarDays,
   }));

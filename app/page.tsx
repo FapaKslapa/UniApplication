@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, Reorder } from "framer-motion";
 import {
   ArrowRight,
   BarChart3,
@@ -10,10 +10,13 @@ import {
   Clock,
   LayoutGrid,
   MapPin,
+  Plus,
   RefreshCw,
   Settings,
   ShieldCheck,
+  Sliders,
   User,
+  X,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
@@ -57,6 +60,8 @@ type TimetableChange = {
     professor?: { old: string; new: string };
   };
 };
+
+const SPRING = { type: "spring", stiffness: 320, damping: 32, mass: 1 } as const;
 
 function BentoMiniCards({ schedule }: { schedule: DaySchedule[] }) {
   const today = new Date();
@@ -143,6 +148,10 @@ function HomeContent() {
     ensureUserId,
     isAdmin,
     location,
+    widgetOrder,
+    setWidgetOrder,
+    hiddenWidgets,
+    toggleWidgetVisibility,
   } = useAppStore();
   const activeLinkIds = useActiveLinkIds();
   const utils = api.useUtils();
@@ -154,6 +163,27 @@ function HomeContent() {
   >(null);
   const [isClient, setIsClient] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+  const [isEditingLayout, setIsEditingLayout] = useState(false);
+  const [isAddDrawerOpen, setIsAddDrawerOpen] = useState(false);
+
+  const longPressTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const handlePressStart = () => {
+    if (isEditingLayout) return;
+    longPressTimeout.current = setTimeout(() => {
+      setIsEditingLayout(true);
+      if (window.navigator?.vibrate) {
+        window.navigator.vibrate(50);
+      }
+    }, 600);
+  };
+
+  const handlePressEnd = () => {
+    if (longPressTimeout.current) {
+      clearTimeout(longPressTimeout.current);
+      longPressTimeout.current = null;
+    }
+  };
 
   useEffect(() => {
     ensureUserId();
@@ -305,7 +335,16 @@ function HomeContent() {
       : "calendar";
 
   return (
-    <div className="h-[100dvh] bg-white dark:bg-black text-zinc-900 dark:text-white flex flex-col overflow-hidden fixed inset-0 bg-nothing-grid">
+    <div
+      onMouseDown={handlePressStart}
+      onTouchStart={handlePressStart}
+      onMouseUp={handlePressEnd}
+      onMouseLeave={handlePressEnd}
+      onTouchEnd={handlePressEnd}
+      className="h-[100dvh] bg-white dark:bg-black text-zinc-900 dark:text-white flex flex-col overflow-hidden fixed inset-0 bg-nothing-grid"
+    >
+      <div className="absolute -top-[10%] -left-[10%] w-[60%] h-[60%] rounded-full bg-[#FF2B2B] opacity-[0.03] dark:opacity-[0.05] blur-[100px] pointer-events-none" />
+      <div className="absolute -bottom-[10%] -right-[10%] w-[60%] h-[60%] rounded-full bg-[#3b82f6] opacity-[0.04] dark:opacity-[0.06] blur-[100px] pointer-events-none" />
       <main
         className="w-full px-3 py-3 portrait:py-3 md:px-6 lg:px-8 lg:py-5 flex-1 max-w-screen-2xl mx-auto flex flex-col overflow-hidden md:pb-0"
         style={{
@@ -392,6 +431,19 @@ function HomeContent() {
             </button>
             <button
               type="button"
+              onClick={() => setIsEditingLayout(!isEditingLayout)}
+              className={cn(
+                "p-2 border rounded-xl transition-all active:scale-90",
+                isEditingLayout
+                  ? "bg-[#FF2B2B] text-white border-[#FF2B2B] shadow-md shadow-[#FF2B2B]/20"
+                  : "bg-black/4 dark:bg-white/5 border-black/5 dark:border-white/8 text-zinc-500 hover:text-zinc-900 dark:hover:text-white",
+              )}
+              title="Modifica Layout"
+            >
+              <Sliders className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
               onClick={() => router.push("/settings")}
               className="p-2 bg-black/4 dark:bg-white/5 border border-black/5 dark:border-white/8 rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all active:scale-90"
             >
@@ -430,25 +482,68 @@ function HomeContent() {
         ) : (
           <div className="flex flex-col flex-1 min-h-0">
             {activeView === "week" ? (
-              <div className="flex flex-col md:grid md:grid-cols-12 gap-2 lg:gap-5 xl:gap-6 flex-1 min-h-0">
-                <section className="w-full md:col-span-4 lg:col-span-3 flex-shrink-0 min-w-0 flex flex-col gap-2">
-                  <NextLessonCard schedule={schedule} />
-                  <BentoMiniCards schedule={schedule} />
-                </section>
-                <section className="w-full flex-1 min-h-0 flex flex-col md:col-span-8 lg:col-span-4">
-                  <CalendarView
-                    schedule={schedule}
-                    weekOffset={weekOffset}
-                    onNextWeek={handleNextWeek}
-                    onPrevWeek={handlePrevWeek}
-                    onReset={handleReset}
-                    onSetOffset={setWeekOffset}
-                    onDaySelect={setSelectedDay}
-                    selectedDay={selectedDay}
-                    materiaColorMap={materiaColorMap}
-                  />
-                </section>
-                <section className="hidden lg:flex flex-col lg:col-span-5 min-w-0 min-h-0">
+              <div className="flex flex-col lg:grid lg:grid-cols-12 gap-2 lg:gap-5 xl:gap-6 flex-1 min-h-0">
+                <Reorder.Group
+                  axis="y"
+                  values={widgetOrder}
+                  onReorder={setWidgetOrder}
+                  className="col-span-12 lg:col-span-7 xl:col-span-8 flex flex-col gap-3 overflow-y-auto pr-1 custom-scrollbar min-h-0 flex-1"
+                >
+                  {widgetOrder.map((id) => {
+                    const isHidden = hiddenWidgets.includes(id);
+                    if (isHidden && !isEditingLayout) return null;
+
+                    return (
+                      <Reorder.Item
+                        key={id}
+                        value={id}
+                        dragListener={isEditingLayout}
+                        className={cn(
+                          "relative rounded-[28px] overflow-hidden transition-all duration-200",
+                          isHidden &&
+                            "opacity-30 border border-dashed border-zinc-300 dark:border-zinc-800 scale-[0.98]",
+                          isEditingLayout &&
+                            "animate-wiggle border-2 border-dashed border-[#FF2B2B]/20 p-2 bg-zinc-50/50 dark:bg-zinc-950/20 cursor-grab active:cursor-grabbing",
+                        )}
+                      >
+                        {isEditingLayout && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleWidgetVisibility(id);
+                            }}
+                            className="absolute -top-1 -right-1 z-50 w-6 h-6 bg-[#FF2B2B] text-white rounded-full flex items-center justify-center shadow-lg hover:scale-110 active:scale-90 transition-all border-2 border-white dark:border-zinc-900 cursor-pointer"
+                            title="Rimuovi"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
+                        {id === "next-lesson" && (
+                          <NextLessonCard schedule={schedule} />
+                        )}
+                        {id === "bento" && (
+                          <BentoMiniCards schedule={schedule} />
+                        )}
+                        {id === "calendar" && (
+                          <CalendarView
+                            schedule={schedule}
+                            weekOffset={weekOffset}
+                            onNextWeek={handleNextWeek}
+                            onPrevWeek={handlePrevWeek}
+                            onReset={handleReset}
+                            onSetOffset={setWeekOffset}
+                            onDaySelect={setSelectedDay}
+                            selectedDay={selectedDay}
+                            materiaColorMap={materiaColorMap}
+                          />
+                        )}
+                      </Reorder.Item>
+                    );
+                  })}
+                </Reorder.Group>
+                <section className="hidden lg:flex flex-col lg:col-span-5 xl:col-span-4 min-w-0 min-h-0 h-full">
                   <DayView
                     day={selectedDay}
                     materiaColorMap={materiaColorMap}
@@ -474,6 +569,92 @@ function HomeContent() {
           </div>
         )}
       </main>
+
+      {/* Floating Done / Add button layout */}
+      <AnimatePresence>
+        {isEditingLayout && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white/95 dark:bg-zinc-950/95 border border-zinc-200 dark:border-zinc-850 px-4 py-2.5 rounded-2xl shadow-xl backdrop-blur-md"
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setIsEditingLayout(false);
+                setIsAddDrawerOpen(false);
+              }}
+              className="px-5 py-2.5 bg-[#FF2B2B] text-white font-mono font-black text-[9px] uppercase tracking-[0.2em] rounded-xl hover:scale-105 active:scale-95 transition-all shadow-md shadow-[#FF2B2B]/20"
+            >
+              Fatto
+            </button>
+            {hiddenWidgets.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setIsAddDrawerOpen(true)}
+                className="p-2 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center shadow-md"
+                title="Aggiungi Elemento"
+              >
+                <Plus className="w-4 h-4" />
+              </button>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Android-style widget drawer */}
+      <AnimatePresence>
+        {isAddDrawerOpen && isEditingLayout && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAddDrawerOpen(false)}
+              className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={SPRING}
+              className="fixed bottom-0 left-0 right-0 z-[120] bg-white/95 dark:bg-zinc-950/95 border-t border-zinc-200 dark:border-zinc-800 rounded-t-[32px] p-6 pb-12 shadow-2xl backdrop-blur-xl max-w-screen-md mx-auto"
+            >
+              <div className="w-12 h-1.5 bg-zinc-300 dark:bg-zinc-700 rounded-full mx-auto mb-6" />
+              <h3 className="font-mono text-[10px] uppercase tracking-[0.25em] text-zinc-400 mb-6 text-center font-bold">
+                Aggiungi Widget
+              </h3>
+              <div className="grid grid-cols-3 gap-3">
+                {hiddenWidgets.map((id) => (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => {
+                      toggleWidgetVisibility(id);
+                      if (hiddenWidgets.length === 1) setIsAddDrawerOpen(false);
+                    }}
+                    className="flex flex-col items-center justify-center gap-3 p-5 rounded-2xl bg-zinc-50 dark:bg-zinc-900/60 border border-zinc-100 dark:border-zinc-800/40 hover:border-zinc-200 dark:hover:border-zinc-700/60 transition-all active:scale-95 text-center group"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-500 dark:text-zinc-400 group-hover:scale-110 transition-transform">
+                      {id === "next-lesson" && <Clock className="w-5 h-5" />}
+                      {id === "bento" && <LayoutGrid className="w-5 h-5" />}
+                      {id === "calendar" && <Calendar className="w-5 h-5" />}
+                    </div>
+                    <span className="font-mono text-[9px] uppercase tracking-[0.12em] font-black text-zinc-700 dark:text-zinc-300">
+                      {id === "next-lesson"
+                        ? "Lezione"
+                        : id === "bento"
+                          ? "Statistiche"
+                          : "Calendario"}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <WelcomeDialog
         isOpen={isWelcomeOpen}

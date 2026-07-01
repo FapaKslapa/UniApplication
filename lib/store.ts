@@ -18,6 +18,8 @@ export interface AppState {
   userId: string;
   isAdmin: boolean;
   location: "Varese" | "Como" | "Tutte";
+  widgetOrder: string[];
+  hiddenWidgets: string[];
 
   setCalendarIds: (v: string[]) => void;
   setCourseNames: (v: string[]) => void;
@@ -34,6 +36,8 @@ export interface AppState {
   ensureUserId: () => string;
   setIsAdmin: (v: boolean) => void;
   setLocation: (v: "Varese" | "Como" | "Tutte") => void;
+  setWidgetOrder: (v: string[]) => void;
+  toggleWidgetVisibility: (id: string) => void;
 }
 
 function generateUserId(): string {
@@ -80,6 +84,15 @@ export const useAppStore = create<AppState>()(
       },
       setIsAdmin: (v) => set({ isAdmin: v }),
       setLocation: (v) => set({ location: v }),
+      widgetOrder: ["next-lesson", "bento", "calendar"],
+      hiddenWidgets: [],
+      setWidgetOrder: (v) => set({ widgetOrder: v }),
+      toggleWidgetVisibility: (id) =>
+        set((state) => ({
+          hiddenWidgets: state.hiddenWidgets.includes(id)
+            ? state.hiddenWidgets.filter((x) => x !== id)
+            : [...state.hiddenWidgets, id],
+        })),
     }),
     {
       name: "uni-app-storage",
