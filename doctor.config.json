@@ -1,0 +1,35 @@
+{
+  "ignore": {
+    "files": [
+      ".open-next/**",
+      ".next/**",
+      "dist/**",
+      "build/**",
+      "node_modules/**"
+    ],
+    "rules": [
+      "use-lazy-motion",
+      "unused-file",
+      "no-giant-component",
+      "no-initialize-state",
+      "prefer-useReducer",
+      "control-has-associated-label",
+      "unused-dependency",
+      "unused-dev-dependency",
+      "no-chain-state-updates",
+      "rendering-hydration-mismatch-time",
+      "no-event-handler",
+      "prefer-module-scope-static-value",
+      "js-combine-iterations",
+      "no-array-index-as-key",
+      "no-multi-comp",
+      "rerender-lazy-state-init",
+      "prefer-module-scope-pure-function",
+      "only-export-components",
+      "unused-export",
+      "rendering-hydration-no-flicker",
+      "no-long-transition-duration",
+      "prefer-dynamic-import"
+    ]
+  }
+}
