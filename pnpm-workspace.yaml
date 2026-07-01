@@ -8,5 +8,11 @@ overrides:
   next@>=15.5.1-canary.0 <15.5.8: '>=15.5.8'
 
 minimumReleaseAge: 1440
+minimumReleaseAgeExclude:
+  - '@biomejs/*'
+  - 'wrangler'
+  - 'miniflare'
+  - '@cloudflare/*'
+  - 'immer'
 blockExoticSubdeps: true
 trustPolicy: no-downgrade
