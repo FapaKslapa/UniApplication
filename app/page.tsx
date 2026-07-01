@@ -288,13 +288,16 @@ function HomeContent() {
       >
         <header className="flex items-center justify-between mb-4 lg:mb-8 flex-shrink-0 gap-4">
           <div className="flex-1 min-w-0">
-            <h1 className="text-base lg:text-lg font-bold text-zinc-900 dark:text-white font-serif tracking-tight truncate leading-none">
+            <h1 className="text-sm lg:text-base font-bold text-zinc-900 dark:text-white font-sans uppercase tracking-wider truncate leading-none">
               {displayTitle}
             </h1>
-            <p className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest mt-1 truncate">
-              {activeSection === "admin"
-                ? "Accesso Riservato • Gestione"
-                : `Orario Insubria ${userRole === "professor" ? "• Docente" : ""}`}
+            <p className="text-[9px] font-mono text-zinc-400 uppercase tracking-[0.2em] mt-1.5 flex items-center gap-2 truncate">
+              <span className="nothing-red-dot shrink-0" />
+              <span>
+                {activeSection === "admin"
+                  ? "Accesso Riservato • Gestione"
+                  : `Orario Insubria ${userRole === "professor" ? "• Docente" : ""}`}
+              </span>
             </p>
           </div>
 
@@ -302,21 +305,21 @@ function HomeContent() {
             <button
               type="button"
               onClick={() => utils.orario.getOrario.invalidate()}
-              className="md:hidden p-2 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl text-zinc-500 active:scale-90 transition-all"
+              className="md:hidden p-2 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl text-zinc-500 active:scale-90 transition-all"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
           )}
 
           <div className="hidden md:flex items-center gap-2">
-            <div className="flex bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-1 rounded-2xl shadow-sm">
+            <div className="flex bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 p-1 rounded-xl">
               <button
                 type="button"
                 onClick={() => setActiveView("week")}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all",
+                  "flex items-center gap-2 px-4 py-1.5 rounded-lg text-[9px] font-mono uppercase tracking-wider transition-all",
                   activeView === "week"
-                    ? "bg-white dark:bg-black text-zinc-900 dark:text-white shadow-sm"
+                    ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm border border-black/5 dark:border-white/10"
                     : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300",
                 )}
               >
@@ -327,9 +330,9 @@ function HomeContent() {
                 type="button"
                 onClick={() => setActiveView("month")}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all",
+                  "flex items-center gap-2 px-4 py-1.5 rounded-lg text-[9px] font-mono uppercase tracking-wider transition-all",
                   activeView === "month"
-                    ? "bg-white dark:bg-black text-zinc-900 dark:text-white shadow-sm"
+                    ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm border border-black/5 dark:border-white/10"
                     : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300",
                 )}
               >
@@ -342,9 +345,9 @@ function HomeContent() {
                     type="button"
                     onClick={() => setActiveView("stats")}
                     className={cn(
-                      "flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all",
+                      "flex items-center gap-2 px-4 py-1.5 rounded-lg text-[9px] font-mono uppercase tracking-wider transition-all",
                       activeView === "stats"
-                        ? "bg-white dark:bg-black text-zinc-900 dark:text-white shadow-sm"
+                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm border border-black/5 dark:border-white/10"
                         : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300",
                     )}
                   >
@@ -355,9 +358,9 @@ function HomeContent() {
                     type="button"
                     onClick={() => setActiveView("admin-courses")}
                     className={cn(
-                      "flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-all",
+                      "flex items-center gap-2 px-4 py-1.5 rounded-lg text-[9px] font-mono uppercase tracking-wider transition-all",
                       activeView === "admin-courses"
-                        ? "bg-white dark:bg-black text-zinc-900 dark:text-white shadow-sm"
+                        ? "bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm border border-black/5 dark:border-white/10"
                         : "text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300",
                     )}
                   >
@@ -371,14 +374,14 @@ function HomeContent() {
             <button
               type="button"
               onClick={() => utils.orario.getOrario.invalidate()}
-              className="p-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all active:scale-90"
+              className="p-2.5 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all active:scale-90"
             >
               <RefreshCw className="w-4 h-4" />
             </button>
             <button
               type="button"
               onClick={() => router.push("/settings")}
-              className="p-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all active:scale-90"
+              className="p-2.5 bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/10 rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all active:scale-90"
             >
               <Settings className="w-5 h-5" />
             </button>

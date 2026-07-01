@@ -281,13 +281,13 @@ export default function NextLessonCard({
       dragElastic={0.1}
       onDragEnd={handleDragEnd}
       className={cn(
-        "w-full bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-3xl overflow-hidden flex flex-col touch-none shadow-sm transition-all duration-300",
+        "w-full nothing-widget overflow-hidden flex flex-col touch-none transition-all duration-300",
         isLandscape ? "h-full min-h-[140px]" : "h-[240px]",
       )}
     >
       <div
         className={cn(
-          "border-b border-zinc-100 dark:border-zinc-900 flex items-center justify-between bg-zinc-50/30 dark:bg-zinc-900/10 z-20 flex-shrink-0 gap-2",
+          "border-b border-black/5 dark:border-white/10 flex items-center justify-between bg-black/5 dark:bg-white/5 z-20 flex-shrink-0 gap-2",
           isLandscape ? "p-2 px-4" : "px-4 py-3",
         )}
       >
@@ -307,7 +307,7 @@ export default function NextLessonCard({
               <button
                 type="button"
                 className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all font-serif font-bold text-zinc-900 dark:text-white shadow-sm min-w-0",
+                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/50 dark:bg-zinc-900/50 border border-black/5 dark:border-white/10 hover:border-black/10 dark:hover:border-white/20 transition-all font-mono text-zinc-900 dark:text-white min-w-0",
                   isLandscape ? "text-xs" : "text-sm",
                 )}
               >
@@ -359,26 +359,26 @@ export default function NextLessonCard({
             <ArrowLeftToLine className="w-3.5 h-3.5" />
           </button>
 
-          <div className="flex bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden shadow-sm p-0.5 gap-0.5">
+          <div className="flex bg-transparent border border-black/5 dark:border-white/10 rounded-lg overflow-hidden p-0.5 gap-0.5">
             <button
               type="button"
               onClick={handlePrevDay}
               disabled={dayOffset === 0}
-              className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all rounded disabled:opacity-20"
+              className="p-1 hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded disabled:opacity-20"
             >
               <ChevronLeft className="w-3.5 h-3.5 text-zinc-400" />
             </button>
             <button
               type="button"
               onClick={handleNextDay}
-              className="p-1 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all rounded"
+              className="p-1 hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded"
             >
               <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
             </button>
           </div>
 
-          <div className="hidden sm:block h-4 w-px bg-zinc-200 dark:bg-zinc-800 mx-1" />
-          <span className="hidden sm:block text-[10px] font-mono font-bold text-zinc-400 px-1">
+          <div className="hidden sm:block h-4 w-px bg-black/5 dark:bg-white/10 mx-1" />
+          <span className="hidden sm:block text-[10px] font-mono text-zinc-400 px-1">
             {getDate(dayOffset)}
           </span>
         </div>
@@ -436,21 +436,21 @@ export default function NextLessonCard({
                 <div className="flex flex-col h-full w-full">
                   <div
                     className={cn(
-                      "flex items-center justify-between",
+                      "flex items-center justify-between w-full",
                       isLandscape ? "mb-1" : "mb-2",
                     )}
                   >
                     <div className="flex items-center gap-2 text-zinc-900 dark:text-white">
                       <Clock
                         className={cn(
-                          "opacity-40",
+                          "opacity-40 text-red-500",
                           isLandscape ? "w-3.5 h-3.5" : "w-4 h-4",
                         )}
                       />
                       <span
                         className={cn(
-                          "font-semibold font-serif tracking-tight",
-                          isLandscape ? "text-base" : "text-xl",
+                          "font-mono font-bold tracking-tighter",
+                          isLandscape ? "text-base" : "text-lg",
                         )}
                       >
                         {currentLesson.time}
@@ -460,8 +460,9 @@ export default function NextLessonCard({
                       {dayOffset === 0 &&
                         data?.nextLesson?.lesson.time ===
                           currentLesson.time && (
-                          <span className="flex items-center gap-1 text-[10px] font-black font-mono px-2.5 py-1 rounded-full bg-zinc-900 dark:bg-white text-white dark:text-black uppercase tracking-wider">
-                            Ora
+                          <span className="flex items-center gap-1.5 text-[9px] font-bold font-mono px-2.5 py-1 rounded border border-black/10 dark:border-white/15 bg-black/5 dark:bg-white/10 text-zinc-900 dark:text-white uppercase tracking-wider">
+                            <span className="nothing-red-dot"></span>
+                            NOW
                           </span>
                         )}
                     </div>
@@ -547,7 +548,7 @@ export default function NextLessonCard({
 
       <div
         className={cn(
-          "border-t border-zinc-100 dark:border-zinc-900 flex justify-between items-center bg-zinc-50/30 dark:bg-zinc-900/10 flex-shrink-0",
+          "border-t border-black/5 dark:border-white/10 flex justify-between items-center bg-black/5 dark:bg-white/5 flex-shrink-0",
           isLandscape ? "p-2 px-4" : "px-4 py-3",
         )}
       >
@@ -559,13 +560,13 @@ export default function NextLessonCard({
                 className={cn(
                   "w-1 h-1 rounded-full transition-all duration-300",
                   i === displayIndex
-                    ? "bg-zinc-900 dark:bg-white w-3"
-                    : "bg-zinc-200 dark:bg-zinc-800",
+                    ? "bg-red-500 w-3"
+                    : "bg-black/20 dark:bg-white/20",
                 )}
               />
             ))
           ) : (
-            <div className="w-4 h-1 rounded-full bg-zinc-200 dark:bg-zinc-800 opacity-50" />
+            <div className="w-4 h-1 rounded-full bg-black/20 dark:bg-white/20 opacity-50" />
           )}
         </div>
         <div className="flex gap-2">

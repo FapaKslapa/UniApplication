@@ -53,7 +53,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body
-        className={`${geistSans.variable} ${notoSerif.variable} font-sans antialiased bg-white dark:bg-black`}
+        className={`${geistSans.variable} ${notoSerif.variable} font-sans antialiased bg-white dark:bg-black bg-nothing-grid`}
       >
         <TRPCProvider>
           <ServiceWorkerRegistration />
