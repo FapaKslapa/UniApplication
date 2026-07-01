@@ -105,12 +105,8 @@
           "name": "account_userId_user_id_fk",
           "tableFrom": "account",
           "tableTo": "user",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -391,9 +387,7 @@
       "indexes": {
         "idx_push_subs_link_id": {
           "name": "idx_push_subs_link_id",
-          "columns": [
-            "link_id"
-          ],
+          "columns": ["link_id"],
           "isUnique": false
         }
       },
@@ -465,9 +459,7 @@
       "indexes": {
         "session_token_unique": {
           "name": "session_token_unique",
-          "columns": [
-            "token"
-          ],
+          "columns": ["token"],
           "isUnique": true
         }
       },
@@ -476,12 +468,8 @@
           "name": "session_userId_user_id_fk",
           "tableFrom": "session",
           "tableTo": "user",
-          "columnsFrom": [
-            "userId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["userId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -547,9 +535,7 @@
       "indexes": {
         "user_email_unique": {
           "name": "user_email_unique",
-          "columns": [
-            "email"
-          ],
+          "columns": ["email"],
           "isUnique": true
         }
       },
@@ -688,23 +674,17 @@
       "indexes": {
         "idx_visits_created_at": {
           "name": "idx_visits_created_at",
-          "columns": [
-            "createdAt"
-          ],
+          "columns": ["createdAt"],
           "isUnique": false
         },
         "idx_visits_ip": {
           "name": "idx_visits_ip",
-          "columns": [
-            "ip"
-          ],
+          "columns": ["ip"],
           "isUnique": false
         },
         "idx_visits_client_id": {
           "name": "idx_visits_client_id",
-          "columns": [
-            "client_id"
-          ],
+          "columns": ["client_id"],
           "isUnique": false
         }
       },

@@ -7,7 +7,7 @@ async function main() {
   const { db } = await import("./lib/db/node");
   try {
     console.log("Inspecting courses table...");
-    // SQLite command to inspect table structure
+
     const r = db.run(sql`PRAGMA table_info(courses)`);
     console.log(JSON.stringify(r, null, 2));
 

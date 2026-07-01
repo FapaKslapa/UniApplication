@@ -14,7 +14,6 @@ interface JsonCourse {
 }
 
 export async function migrateJsonToDb() {
-  // If we are in the Cloudflare environment, skip filesystem operations
   if (process.env.DB) {
     console.log("Filesystem migration skipped in Cloudflare Edge environment.");
     return;

@@ -1,10 +1,5 @@
 import { sql } from "drizzle-orm";
-import {
-  integer,
-  sqliteTable,
-  text,
-  index,
-} from "drizzle-orm/sqlite-core";
+import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
 
 export const visits = sqliteTable(
   "visits",
@@ -18,7 +13,9 @@ export const visits = sqliteTable(
     deviceType: text("deviceType"),
     browser: text("browser"),
     os: text("os"),
-    createdAt: integer("createdAt", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+    createdAt: integer("createdAt", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
   },
   (table) => [
     index("idx_visits_created_at").on(table.createdAt),
@@ -27,13 +24,13 @@ export const visits = sqliteTable(
   ],
 );
 
-// ─── Better Auth tables ───────────────────────────────────────────────────────
-
 export const user = sqliteTable("user", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email").notNull().unique(),
-  emailVerified: integer("emailVerified", { mode: "boolean" }).notNull().default(false),
+  emailVerified: integer("emailVerified", { mode: "boolean" })
+    .notNull()
+    .default(false),
   image: text("image"),
   createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
   updatedAt: integer("updatedAt", { mode: "timestamp" }).notNull(),
@@ -63,7 +60,9 @@ export const account = sqliteTable("account", {
   refreshToken: text("refreshToken"),
   idToken: text("idToken"),
   accessTokenExpiresAt: integer("accessTokenExpiresAt", { mode: "timestamp" }),
-  refreshTokenExpiresAt: integer("refreshTokenExpiresAt", { mode: "timestamp" }),
+  refreshTokenExpiresAt: integer("refreshTokenExpiresAt", {
+    mode: "timestamp",
+  }),
   scope: text("scope"),
   password: text("password"),
   createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
@@ -79,8 +78,6 @@ export const verification = sqliteTable("verification", {
   updatedAt: integer("updatedAt", { mode: "timestamp" }),
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 export const courses = sqliteTable("courses", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
@@ -91,13 +88,19 @@ export const courses = sqliteTable("courses", {
   verified: integer("verified", { mode: "boolean" }).notNull().default(false),
   addedBy: text("added_by").notNull(),
   userId: text("user_id"),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
 });
 
 export const analyticsUsers = sqliteTable("analytics_users", {
   id: text("id").primaryKey(),
-  lastSeen: integer("last_seen", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
-  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  lastSeen: integer("last_seen", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
 });
 
 export const apiLogs = sqliteTable("api_logs", {
@@ -105,7 +108,9 @@ export const apiLogs = sqliteTable("api_logs", {
   endpoint: text("endpoint").notNull(),
   method: text("method").notNull(),
   userId: text("user_id"),
-  timestamp: integer("timestamp", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  timestamp: integer("timestamp", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
 });
 
 export const pushSubscriptions = sqliteTable(
@@ -118,7 +123,9 @@ export const pushSubscriptions = sqliteTable(
     p256dh: text("p256dh").notNull(),
     auth: text("auth").notNull(),
     filters: text("filters"),
-    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
   },
   (table) => [index("idx_push_subs_link_id").on(table.linkId)],
 );
@@ -128,7 +135,9 @@ export const courseSnapshots = sqliteTable("course_snapshots", {
   lastHash: text("last_hash").notNull(),
   lastData: text("last_data"),
   lastChanges: text("last_changes"),
-  lastUpdated: integer("last_updated", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  lastUpdated: integer("last_updated", { mode: "timestamp" })
+    .notNull()
+    .default(sql`(unixepoch())`),
 });
 
 export type DbCourse = typeof courses.$inferSelect;
