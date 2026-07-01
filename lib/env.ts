@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const serverSchema = z.object({
-  DATABASE_URL: z.url(),
+  DATABASE_URL: z.url().optional(),
   ADMIN_PASSWORD: z.string().min(1),
   VAPID_PRIVATE_KEY: z.string().min(1),
   PORT: z.coerce.number().default(3001),
