@@ -10,7 +10,6 @@ import {
   rejectCourse,
   verifyCourse,
 } from "@/lib/courses";
-import { migrateJsonToDb } from "@/lib/db/migrate";
 import {
   adminProcedure,
   createTRPCRouter,
@@ -18,11 +17,6 @@ import {
 } from "@/server/api/trpc";
 
 export const coursesRouter = createTRPCRouter({
-  migrate: adminProcedure.mutation(async () => {
-    await migrateJsonToDb();
-    return { success: true };
-  }),
-
   getAll: publicProcedure
     .input(
       z

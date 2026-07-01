@@ -1,6 +1,8 @@
 import { orarioRouter } from "@/server/api/routers/orario";
 import { createTRPCContext } from "@/server/api/trpc";
 
+export const runtime = "edge";
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",

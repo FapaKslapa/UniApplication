@@ -132,17 +132,17 @@ export async function getVisibleCourses(userId?: string): Promise<Course[]> {
       : eq(courses.status, "approved"),
   });
 
-  return result.map((c) => mapCourse(c as DbCourse));
+  return result.map((c: any) => mapCourse(c as DbCourse));
 }
 
 export async function getPendingCourses(): Promise<Course[]> {
   const result = await db.query.courses.findMany({
     where: eq(courses.status, "pending"),
   });
-  return result.map((c) => mapCourse(c as DbCourse));
+  return result.map((c: any) => mapCourse(c as DbCourse));
 }
 
 export async function getAllCoursesForAdmin(): Promise<Course[]> {
   const result = await db.query.courses.findMany();
-  return result.map((c) => mapCourse(c as DbCourse));
+  return result.map((c: any) => mapCourse(c as DbCourse));
 }

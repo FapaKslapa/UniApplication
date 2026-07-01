@@ -42,3 +42,10 @@ next-env.d.ts
 .idea
 .next
 node_modules
+
+# sqlite & local database files
+*.db
+/migration.sql
+
+# build & caches
+/.open-next/

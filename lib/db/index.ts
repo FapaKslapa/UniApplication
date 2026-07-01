@@ -1,26 +1,19 @@
-import path from "node:path";
-import * as dotenv from "dotenv";
-import { drizzle } from "drizzle-orm/mysql2";
-import mysql from "mysql2/promise";
+import { drizzle } from "drizzle-orm/d1";
 import * as schema from "./schema";
 
-if (!process.env.DATABASE_URL) {
-  dotenv.config({ path: path.join(process.cwd(), ".env.local") });
-}
+// Build-time placeholder to prevent crashes when process.env.DB is not defined during static analysis
+const d1Placeholder = {
+  prepare: () => ({
+    bind: () => ({
+      all: async () => ({ results: [] }),
+      run: async () => ({ success: true }),
+      first: async () => null,
+    }),
+  }),
+  batch: async () => [],
+  exec: async () => ({ success: true }),
+} as any;
 
-const databaseUrl = process.env.DATABASE_URL;
+const d1 = process.env.DB || d1Placeholder;
 
-if (!databaseUrl) {
-  throw new Error("DATABASE_URL is not defined in environment variables");
-}
-
-const cleanUrl = databaseUrl.replace(/^["'](.+)["']$/, "$1");
-
-const connection = mysql.createPool({
-  uri: cleanUrl,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0,
-});
-
-export const db = drizzle(connection, { schema, mode: "default" });
+export const db = drizzle(d1, { schema });

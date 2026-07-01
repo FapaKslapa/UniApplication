@@ -1,6 +1,8 @@
 import { orarioRouter } from "@/server/api/routers/orario";
 import { createTRPCContext } from "@/server/api/trpc";
 
+export const runtime = "edge";
+
 const cache: Record<string, { data: unknown; expires: number }> = {};
 
 function getCacheDuration(dayOffset: number): number {

@@ -57,7 +57,8 @@ const analyticsMiddleware = t.middleware(async ({ ctx, next, path, type }) => {
         await db
           .insert(analyticsUsers)
           .values({ id: userId })
-          .onDuplicateKeyUpdate({
+          .onConflictDoUpdate({
+            target: analyticsUsers.id,
             set: { lastSeen: sql`CURRENT_TIMESTAMP` },
           });
 

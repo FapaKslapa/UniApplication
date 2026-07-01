@@ -44,7 +44,7 @@ async function checkUpdates() {
     columns: { linkId: true },
   });
 
-  const linkIds = Array.from(new Set(activeSubs.map((s) => s.linkId)));
+  const linkIds: string[] = Array.from(new Set(activeSubs.map((s: any) => s.linkId as string)));
 
   if (linkIds.length === 0) {
     return;

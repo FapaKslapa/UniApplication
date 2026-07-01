@@ -13,7 +13,7 @@ import * as dotenv from "dotenv";
 dotenv.config({ path: path.join(process.cwd(), ".env.local") });
 
 import { and, eq, ne } from "drizzle-orm";
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/node";
 import { courses } from "@/lib/db/schema";
 
 // ─── Costanti ─────────────────────────────────────────────────────────────────

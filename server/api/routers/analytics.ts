@@ -34,34 +34,34 @@ export const analyticsRouter = createTRPCRouter({
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const result = await db.execute(sql`
+    const result = await db.all(sql`
       SELECT 
-        DATE(timestamp) as date, 
+        date(timestamp / case when timestamp > 9999999999 then 1000 else 1 end, 'unixepoch') as date, 
         COUNT(*) as count 
       FROM api_logs 
       WHERE timestamp >= ${thirtyDaysAgo}
-      GROUP BY DATE(timestamp) 
+      GROUP BY date 
       ORDER BY date ASC
     `);
 
-    return (result[0] as unknown as { date: string; count: number }[]) || [];
+    return (result as unknown as { date: string; count: number }[]) || [];
   }),
 
   getHourlyRequestsToday: adminProcedure.query(async () => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const result = await db.execute(sql`
+    const result = await db.all(sql`
       SELECT 
-        HOUR(timestamp) as hour, 
+        cast(strftime('%H', timestamp / case when timestamp > 9999999999 then 1000 else 1 end, 'unixepoch') as integer) as hour, 
         COUNT(*) as count 
       FROM api_logs 
       WHERE timestamp >= ${today}
-      GROUP BY HOUR(timestamp) 
+      GROUP BY hour 
       ORDER BY hour ASC
     `);
 
-    return (result[0] as unknown as { hour: number; count: number }[]) || [];
+    return (result as unknown as { hour: number; count: number }[]) || [];
   }),
 
   getTopEndpoints: adminProcedure.query(async () => {

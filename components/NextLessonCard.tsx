@@ -336,7 +336,6 @@ export default function NextLessonCard({
                     )
                   }
                   onSelect={handleDateSelect}
-                  initialFocus
                   locale={it}
                   className="font-mono"
                 />

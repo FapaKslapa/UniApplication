@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import { DateTime } from "luxon";
-import UAParser from "ua-parser-js";
+import { UAParser } from "ua-parser-js";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { visits } from "@/lib/db/schema";
@@ -41,7 +41,7 @@ function isRateLimited(ip: string): boolean {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-const get = (r: [CountRow[], unknown]) => Number(r[0][0]?.value ?? 0);
+const get = (r: any[]) => Number(r[0]?.value ?? 0);
 
 function italyBoundaries() {
   const now = DateTime.now().setZone("Europe/Rome");
@@ -114,33 +114,31 @@ export const statsRouter = createTRPCRouter({
       totalClients,
       clientsToday,
     ] = await Promise.all([
-      db.execute(
-        sql`SELECT COUNT(*) as value FROM visits`,
-      ) as unknown as Promise<[CountRow[], unknown]>,
-      db.execute(
+      db.all(sql`SELECT COUNT(*) as value FROM visits`),
+      db.all(
         sql`SELECT COUNT(*) as value FROM visits WHERE createdAt >= ${h24ago}`,
-      ) as unknown as Promise<[CountRow[], unknown]>,
-      db.execute(
+      ),
+      db.all(
         sql`SELECT COUNT(*) as value FROM visits WHERE createdAt >= ${h48ago} AND createdAt < ${h24ago}`,
-      ) as unknown as Promise<[CountRow[], unknown]>,
-      db.execute(
+      ),
+      db.all(
         sql`SELECT COUNT(*) as value FROM visits WHERE createdAt >= ${new Date(Date.now() - 604_800_000)}`,
-      ) as unknown as Promise<[CountRow[], unknown]>,
-      db.execute(
+      ),
+      db.all(
         sql`SELECT COUNT(*) as value FROM visits WHERE createdAt >= ${w2ago} AND createdAt < ${new Date(Date.now() - 604_800_000)}`,
-      ) as unknown as Promise<[CountRow[], unknown]>,
-      db.execute(
+      ),
+      db.all(
         sql`SELECT COUNT(DISTINCT ip) as value FROM visits`,
-      ) as unknown as Promise<[CountRow[], unknown]>,
-      db.execute(
+      ),
+      db.all(
         sql`SELECT COUNT(DISTINCT ip) as value FROM visits WHERE createdAt >= ${todayStart}`,
-      ) as unknown as Promise<[CountRow[], unknown]>,
-      db.execute(
+      ),
+      db.all(
         sql`SELECT COUNT(DISTINCT client_id) as value FROM visits WHERE client_id IS NOT NULL`,
-      ) as unknown as Promise<[CountRow[], unknown]>,
-      db.execute(
+      ),
+      db.all(
         sql`SELECT COUNT(DISTINCT client_id) as value FROM visits WHERE client_id IS NOT NULL AND createdAt >= ${todayStart}`,
-      ) as unknown as Promise<[CountRow[], unknown]>,
+      ),
     ]);
 
     void weekStart;
@@ -177,30 +175,30 @@ export const statsRouter = createTRPCRouter({
 
     const [dau, prevDau, wau, prevWau, mau, prevMau, total, newToday] =
       await Promise.all([
-        db.execute(
+        db.all(
           sql`SELECT COUNT(*) as value FROM analytics_users WHERE last_seen >= ${todayStart}`,
-        ) as unknown as Promise<[CountRow[], unknown]>,
-        db.execute(
+        ),
+        db.all(
           sql`SELECT COUNT(*) as value FROM analytics_users WHERE last_seen >= ${yesterdayStart} AND last_seen < ${todayStart}`,
-        ) as unknown as Promise<[CountRow[], unknown]>,
-        db.execute(
+        ),
+        db.all(
           sql`SELECT COUNT(*) as value FROM analytics_users WHERE last_seen >= ${weekStart}`,
-        ) as unknown as Promise<[CountRow[], unknown]>,
-        db.execute(
+        ),
+        db.all(
           sql`SELECT COUNT(*) as value FROM analytics_users WHERE last_seen >= ${prevWeekStart} AND last_seen < ${weekStart}`,
-        ) as unknown as Promise<[CountRow[], unknown]>,
-        db.execute(
+        ),
+        db.all(
           sql`SELECT COUNT(*) as value FROM analytics_users WHERE last_seen >= ${monthStart}`,
-        ) as unknown as Promise<[CountRow[], unknown]>,
-        db.execute(
+        ),
+        db.all(
           sql`SELECT COUNT(*) as value FROM analytics_users WHERE last_seen >= ${prevMonthStart} AND last_seen < ${monthStart}`,
-        ) as unknown as Promise<[CountRow[], unknown]>,
-        db.execute(
+        ),
+        db.all(
           sql`SELECT COUNT(*) as value FROM analytics_users`,
-        ) as unknown as Promise<[CountRow[], unknown]>,
-        db.execute(
+        ),
+        db.all(
           sql`SELECT COUNT(*) as value FROM analytics_users WHERE created_at >= ${todayStart}`,
-        ) as unknown as Promise<[CountRow[], unknown]>,
+        ),
       ]);
 
     const dauVal = get(dau);
@@ -246,20 +244,20 @@ export const statsRouter = createTRPCRouter({
         fromDate = new Date(toDate.getTime() - (input.days ?? 30) * 86_400_000);
       }
 
-      const result = await db.execute(sql`
+      const result = await db.all(sql`
         SELECT
-          DATE_FORMAT(createdAt, '%Y-%m-%d') as date,
+          date(createdAt / case when createdAt > 9999999999 then 1000 else 1 end, 'unixepoch') as date,
           COUNT(*) as count,
-          COUNT(DISTINCT ip) as \`unique\`,
+          COUNT(DISTINCT ip) as "unique",
           COUNT(DISTINCT client_id) as uniqueClients
         FROM visits
         WHERE createdAt >= ${fromDate} AND createdAt <= ${toDate}
-        GROUP BY DATE_FORMAT(createdAt, '%Y-%m-%d')
+        GROUP BY date
         ORDER BY date ASC
       `);
 
       return (
-        result[0] as unknown as (DailyRow & { uniqueClients: number })[]
+        result as unknown as (DailyRow & { uniqueClients: number })[]
       ).map((r) => ({
         date: r.date,
         count: Number(r.count),
@@ -278,15 +276,17 @@ export const statsRouter = createTRPCRouter({
       const fromDate = new Date(Date.now() - days * 86_400_000);
       const offsetHours = DateTime.now().setZone("Europe/Rome").offset / 60;
 
-      const result = await db.execute(sql`
-        SELECT HOUR(DATE_ADD(createdAt, INTERVAL ${offsetHours} HOUR)) as hour, COUNT(*) as count
+      const result = await db.all(sql`
+        SELECT 
+          cast(strftime('%H', (createdAt / case when createdAt > 9999999999 then 1000 else 1 end) + ${offsetHours * 3600}, 'unixepoch') as integer) as hour, 
+          COUNT(*) as count
         FROM visits
         WHERE createdAt >= ${fromDate}
-        GROUP BY HOUR(DATE_ADD(createdAt, INTERVAL ${offsetHours} HOUR))
+        GROUP BY hour
         ORDER BY hour ASC
       `);
 
-      return (result[0] as unknown as HourlyRow[]).map((r) => ({
+      return (result as unknown as HourlyRow[]).map((r) => ({
         hour: Number(r.hour),
         count: Number(r.count),
       }));
@@ -294,13 +294,13 @@ export const statsRouter = createTRPCRouter({
 
   // ── Distribuzione dispositivi ─────────────────────────────────────────────
   getDeviceDistribution: adminProcedure.query(async () => {
-    const result = await db.execute(sql`
+    const result = await db.all(sql`
       SELECT deviceType, COUNT(*) as count
       FROM visits
       GROUP BY deviceType
       ORDER BY count DESC
     `);
-    return (result[0] as unknown as DeviceRow[]).map((r) => ({
+    return (result as unknown as DeviceRow[]).map((r) => ({
       deviceType: r.deviceType ?? "desktop",
       count: Number(r.count),
     }));
@@ -308,7 +308,7 @@ export const statsRouter = createTRPCRouter({
 
   // ── Distribuzione OS ──────────────────────────────────────────────────────
   getOsDistribution: adminProcedure.query(async () => {
-    const result = await db.execute(sql`
+    const result = await db.all(sql`
       SELECT os, COUNT(*) as count
       FROM visits
       WHERE os IS NOT NULL AND os != 'Unknown'
@@ -316,7 +316,7 @@ export const statsRouter = createTRPCRouter({
       ORDER BY count DESC
       LIMIT 10
     `);
-    return (result[0] as unknown as OsRow[]).map((r) => ({
+    return (result as unknown as OsRow[]).map((r) => ({
       os: r.os ?? "Unknown",
       count: Number(r.count),
     }));
@@ -324,15 +324,15 @@ export const statsRouter = createTRPCRouter({
 
   // ── Top pagine ────────────────────────────────────────────────────────────
   getTopPages: adminProcedure.query(async () => {
-    const result = await db.execute(sql`
-      SELECT path, COUNT(*) as count, COUNT(DISTINCT ip) as \`unique\`
+    const result = await db.all(sql`
+      SELECT path, COUNT(*) as count, COUNT(DISTINCT ip) as "unique"
       FROM visits
       WHERE path IS NOT NULL
       GROUP BY path
       ORDER BY count DESC
       LIMIT 10
     `);
-    return (result[0] as unknown as PageRow[]).map((r) => ({
+    return (result as unknown as PageRow[]).map((r) => ({
       path: r.path,
       count: Number(r.count),
       unique: Number(r.unique),
@@ -341,7 +341,7 @@ export const statsRouter = createTRPCRouter({
 
   // ── Distribuzione browser ─────────────────────────────────────────────────
   getBrowserDistribution: adminProcedure.query(async () => {
-    const result = await db.execute(sql`
+    const result = await db.all(sql`
       SELECT browser, COUNT(*) as count
       FROM visits
       WHERE browser IS NOT NULL
@@ -349,7 +349,7 @@ export const statsRouter = createTRPCRouter({
       ORDER BY count DESC
       LIMIT 8
     `);
-    return (result[0] as unknown as BrowserRow[]).map((r) => ({
+    return (result as unknown as BrowserRow[]).map((r) => ({
       browser: r.browser ?? "Unknown",
       count: Number(r.count),
     }));
@@ -360,32 +360,30 @@ export const statsRouter = createTRPCRouter({
     const fromDate = new Date(Date.now() - 30 * 86_400_000);
 
     const [total, topCourses, trend] = await Promise.all([
-      db.execute(
-        sql`SELECT COUNT(*) as value FROM push_subscriptions`,
-      ) as unknown as Promise<[CountRow[], unknown]>,
-      db.execute(sql`
+      db.all(sql`SELECT COUNT(*) as value FROM push_subscriptions`),
+      db.all(sql`
         SELECT link_id as linkId, COUNT(*) as count
         FROM push_subscriptions
         GROUP BY link_id
         ORDER BY count DESC
         LIMIT 8
       `),
-      db.execute(sql`
-        SELECT DATE_FORMAT(created_at, '%Y-%m-%d') as date, COUNT(*) as count
+      db.all(sql`
+        SELECT date(created_at / case when created_at > 9999999999 then 1000 else 1 end, 'unixepoch') as date, COUNT(*) as count
         FROM push_subscriptions
         WHERE created_at >= ${fromDate}
-        GROUP BY DATE_FORMAT(created_at, '%Y-%m-%d')
+        GROUP BY date
         ORDER BY date ASC
       `),
     ]);
 
     return {
       total: get(total),
-      topCourses: (topCourses[0] as unknown as PushCourseRow[]).map((r) => ({
+      topCourses: (topCourses as unknown as PushCourseRow[]).map((r) => ({
         linkId: r.linkId,
         count: Number(r.count),
       })),
-      trend: (trend[0] as unknown as PushTrendRow[]).map((r) => ({
+      trend: (trend as unknown as PushTrendRow[]).map((r) => ({
         date: r.date,
         count: Number(r.count),
       })),

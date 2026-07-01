@@ -1,7 +1,7 @@
 onlyBuiltDependencies:
-  - esbuild
   - puppeteer
   - sharp
+  - better-sqlite3
 
 overrides:
   next@>=15.5.0-canary.0 <15.5.7: '>=15.5.7'

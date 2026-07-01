@@ -1,28 +1,24 @@
+import { sql } from "drizzle-orm";
 import {
-  boolean,
-  index,
-  int,
-  longtext,
-  mysqlEnum,
-  mysqlTable,
+  integer,
+  sqliteTable,
   text,
-  timestamp,
-  varchar,
-} from "drizzle-orm/mysql-core";
+  index,
+} from "drizzle-orm/sqlite-core";
 
-export const visits = mysqlTable(
+export const visits = sqliteTable(
   "visits",
   {
-    id: int("id").primaryKey().autoincrement(),
-    ip: varchar("ip", { length: 64 }),
-    clientId: varchar("client_id", { length: 255 }),
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    ip: text("ip"),
+    clientId: text("client_id"),
     userAgent: text("userAgent"),
-    path: varchar("path", { length: 512 }),
+    path: text("path"),
     referer: text("referer"),
-    deviceType: varchar("deviceType", { length: 32 }),
-    browser: varchar("browser", { length: 64 }),
-    os: varchar("os", { length: 64 }),
-    createdAt: timestamp("createdAt").notNull().defaultNow(),
+    deviceType: text("deviceType"),
+    browser: text("browser"),
+    os: text("os"),
+    createdAt: integer("createdAt", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   },
   (table) => [
     index("idx_visits_created_at").on(table.createdAt),
@@ -33,108 +29,106 @@ export const visits = mysqlTable(
 
 // ─── Better Auth tables ───────────────────────────────────────────────────────
 
-export const user = mysqlTable("user", {
-  id: varchar("id", { length: 36 }).primaryKey(),
+export const user = sqliteTable("user", {
+  id: text("id").primaryKey(),
   name: text("name").notNull(),
-  email: varchar("email", { length: 255 }).notNull().unique(),
-  emailVerified: boolean("emailVerified").notNull().default(false),
+  email: text("email").notNull().unique(),
+  emailVerified: integer("emailVerified", { mode: "boolean" }).notNull().default(false),
   image: text("image"),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt").notNull().defaultNow().onUpdateNow(),
+  createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" }).notNull(),
 });
 
-export const session = mysqlTable("session", {
-  id: varchar("id", { length: 255 }).primaryKey(),
-  expiresAt: timestamp("expiresAt").notNull(),
-  token: varchar("token", { length: 255 }).notNull().unique(),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt").notNull().defaultNow().onUpdateNow(),
+export const session = sqliteTable("session", {
+  id: text("id").primaryKey(),
+  expiresAt: integer("expiresAt", { mode: "timestamp" }).notNull(),
+  token: text("token").notNull().unique(),
+  createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" }).notNull(),
   ipAddress: text("ipAddress"),
   userAgent: text("userAgent"),
-  userId: varchar("userId", { length: 36 })
+  userId: text("userId")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
 });
 
-export const account = mysqlTable("account", {
-  id: varchar("id", { length: 255 }).primaryKey(),
+export const account = sqliteTable("account", {
+  id: text("id").primaryKey(),
   accountId: text("accountId").notNull(),
   providerId: text("providerId").notNull(),
-  userId: varchar("userId", { length: 36 })
+  userId: text("userId")
     .notNull()
     .references(() => user.id, { onDelete: "cascade" }),
   accessToken: text("accessToken"),
   refreshToken: text("refreshToken"),
   idToken: text("idToken"),
-  accessTokenExpiresAt: timestamp("accessTokenExpiresAt"),
-  refreshTokenExpiresAt: timestamp("refreshTokenExpiresAt"),
+  accessTokenExpiresAt: integer("accessTokenExpiresAt", { mode: "timestamp" }),
+  refreshTokenExpiresAt: integer("refreshTokenExpiresAt", { mode: "timestamp" }),
   scope: text("scope"),
   password: text("password"),
-  createdAt: timestamp("createdAt").notNull().defaultNow(),
-  updatedAt: timestamp("updatedAt").notNull().defaultNow().onUpdateNow(),
+  createdAt: integer("createdAt", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" }).notNull(),
 });
 
-export const verification = mysqlTable("verification", {
-  id: varchar("id", { length: 255 }).primaryKey(),
+export const verification = sqliteTable("verification", {
+  id: text("id").primaryKey(),
   identifier: text("identifier").notNull(),
   value: text("value").notNull(),
-  expiresAt: timestamp("expiresAt").notNull(),
-  createdAt: timestamp("createdAt").defaultNow(),
-  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow(),
+  expiresAt: integer("expiresAt", { mode: "timestamp" }).notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" }),
+  updatedAt: integer("updatedAt", { mode: "timestamp" }),
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const courses = mysqlTable("courses", {
-  id: varchar("id", { length: 255 }).primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  linkId: varchar("linkId", { length: 255 }).notNull(),
-  year: int("year"),
-  academicYear: varchar("academic_year", { length: 255 }),
-  status: mysqlEnum("status", ["pending", "approved", "rejected"])
-    .notNull()
-    .default("pending"),
-  verified: boolean("verified").notNull().default(false),
-  addedBy: varchar("added_by", { length: 255 }).notNull(),
-  userId: varchar("user_id", { length: 255 }),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+export const courses = sqliteTable("courses", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  linkId: text("linkId").notNull(),
+  year: integer("year"),
+  academicYear: text("academic_year"),
+  status: text("status").notNull().default("pending"),
+  verified: integer("verified", { mode: "boolean" }).notNull().default(false),
+  addedBy: text("added_by").notNull(),
+  userId: text("user_id"),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 });
 
-export const analyticsUsers = mysqlTable("analytics_users", {
-  id: varchar("id", { length: 255 }).primaryKey(),
-  lastSeen: timestamp("last_seen").notNull().defaultNow().onUpdateNow(),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
+export const analyticsUsers = sqliteTable("analytics_users", {
+  id: text("id").primaryKey(),
+  lastSeen: integer("last_seen", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 });
 
-export const apiLogs = mysqlTable("api_logs", {
-  id: int("id").primaryKey().autoincrement(),
-  endpoint: varchar("endpoint", { length: 255 }).notNull(),
-  method: varchar("method", { length: 10 }).notNull(),
-  userId: varchar("user_id", { length: 255 }),
-  timestamp: timestamp("timestamp").notNull().defaultNow(),
+export const apiLogs = sqliteTable("api_logs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  endpoint: text("endpoint").notNull(),
+  method: text("method").notNull(),
+  userId: text("user_id"),
+  timestamp: integer("timestamp", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 });
 
-export const pushSubscriptions = mysqlTable(
+export const pushSubscriptions = sqliteTable(
   "push_subscriptions",
   {
-    id: int("id").primaryKey().autoincrement(),
-    userId: varchar("user_id", { length: 255 }).notNull(),
-    linkId: varchar("link_id", { length: 255 }).notNull(),
-    endpoint: varchar("endpoint", { length: 1024 }).notNull(),
-    p256dh: varchar("p256dh", { length: 255 }).notNull(),
-    auth: varchar("auth", { length: 255 }).notNull(),
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    userId: text("user_id").notNull(),
+    linkId: text("link_id").notNull(),
+    endpoint: text("endpoint").notNull(),
+    p256dh: text("p256dh").notNull(),
+    auth: text("auth").notNull(),
     filters: text("filters"),
-    createdAt: timestamp("created_at").notNull().defaultNow(),
+    createdAt: integer("created_at", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
   },
   (table) => [index("idx_push_subs_link_id").on(table.linkId)],
 );
 
-export const courseSnapshots = mysqlTable("course_snapshots", {
-  linkId: varchar("link_id", { length: 255 }).primaryKey(),
-  lastHash: varchar("last_hash", { length: 255 }).notNull(),
-  lastData: longtext("last_data"),
-  lastChanges: longtext("last_changes"),
-  lastUpdated: timestamp("last_updated").notNull().defaultNow().onUpdateNow(),
+export const courseSnapshots = sqliteTable("course_snapshots", {
+  linkId: text("link_id").primaryKey(),
+  lastHash: text("last_hash").notNull(),
+  lastData: text("last_data"),
+  lastChanges: text("last_changes"),
+  lastUpdated: integer("last_updated", { mode: "timestamp" }).notNull().default(sql`(unixepoch())`),
 });
 
 export type DbCourse = typeof courses.$inferSelect;

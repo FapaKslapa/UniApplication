@@ -1,12 +1,8 @@
 import crypto from "node:crypto";
-import path from "node:path";
-import * as dotenv from "dotenv";
 import { eq } from "drizzle-orm";
 import webpush from "web-push";
 import { db } from "@/lib/db";
 import { pushSubscriptions } from "@/lib/db/schema";
-
-dotenv.config({ path: path.join(process.cwd(), ".env.local") });
 
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || "";
@@ -50,7 +46,7 @@ export async function sendPushNotification(
   data?: Record<string, unknown>,
 ) {
   const subs = await db.query.pushSubscriptions.findMany({
-    where: (table, { and, eq }) =>
+    where: (table: any, { and, eq }: any) =>
       and(eq(table.userId, userId), eq(table.linkId, linkId)),
   });
 

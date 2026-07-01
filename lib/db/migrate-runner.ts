@@ -1,30 +1,17 @@
 import path from "node:path";
-import * as dotenv from "dotenv";
-import { drizzle } from "drizzle-orm/mysql2";
-import { migrate } from "drizzle-orm/mysql2/migrator";
-import mysql from "mysql2/promise";
-
-dotenv.config({ path: ".env.local" });
+import { migrate } from "drizzle-orm/better-sqlite3/migrator";
+import { db } from "./node";
 
 async function runMigrations() {
-  const databaseUrl = process.env.DATABASE_URL;
-
-  if (!databaseUrl) {
-    throw new Error("DATABASE_URL is not defined in environment variables");
-  }
-
-  const connection = await mysql.createConnection(databaseUrl);
-  const db = drizzle(connection);
-
+  console.log("Running local SQLite migrations...");
   try {
-    await migrate(db, {
+    migrate(db, {
       migrationsFolder: path.join(process.cwd(), "drizzle"),
     });
+    console.log("Local SQLite migrations applied successfully!");
   } catch (error) {
-    console.error("Error applying migrations:", error);
+    console.error("Error applying local migrations:", error);
     process.exit(1);
-  } finally {
-    await connection.end();
   }
 }
 

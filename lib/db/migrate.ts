@@ -1,17 +1,12 @@
-import fs from "node:fs/promises";
-import path from "node:path";
-import { db } from "@/lib/db";
+import { db } from "@/lib/db/node";
 import { courses } from "@/lib/db/schema";
-
-const COURSES_FILE_PATH = path.join(process.cwd(), "data", "courses.json");
 
 interface JsonCourse {
   id: string;
   name: string;
   linkId: string;
-  year?: number | null;
-  academicYear?: string | null;
-  status: "pending" | "approved" | "rejected";
+  year: number;
+  academicYear: string;
   verified: boolean;
   addedBy: string;
   userId?: string | null;
@@ -19,7 +14,17 @@ interface JsonCourse {
 }
 
 export async function migrateJsonToDb() {
+  // If we are in the Cloudflare environment, skip filesystem operations
+  if (process.env.DB) {
+    console.log("Filesystem migration skipped in Cloudflare Edge environment.");
+    return;
+  }
+
   try {
+    const fs = await import("node:fs/promises");
+    const path = await import("node:path");
+
+    const COURSES_FILE_PATH = path.join(process.cwd(), "data", "courses.json");
     const fileContent = await fs.readFile(COURSES_FILE_PATH, "utf-8");
     const { courses: jsonCourses } = JSON.parse(fileContent) as {
       courses: JsonCourse[];
@@ -33,7 +38,8 @@ export async function migrateJsonToDb() {
         createdAt: new Date(course.createdAt),
       };
 
-      await db.insert(courses).values(values).onDuplicateKeyUpdate({
+      await db.insert(courses).values(values).onConflictDoUpdate({
+        target: courses.id,
         set: values,
       });
     }
