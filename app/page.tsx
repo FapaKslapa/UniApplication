@@ -678,14 +678,12 @@ function HomeContent() {
           setNotificationChanges(null);
         }}
       />
-      {!isEditingLayout && (
-        <BottomNav
-          activeView={activeView}
-          activeSection={activeSection}
-          onViewChange={setActiveView}
-          onSettings={() => router.push("/settings")}
-        />
-      )}
+      <BottomNav
+        activeView={activeView}
+        activeSection={activeSection}
+        onViewChange={setActiveView}
+        onSettings={() => router.push("/settings")}
+      />
 
       <AnimatePresence>
         {selectedDay && !isDesktop && (
