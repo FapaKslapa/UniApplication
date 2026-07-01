@@ -42,7 +42,7 @@ export function NotificationsIntroDialog({
 
           <div className="w-20 h-20 rounded-3xl bg-green-500/10 flex items-center justify-center shadow-inner mb-6 relative">
             <BellRing className="w-10 h-10 text-green-500" />
-            <div className="absolute -top-2 -right-2 bg-amber-500 text-white p-1.5 rounded-xl shadow-lg animate-bounce">
+            <div className="absolute -top-2 -right-2 bg-amber-500 text-white p-1.5 rounded-xl shadow-lg">
               <Sparkles className="w-4 h-4" />
             </div>
           </div>

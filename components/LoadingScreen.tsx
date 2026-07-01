@@ -8,23 +8,27 @@ export function LoadingScreen({
   label?: string;
 }) {
   return (
-    <div className="fixed inset-0 bg-white dark:bg-black flex flex-col items-center justify-center gap-5">
+    <div className="fixed inset-0 bg-white dark:bg-black bg-nothing-grid flex flex-col items-center justify-center gap-6">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
+        initial={{ opacity: 0, scale: 0.92 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
+        transition={{ duration: 0.2, ease: "easeOut" }}
         className="flex flex-col items-center gap-5"
       >
-        <div className="relative w-14 h-14">
-          <div className="absolute inset-0 rounded-full border-2 border-zinc-100 dark:border-zinc-900" />
-          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-zinc-900 dark:border-t-white animate-spin" />
-          <div className="absolute inset-2 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
-            <div className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600 animate-pulse" />
+        {}
+        <div className="relative w-12 h-12">
+          <div className="absolute inset-0 rounded-full border border-black/8 dark:border-white/8" />
+          <div
+            className="absolute inset-0 rounded-full border border-transparent border-t-zinc-900 dark:border-t-white animate-spin"
+            style={{ animationDuration: "0.8s" }}
+          />
+          {}
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className="nothing-red-dot" />
           </div>
         </div>
-        <p className="text-[10px] font-mono font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-[0.3em]">
-          {label}
-        </p>
+
+        <p className="nth-label text-zinc-400 dark:text-zinc-600">{label}</p>
       </motion.div>
     </div>
   );
@@ -38,16 +42,16 @@ export function ErrorScreen({
   onRetryAction?: () => void;
 }) {
   return (
-    <div className="fixed inset-0 bg-white dark:bg-black flex flex-col items-center justify-center p-6 gap-6">
+    <div className="fixed inset-0 bg-white dark:bg-black bg-nothing-grid flex flex-col items-center justify-center p-6 gap-6">
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.25 }}
+        transition={{ duration: 0.2 }}
         className="flex flex-col items-center gap-4 text-center max-w-xs"
       >
-        <div className="w-14 h-14 rounded-3xl bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 flex items-center justify-center">
+        <div className="w-12 h-12 rounded-[16px] bg-red-50 dark:bg-red-500/8 border border-red-200 dark:border-red-500/15 flex items-center justify-center">
           <svg
-            className="w-6 h-6 text-red-500"
+            className="w-5 h-5 text-red-500"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -61,21 +65,19 @@ export function ErrorScreen({
             />
           </svg>
         </div>
-
         <div>
-          <p className="text-sm font-bold font-serif text-zinc-900 dark:text-white mb-1">
-            Errore di caricamento
+          <p className="text-sm font-mono font-bold text-zinc-900 dark:text-white uppercase tracking-wider mb-1">
+            Errore
           </p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 font-serif italic leading-relaxed">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 font-mono leading-relaxed">
             {message}
           </p>
         </div>
-
         {onRetryAction && (
           <button
             type="button"
             onClick={onRetryAction}
-            className="px-5 py-2.5 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl text-xs font-bold font-mono uppercase tracking-widest hover:opacity-80 active:scale-95 transition-all"
+            className="px-5 py-2 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-[12px] text-[10px] font-mono font-bold uppercase tracking-widest hover:opacity-80 active:scale-95 transition-all"
           >
             Riprova
           </button>
@@ -93,7 +95,7 @@ export function SkeletonList({ rows = 4 }: { rows?: number }) {
       {SKELETON_KEYS.slice(0, rows).map((k, i) => (
         <div
           key={k}
-          className="h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800"
+          className="h-12 rounded-[14px] bg-zinc-100 dark:bg-white/4 border border-zinc-200 dark:border-white/6"
           style={{ opacity: 1 - i * 0.15 }}
         />
       ))}

@@ -83,7 +83,7 @@ export function AdminLoginDialog({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-5 py-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-2xl focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white focus:outline-none transition-all text-sm font-mono"
-                autoFocus
+                aria-label="Password"
               />
             </div>
             {error && (

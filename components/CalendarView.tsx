@@ -7,12 +7,11 @@ import utc from "dayjs/plugin/utc";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import {
   ArrowLeftToLine,
+  Calendar as CalendarOff,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Filter,
-  LayoutGrid,
-  MoreHorizontal,
 } from "lucide-react";
 import { DateTime } from "luxon";
 import { useEffect, useMemo, useState } from "react";
@@ -35,7 +34,7 @@ import { cn } from "@/lib/utils";
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const SPRING_CONFIG = {
+const SPRING = {
   type: "spring",
   stiffness: 350,
   damping: 35,
@@ -54,8 +53,6 @@ interface CalendarViewProps {
   materiaColorMap: Record<string, string>;
 }
 
-const _INITIAL_HIDDEN_SUBJECTS: string[] = [];
-
 export function CalendarView({
   schedule,
   weekOffset,
@@ -71,27 +68,17 @@ export function CalendarView({
   const { hiddenSubjects, setHiddenSubjects } = useAppStore();
   const [direction, setDirection] = useState(0);
   const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
-  const [_isMobile, setIsMobile] = useState(false);
-  const [showTabs, setShowTabs] = useState(false);
-  const [activeTab, setActiveTab] = useState<"calendar" | "filters">(
-    "calendar",
-  );
-  const [isViewMenuOpen, setIsViewMenuOpen] = useState(false);
-  const [isFilterMenuOpen, setIsFilterMenuOpen] = useState(false);
+  const [showFilterPanel, setShowFilterPanel] = useState(false);
 
   const updateFiltersMutation =
     api.notifications.updateAllFilters.useMutation();
 
   useEffect(() => {
-    const checkSize = () => {
-      const width = window.innerWidth;
-      const height = window.innerHeight;
-      setIsMobile(width < 1024);
-      setShowTabs(height < 750);
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) setShowFilterPanel(false);
     };
-    checkSize();
-    window.addEventListener("resize", checkSize);
-    return () => window.removeEventListener("resize", checkSize);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   const handlePrevWeek = () => {
@@ -102,28 +89,23 @@ export function CalendarView({
     setDirection(1);
     onNextWeek();
   };
-
   const handleDragEnd = (_: unknown, info: PanInfo) => {
-    const threshold = 50;
-    if (info.offset.x < -threshold) handleNextWeek();
-    else if (info.offset.x > threshold) handlePrevWeek();
+    if (info.offset.x < -50) handleNextWeek();
+    else if (info.offset.x > 50) handlePrevWeek();
   };
-
   const handleCalendarDragEnd = (_: unknown, info: PanInfo) => {
-    const threshold = 50;
-    if (info.offset.x < -threshold) {
-      setCalendarMonth((prev) => {
-        const d = new Date(prev);
+    if (info.offset.x < -50)
+      setCalendarMonth((p) => {
+        const d = new Date(p);
         d.setMonth(d.getMonth() + 1);
         return d;
       });
-    } else if (info.offset.x > threshold) {
-      setCalendarMonth((prev) => {
-        const d = new Date(prev);
+    else if (info.offset.x > 50)
+      setCalendarMonth((p) => {
+        const d = new Date(p);
         d.setMonth(d.getMonth() - 1);
         return d;
       });
-    }
   };
 
   const allMaterie = useMemo(
@@ -135,9 +117,7 @@ export function CalendarView({
     const newHidden = hiddenSubjects.includes(materia)
       ? hiddenSubjects.filter((s) => s !== materia)
       : [...hiddenSubjects, materia];
-
     setHiddenSubjects(newHidden);
-
     if ("Notification" in window && Notification.permission === "granted") {
       updateFiltersMutation.mutate({ filters: newHidden });
     }
@@ -146,12 +126,12 @@ export function CalendarView({
   const today = getCurrentItalianDateTime();
   const baseDate = addDays(today, weekOffset);
   const startOfWeek = baseDate.minus({ days: getDayOfWeek(baseDate) });
-  const weekRangeDisplay = `${startOfWeek.toFormat("d")} - ${startOfWeek.plus({ days: 6 }).toFormat("d")} ${startOfWeek.plus({ days: 6 }).setLocale("it").toFormat("MMMM yyyy")}`;
+  const weekRangeDisplay = `${startOfWeek.toFormat("d")} — ${startOfWeek.plus({ days: 6 }).setLocale("it").toFormat("d MMM yyyy")}`;
 
   const weekDays = useMemo(
     () =>
-      Array.from({ length: 7 }, (_, index) => {
-        const currentDate = startOfWeek.plus({ days: index });
+      Array.from({ length: 7 }, (_, i) => {
+        const currentDate = startOfWeek.plus({ days: i });
         const dayOfWeek = getDayOfWeek(currentDate);
         const dayData = schedule.find((s) => s.day === dayOfWeek);
         const nonCancelledEvents = (dayData?.events || []).filter(
@@ -171,409 +151,412 @@ export function CalendarView({
   );
 
   const getMateriaColor = (materia: string) => {
-    const normalized = materia
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .toUpperCase();
-    return materiaColorMap[normalized] || "#666666";
+    const norm = materia.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase();
+    return materiaColorMap[norm] || "#888888";
   };
 
-  const weekDayHeaders = ["L", "M", "M", "G", "V", "S", "D"];
+  const DAY_HEADERS = ["L", "M", "M", "G", "V", "S", "D"];
 
   const variants = {
-    enter: (d: number) => ({ x: d > 0 ? 40 : -40, opacity: 0, scale: 0.98 }),
-    center: { x: 0, opacity: 1, scale: 1 },
-    exit: (d: number) => ({ x: d < 0 ? 40 : -40, opacity: 0, scale: 0.98 }),
+    enter: (d: number) => ({ x: d > 0 ? 36 : -36, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (d: number) => ({ x: d < 0 ? 36 : -36, opacity: 0 }),
   };
 
   return (
-    <div className="w-full flex-1 min-h-0 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-900 rounded-3xl overflow-hidden flex flex-col shadow-sm">
-      <div
-        className={cn(
-          "flex-shrink-0 flex flex-col",
-          showTabs && activeTab !== "calendar" && "hidden",
-        )}
-      >
-        <div className="relative z-20 border-b border-zinc-100 dark:border-zinc-900 bg-white dark:bg-black">
-          <motion.div
-            drag="x"
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.05}
-            onDragEnd={handleDragEnd}
-            className="touch-none"
-          >
-            <div className="px-2 sm:px-4 py-2 portrait:p-4 flex items-center justify-between gap-1">
-              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
+    <div className="w-full flex-1 min-h-0 nothing-widget overflow-hidden flex flex-col">
+      <div className="flex-shrink-0 border-b border-zinc-100 dark:border-zinc-800/60">
+        <motion.div
+          drag="x"
+          dragConstraints={{ left: 0, right: 0 }}
+          dragElastic={0.05}
+          onDragEnd={handleDragEnd}
+          className="touch-none"
+        >
+          <div className="px-3 pt-3 pb-2 flex items-center justify-between gap-1">
+            <div className="flex items-center gap-0.5 shrink-0">
+              {weekOffset !== 0 && (
                 <button
                   type="button"
                   onClick={onReset}
-                  className={cn(
-                    "p-1.5 sm:p-2 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all active:scale-90",
-                    weekOffset === 0 ? "hidden" : "block",
-                  )}
+                  className="p-1.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors active:scale-90"
                 >
-                  <ArrowLeftToLine className="w-3.5 h-3.5 sm:w-4 h-4" />
+                  <ArrowLeftToLine className="w-3.5 h-3.5" />
                 </button>
-
-                <button
-                  type="button"
-                  onClick={handlePrevWeek}
-                  className="p-1.5 sm:p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-xl transition-all active:scale-90"
-                >
-                  <ChevronLeft className="w-4 h-4 sm:w-5 h-5 text-zinc-400" />
-                </button>
-              </div>
-
-              <div className="text-center flex flex-col items-center flex-1 min-w-0 mx-1 relative min-h-[40px] justify-center">
-                <Popover
-                  open={isCalendarOpen}
-                  onOpenChange={(open) => {
-                    setIsCalendarOpen(open);
-                    if (open) setCalendarMonth(baseDate.toJSDate());
-                  }}
-                >
-                  <PopoverTrigger asChild>
-                    <button
-                      type="button"
-                      className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-all font-serif font-bold text-zinc-900 dark:text-white shadow-sm min-w-0 w-full text-xs sm:text-sm active:scale-95"
-                    >
-                      <span className="truncate">{weekRangeDisplay}</span>
-                      <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-                    </button>
-                  </PopoverTrigger>
-                  <PopoverContent
-                    className="w-auto p-0 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden"
-                    align="center"
-                  >
-                    <motion.div
-                      drag="x"
-                      dragConstraints={{ left: 0, right: 0 }}
-                      dragElastic={0.2}
-                      onDragEnd={handleCalendarDragEnd}
-                      className="touch-none"
-                    >
-                      <Calendar
-                        mode="single"
-                        month={calendarMonth}
-                        onMonthChange={setCalendarMonth}
-                        selected={baseDate.toJSDate()}
-                        onSelect={(d) => {
-                          if (d) {
-                            const diff = Math.floor(
-                              DateTime.fromJSDate(d)
-                                .minus({
-                                  days: getDayOfWeek(DateTime.fromJSDate(d)),
-                                })
-                                .diff(
-                                  today.minus({
-                                    days: getDayOfWeek(today),
-                                  }),
-                                  "days",
-                                ).days,
-                            );
-                            setDirection(diff > weekOffset ? 1 : -1);
-                            onSetOffset(diff);
-                            setIsCalendarOpen(false);
-                          }
-                        }}
-                        locale={it}
-                        className="font-mono"
-                      />
-                    </motion.div>
-                  </PopoverContent>
-                </Popover>
-              </div>
-
-              <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
-                <button
-                  type="button"
-                  onClick={handleNextWeek}
-                  className="p-1.5 sm:p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-xl transition-all active:scale-90"
-                >
-                  <ChevronRight className="w-4 h-4 sm:w-5 h-5 text-zinc-400" />
-                </button>
-
-                {showTabs && (
-                  <Popover
-                    open={isViewMenuOpen}
-                    onOpenChange={setIsViewMenuOpen}
-                  >
-                    <PopoverTrigger asChild>
-                      <button
-                        type="button"
-                        className="p-1.5 sm:p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-xl transition-all active:scale-90"
-                      >
-                        <MoreHorizontal className="w-4 h-4 sm:w-5 h-5 text-zinc-400" />
-                      </button>
-                    </PopoverTrigger>
-                    <PopoverContent
-                      align="end"
-                      className="w-40 p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl"
-                    >
-                      <div className="flex flex-col gap-1">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveTab("calendar");
-                            setIsViewMenuOpen(false);
-                          }}
-                          className={cn(
-                            "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all",
-                            activeTab === "calendar"
-                              ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
-                              : "text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800/50",
-                          )}
-                        >
-                          <LayoutGrid className="w-4 h-4" />
-                          <span>Calendario</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setActiveTab("filters");
-                            setIsViewMenuOpen(false);
-                          }}
-                          className={cn(
-                            "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all",
-                            activeTab === "filters"
-                              ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
-                              : "text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800/50",
-                          )}
-                        >
-                          <Filter className="w-4 h-4" />
-                          <span>Materie</span>
-                        </button>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                )}
-              </div>
+              )}
+              <button
+                type="button"
+                onClick={handlePrevWeek}
+                className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors active:scale-90"
+              >
+                <ChevronLeft className="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
+              </button>
             </div>
 
-            <div className="px-4 portrait:px-6 pb-3">
-              <div className="grid grid-cols-7 gap-1 mb-2">
-                {["lun", "mar", "mer", "gio", "ven", "sab", "dom"].map(
-                  (h, i) => (
-                    <div key={h} className="text-center">
-                      <span className="text-[9px] font-mono font-bold uppercase tracking-tighter opacity-20">
-                        {weekDayHeaders[i]}
-                      </span>
-                    </div>
-                  ),
-                )}
-              </div>
-
-              <div className="relative w-full aspect-[7.5/1] min-h-[60px]">
-                <AnimatePresence
-                  initial={false}
-                  custom={direction}
-                  mode="popLayout"
+            <Popover
+              open={isCalendarOpen}
+              onOpenChange={(o) => {
+                setIsCalendarOpen(o);
+                if (o) setCalendarMonth(baseDate.toJSDate());
+              }}
+            >
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-100 dark:bg-zinc-800/60 border border-zinc-200 dark:border-zinc-700/60 font-mono text-[11px] text-zinc-700 dark:text-zinc-300 flex-1 justify-center min-w-0 active:scale-95 transition-transform font-bold"
                 >
-                  <motion.div
-                    key={weekOffset}
-                    custom={direction}
-                    variants={variants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={SPRING_CONFIG}
-                    className="grid grid-cols-7 gap-2 absolute inset-0 p-1"
-                  >
-                    {weekDays.map((dayData) => {
-                      const isToday = dayData.date.hasSame(today, "day");
-                      const isSelected = selectedDay?.day === dayData.day;
-                      return (
-                        <button
-                          key={dayData.day}
-                          type="button"
-                          onClick={() => {
-                            if (dayData.hasEvents) {
-                              if (onDaySelect)
-                                onDaySelect({ ...dayData, materiaColorMap });
-                            }
-                          }}
+                  <span className="truncate">{weekRangeDisplay}</span>
+                  <ChevronDown className="w-3 h-3 text-zinc-400 shrink-0" />
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                className="w-auto p-0 bg-white dark:bg-[#0D0D0D] border border-zinc-200 dark:border-white/8 rounded-3xl shadow-2xl overflow-hidden"
+                align="center"
+              >
+                <motion.div
+                  drag="x"
+                  dragConstraints={{ left: 0, right: 0 }}
+                  dragElastic={0.2}
+                  onDragEnd={handleCalendarDragEnd}
+                  className="touch-none"
+                >
+                  <Calendar
+                    mode="single"
+                    month={calendarMonth}
+                    onMonthChange={setCalendarMonth}
+                    selected={baseDate.toJSDate()}
+                    onSelect={(d) => {
+                      if (d) {
+                        const diff = Math.floor(
+                          DateTime.fromJSDate(d)
+                            .minus({
+                              days: getDayOfWeek(DateTime.fromJSDate(d)),
+                            })
+                            .diff(
+                              today.minus({ days: getDayOfWeek(today) }),
+                              "days",
+                            ).days,
+                        );
+                        setDirection(diff > weekOffset ? 1 : -1);
+                        onSetOffset(diff);
+                        setIsCalendarOpen(false);
+                      }
+                    }}
+                    locale={it}
+                    className="font-mono"
+                  />
+                </motion.div>
+              </PopoverContent>
+            </Popover>
+
+            <div className="flex items-center gap-0.5 shrink-0">
+              <button
+                type="button"
+                onClick={handleNextWeek}
+                className="p-1.5 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-xl transition-colors active:scale-90"
+              >
+                <ChevronRight className="w-4 h-4 text-zinc-500 dark:text-zinc-400" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFilterPanel((p) => !p)}
+                className={cn(
+                  "p-1.5 rounded-xl transition-colors active:scale-90",
+                  showFilterPanel
+                    ? "bg-zinc-900 dark:bg-white text-white dark:text-zinc-900"
+                    : "hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400",
+                )}
+              >
+                <Filter className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          <div className="px-3 pb-3">
+            <div className="grid grid-cols-7 gap-1 mb-1.5">
+              {DAY_HEADERS.map((h, idx) => (
+                <div key={idx} className="text-center">
+                  <span className="font-mono text-[9px] font-bold tracking-[0.18em] uppercase text-zinc-400 dark:text-zinc-600">
+                    {h}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            <div className="relative w-full aspect-[7.5/1] min-h-[52px]">
+              <AnimatePresence
+                initial={false}
+                custom={direction}
+                mode="popLayout"
+              >
+                <motion.div
+                  key={weekOffset}
+                  custom={direction}
+                  variants={variants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={SPRING}
+                  className="grid grid-cols-7 gap-1 absolute inset-0"
+                >
+                  {weekDays.map((dayData) => {
+                    const isToday = dayData.date.hasSame(today, "day");
+                    const isSelected = selectedDay?.day === dayData.day;
+                    const uniqueMaterie = Array.from(
+                      new Set(dayData.events.map((e) => e.materia)),
+                    );
+
+                    return (
+                      <button
+                        key={dayData.day}
+                        type="button"
+                        onClick={() => {
+                          if (dayData.hasEvents && onDaySelect)
+                            onDaySelect({ ...dayData, materiaColorMap });
+                        }}
+                        disabled={!dayData.hasEvents}
+                        className={cn(
+                          "relative flex flex-col items-center justify-center gap-[3px] py-1.5 rounded-[10px] transition-all",
+                          dayData.hasEvents
+                            ? isSelected
+                              ? "bg-zinc-900 dark:bg-white"
+                              : isToday
+                                ? "bg-[#FF2B2B]/8 dark:bg-[#FF2B2B]/12"
+                                : "hover:bg-zinc-100 dark:hover:bg-zinc-800 active:scale-95"
+                            : "opacity-20 cursor-default",
+                        )}
+                      >
+                        {isToday && !isSelected && (
+                          <span className="absolute top-1 right-1 w-1 h-1 rounded-full bg-[#FF2B2B]" />
+                        )}
+                        <span
                           className={cn(
-                            "relative flex flex-col items-center justify-between py-1.5 lg:py-2 min-h-[50px] lg:min-h-[70px] flex-1 rounded-xl transition-all border",
-                            dayData.hasEvents
-                              ? isSelected
-                                ? "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white shadow-md shadow-zinc-200 dark:shadow-none"
-                                : "bg-zinc-50 dark:bg-zinc-900/50 border-zinc-100 dark:border-zinc-800"
-                              : "opacity-20 border-transparent",
-                            isToday &&
-                              !isSelected &&
-                              "ring-2 ring-zinc-900 dark:ring-white ring-offset-2 dark:ring-offset-black",
+                            "text-[12px] font-mono font-black tabular-nums leading-none",
+                            isSelected
+                              ? "text-white dark:text-zinc-900"
+                              : isToday
+                                ? "text-[#FF2B2B]"
+                                : "text-zinc-800 dark:text-zinc-200",
                           )}
                         >
-                          <span
-                            className={cn(
-                              "text-[10px] sm:text-xs lg:text-sm font-mono font-bold",
-                              isSelected
-                                ? "text-white dark:text-black"
-                                : "text-zinc-900 dark:text-zinc-100",
-                            )}
-                          >
-                            {dayData.dayOfMonth}
-                          </span>
-                          <div className="flex flex-col items-center justify-center mb-0.5">
-                            {dayData.hasEvents && (
-                              <div className="grid grid-cols-2 gap-0.5 lg:gap-1 p-1">
-                                {(() => {
-                                  const uniqueMaterie = Array.from(
-                                    new Set(
-                                      dayData.events.map((e) => e.materia),
-                                    ),
-                                  );
-                                  const displayMaterie =
-                                    uniqueMaterie.length > 4
-                                      ? uniqueMaterie.slice(0, 3)
-                                      : uniqueMaterie.slice(0, 4);
-                                  const hasMore = uniqueMaterie.length > 4;
+                          {dayData.dayOfMonth}
+                        </span>
 
-                                  return (
-                                    <>
-                                      {displayMaterie.map((m) => (
-                                        <div
-                                          key={m}
-                                          className={cn(
-                                            "w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full shrink-0",
-                                            isSelected
-                                              ? "bg-white/50 dark:bg-black/50"
-                                              : "",
-                                          )}
-                                          style={
-                                            !isSelected
-                                              ? {
-                                                  backgroundColor:
-                                                    getMateriaColor(m),
-                                                }
-                                              : {}
-                                          }
-                                        />
-                                      ))}
-                                      {hasMore && (
-                                        <div
-                                          className={cn(
-                                            "w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full shrink-0",
-                                            isSelected
-                                              ? "bg-white/20 dark:bg-black/20"
-                                              : "bg-zinc-300 dark:bg-zinc-600",
-                                          )}
-                                        />
-                                      )}
-                                    </>
-                                  );
-                                })()}
-                              </div>
-                            )}
+                        {dayData.hasEvents && (
+                          <div className="flex gap-[2px] items-center justify-center">
+                            {uniqueMaterie.slice(0, 3).map((m, mi) => (
+                              <div
+                                key={`${m}-${mi}`}
+                                className="w-[5px] h-[5px] rounded-full shrink-0"
+                                style={
+                                  isSelected
+                                    ? {
+                                        backgroundColor:
+                                          "rgba(255,255,255,0.4)",
+                                      }
+                                    : { backgroundColor: getMateriaColor(m) }
+                                }
+                              />
+                            ))}
                           </div>
-                        </button>
-                      );
-                    })}
-                  </motion.div>
-                </AnimatePresence>
+                        )}
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              </AnimatePresence>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      <AnimatePresence>
+        {showFilterPanel && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden flex-shrink-0"
+          >
+            <div className="px-4 py-3 nth-header">
+              <p className="nth-label text-zinc-500 dark:text-zinc-400 mb-3">
+                Filtra Materie
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+                {Array.from(new Set(allMaterie))
+                  .sort()
+                  .map((materia) => {
+                    const isHidden = hiddenSubjects.includes(materia);
+                    return (
+                      <button
+                        key={materia}
+                        type="button"
+                        onClick={() => toggleSubject(materia)}
+                        className={cn(
+                          "flex items-center gap-2 px-3 py-2 rounded-[14px] border transition-all text-left active:scale-95",
+                          isHidden
+                            ? "opacity-30 bg-transparent border-transparent"
+                            : "bg-white dark:bg-white/5 border-black/6 dark:border-white/8",
+                        )}
+                      >
+                        <div
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: getMateriaColor(materia) }}
+                        />
+                        <span className="text-[10px] font-mono font-bold uppercase tracking-tight truncate flex-1 text-zinc-700 dark:text-zinc-300">
+                          {materia.toLowerCase()}
+                        </span>
+                      </button>
+                    );
+                  })}
               </div>
             </div>
           </motion.div>
-        </div>
-      </div>
-
-      <div
-        className={cn(
-          "flex-1 min-h-0 overflow-y-auto custom-scrollbar",
-          showTabs && activeTab !== "filters" && "hidden",
         )}
-      >
-        <div className="px-5 pb-6">
-          <div className="sticky top-0 bg-white dark:bg-black z-10 pt-4 pb-2 mb-2 flex justify-between items-center">
-            <div className="flex items-center gap-2 opacity-40">
-              <Filter className="w-3.5 h-3.5 text-zinc-400" />
-              <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-widest">
-                Filtra Materie
-              </span>
-            </div>
-            {showTabs && (
-              <Popover
-                open={isFilterMenuOpen}
-                onOpenChange={setIsFilterMenuOpen}
-              >
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-xl transition-all active:scale-90"
-                  >
-                    <MoreHorizontal className="w-5 h-5 text-zinc-400" />
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent
-                  align="end"
-                  className="w-40 p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl"
+      </AnimatePresence>
+
+      <div className="flex-1 min-h-0 overflow-y-auto custom-scrollbar">
+        <div className="p-3 space-y-2 pb-4">
+          {weekDays
+            .filter((d) => d.hasEvents)
+            .map((dayData) => {
+              const isToday = dayData.date.hasSame(today, "day");
+              const isSelected = selectedDay?.day === dayData.day;
+              const DAY_NAMES = [
+                "Lun",
+                "Mar",
+                "Mer",
+                "Gio",
+                "Ven",
+                "Sab",
+                "Dom",
+              ];
+              const uniqueMaterie = Array.from(
+                new Set(dayData.events.map((e) => e.materia)),
+              );
+
+              return (
+                <motion.button
+                  key={dayData.day}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    delay: dayData.day * 0.04,
+                    duration: 0.25,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  type="button"
+                  onClick={() => {
+                    if (onDaySelect)
+                      onDaySelect({ ...dayData, materiaColorMap });
+                  }}
+                  className={cn(
+                    "card-3d w-full rounded-[18px] border transition-all active:scale-[0.99] text-left overflow-hidden",
+                    isSelected
+                      ? "bg-zinc-900 dark:bg-white border-zinc-800 dark:border-white"
+                      : isToday
+                        ? "bg-white dark:bg-zinc-900 border-[#FF2B2B]/30"
+                        : "bg-white dark:bg-zinc-900/60 border-zinc-100 dark:border-zinc-800/60",
+                  )}
                 >
-                  <div className="flex flex-col gap-1">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTab("calendar");
-                        setIsFilterMenuOpen(false);
-                      }}
-                      className={cn(
-                        "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all",
-                        activeTab === "calendar"
-                          ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
-                          : "text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800/50",
-                      )}
-                    >
-                      <LayoutGrid className="w-4 h-4" />
-                      <span>Calendario</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveTab("filters");
-                        setIsFilterMenuOpen(false);
-                      }}
-                      className={cn(
-                        "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all",
-                        activeTab === "filters"
-                          ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
-                          : "text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800/50",
-                      )}
-                    >
-                      <Filter className="w-4 h-4" />
-                      <span>Materie</span>
-                    </button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-            )}
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-2">
-            {Array.from(new Set(allMaterie))
-              .sort()
-              .map((materia) => {
-                const isHidden = hiddenSubjects.includes(materia);
-                return (
-                  <button
-                    key={materia}
-                    type="button"
-                    onClick={() => toggleSubject(materia)}
-                    className={cn(
-                      "flex items-center gap-3 p-3.5 rounded-[1.25rem] border transition-all text-left",
-                      isHidden
-                        ? "bg-zinc-50 dark:bg-zinc-900/20 border-transparent opacity-40"
-                        : "bg-white dark:bg-zinc-900/10 border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 hover:shadow-md active:scale-95",
-                    )}
-                  >
+                  <div className="flex items-stretch gap-0">
                     <div
-                      className="w-2.5 h-2.5 rounded-full shrink-0 shadow-sm"
-                      style={{ backgroundColor: getMateriaColor(materia) }}
-                    />
-                    <span className="text-[10px] font-bold uppercase tracking-tight truncate flex-1 font-mono">
-                      {materia.toLowerCase()}
-                    </span>
-                  </button>
-                );
-              })}
-          </div>
+                      className={cn(
+                        "shrink-0 w-[64px] flex flex-col items-center justify-center px-2 py-4 border-r",
+                        isSelected
+                          ? "border-zinc-800 dark:border-white/10"
+                          : "border-zinc-100 dark:border-zinc-800/60",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "font-mono font-black text-[1.75rem] leading-none tabular-nums",
+                          isSelected
+                            ? "text-white dark:text-zinc-900"
+                            : isToday
+                              ? "text-[#FF2B2B]"
+                              : "text-zinc-900 dark:text-white",
+                        )}
+                        style={{ letterSpacing: "-0.04em" }}
+                      >
+                        {dayData.dayOfMonth.toString().padStart(2, "0")}
+                      </span>
+                      <span
+                        className={cn(
+                          "font-mono text-[9px] uppercase tracking-[0.15em] mt-0.5",
+                          isSelected
+                            ? "text-white/40 dark:text-zinc-900/50"
+                            : "text-zinc-400",
+                        )}
+                      >
+                        {DAY_NAMES[dayData.day]}
+                      </span>
+                      {isToday && !isSelected && (
+                        <div
+                          className="w-1 h-1 rounded-full mt-1.5"
+                          style={{ backgroundColor: "#FF2B2B" }}
+                        />
+                      )}
+                    </div>
+
+                    <div className="flex-1 min-w-0 px-4 py-3 flex flex-col justify-center gap-1">
+                      {uniqueMaterie.slice(0, 3).map((m) => (
+                        <p
+                          key={m}
+                          className={cn(
+                            "font-mono text-[10px] font-bold uppercase tracking-tight truncate leading-snug",
+                            isSelected
+                              ? "text-white/80 dark:text-zinc-900/80"
+                              : "text-zinc-700 dark:text-zinc-300",
+                          )}
+                        >
+                          {m}
+                        </p>
+                      ))}
+                      {uniqueMaterie.length > 3 && (
+                        <p
+                          className={cn(
+                            "font-mono text-[9px] uppercase tracking-tight",
+                            isSelected ? "text-white/35" : "text-zinc-400",
+                          )}
+                        >
+                          +{uniqueMaterie.length - 3} altri
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="shrink-0 flex items-center justify-center pr-4">
+                      <span
+                        className={cn(
+                          "font-mono font-black text-[1.1rem] tabular-nums",
+                          isSelected
+                            ? "text-white/30 dark:text-zinc-900/30"
+                            : isToday
+                              ? "text-[#FF2B2B]/50"
+                              : "text-zinc-300 dark:text-zinc-700",
+                        )}
+                        style={{ letterSpacing: "-0.04em" }}
+                      >
+                        {dayData.events.length}
+                      </span>
+                    </div>
+                  </div>
+                </motion.button>
+              );
+            })}
+
+          {weekDays.filter((d) => d.hasEvents).length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+              <CalendarOff
+                className="w-8 h-8 text-zinc-200 dark:text-zinc-800"
+                strokeWidth={1}
+              />
+              <p className="nth-label text-zinc-400 dark:text-zinc-600">
+                Nessuna lezione questa settimana
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>

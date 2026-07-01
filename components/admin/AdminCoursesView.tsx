@@ -211,20 +211,23 @@ export function AdminCoursesView() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {courses
-              ?.filter((c) => filter === "all" || c.status === filter)
-              .map((course) => (
-                <CourseCard
-                  key={course.id}
-                  course={course}
-                  onApprove={() => handleAction("approve", course)}
-                  onReject={() => handleAction("reject", course)}
-                  onDelete={() => handleAction("delete", course)}
-                  onVerify={() => handleAction("verify", course)}
-                  copiedCourseId={copiedCourseId}
-                  onCopyLink={handleCopyCourseLink}
-                />
-              ))}
+            {courses?.reduce<React.ReactNode[]>((acc, course) => {
+              if (filter === "all" || course.status === filter) {
+                acc.push(
+                  <CourseCard
+                    key={course.id}
+                    course={course}
+                    onApprove={() => handleAction("approve", course)}
+                    onReject={() => handleAction("reject", course)}
+                    onDelete={() => handleAction("delete", course)}
+                    onVerify={() => handleAction("verify", course)}
+                    copiedCourseId={copiedCourseId}
+                    onCopyLink={handleCopyCourseLink}
+                  />,
+                );
+              }
+              return acc;
+            }, [])}
           </div>
         )}
       </div>
@@ -545,6 +548,15 @@ function CourseCard({
   );
 }
 
+const ACTION_BUTTON_COLOR_MAP: Record<string, string> = {
+  emerald:
+    "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 hover:bg-emerald-500 hover:text-white border-emerald-100 dark:border-emerald-800",
+  blue: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 hover:bg-blue-500 hover:text-white border-blue-100 dark:border-blue-800",
+  amber:
+    "bg-amber-50 dark:bg-amber-900/20 text-amber-600 hover:bg-amber-500 hover:text-white border-amber-100 dark:border-amber-800",
+  red: "bg-red-50 dark:bg-red-900/20 text-red-600 hover:bg-red-500 hover:text-white border-red-100 dark:border-red-800",
+};
+
 function ActionButton({
   onClick,
   icon,
@@ -554,21 +566,13 @@ function ActionButton({
   icon: React.ReactNode;
   color: string;
 }) {
-  const cMap: Record<string, string> = {
-    emerald:
-      "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 hover:bg-emerald-500 hover:text-white border-emerald-100 dark:border-emerald-800",
-    blue: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 hover:bg-blue-500 hover:text-white border-blue-100 dark:border-blue-800",
-    amber:
-      "bg-amber-50 dark:bg-amber-900/20 text-amber-600 hover:bg-amber-500 hover:text-white border-amber-100 dark:border-amber-800",
-    red: "bg-red-50 dark:bg-red-900/20 text-red-600 hover:bg-red-500 hover:text-white border-red-100 dark:border-red-800",
-  };
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
         "p-2.5 rounded-xl border transition-all active:scale-90 shadow-sm",
-        cMap[color],
+        ACTION_BUTTON_COLOR_MAP[color],
       )}
     >
       {icon}

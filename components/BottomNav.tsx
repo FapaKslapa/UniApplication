@@ -1,14 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
-  BarChart3,
-  Calendar,
-  LayoutGrid,
-  Settings,
-  ShieldCheck,
-} from "lucide-react";
-import type React from "react";
+import { CalendarDays, LayoutGrid, Settings } from "lucide-react";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -19,97 +12,174 @@ interface BottomNavProps {
   activeSection?: "calendar" | "settings" | "admin";
 }
 
+const SPRING = { type: "spring", stiffness: 500, damping: 42 } as const;
+
 export function BottomNav({
   activeView = "week",
   onViewChange,
   onSettings,
   activeSection = "calendar",
 }: BottomNavProps) {
-  const isAdmin = useAppStore((state) => state.isAdmin);
+  const isAdmin = useAppStore((s) => s.isAdmin);
+
+  const items: Array<{
+    id: "week" | "month";
+    label: string;
+    Icon: React.FC<{ className?: string; strokeWidth?: number }>;
+  }> = ([
+    { id: "week", label: "Oggi" },
+    { id: "month", label: "Mese" },
+  ] as const).map((x) => ({
+    ...x,
+    Icon: x.id === "week" ? LayoutGrid : CalendarDays,
+  }));
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-30 px-4"
-      style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
+      className="md:hidden fixed z-30 left-4 right-4"
+      style={{
+        bottom: "calc(env(safe-area-inset-bottom) + 12px)",
+      }}
     >
-      <div className="flex items-stretch bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
-        <NavBtn
-          active={activeSection === "calendar" && activeView === "week"}
-          onClick={() => onViewChange?.("week")}
-          label="Settimana"
-          icon={<LayoutGrid className="w-[18px] h-[18px]" />}
-        />
+      <div
+        className="flex items-stretch h-[58px] px-2 bg-white/88 dark:bg-zinc-950/92 backdrop-blur-2xl rounded-[22px] border border-zinc-200/60 dark:border-zinc-800/60"
+        style={{
+          boxShadow: "0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06)",
+        }}
+      >
+        {items.map((item) => {
+          const isActive =
+            activeSection === "calendar" && activeView === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onViewChange?.(item.id)}
+              className="relative flex flex-col items-center justify-center gap-1 flex-1 rounded-[16px] mx-0.5 transition-all active:scale-90"
+            >
+              {isActive && (
+                <motion.div
+                  layoutId="nth-nav-fill"
+                  className="absolute inset-y-2 inset-x-0 rounded-[14px] bg-zinc-900/6 dark:bg-white/8"
+                  transition={SPRING}
+                />
+              )}
+              {isActive && (
+                <motion.div
+                  layoutId="nth-nav-dot"
+                  className="absolute top-2 left-1/2 -translate-x-1/2 rounded-full"
+                  style={{
+                    width: "18px",
+                    height: "2px",
+                    backgroundColor: "#FF2B2B",
+                  }}
+                  transition={SPRING}
+                />
+              )}
+              <item.Icon
+                className={cn(
+                  "w-[18px] h-[18px] relative z-10 transition-colors",
+                  isActive
+                    ? "text-zinc-900 dark:text-white"
+                    : "text-zinc-400 dark:text-zinc-500",
+                )}
+                strokeWidth={isActive ? 2.2 : 1.6}
+              />
+              <span
+                className={cn(
+                  "font-mono text-[8px] font-black tracking-[0.12em] uppercase relative z-10 transition-colors",
+                  isActive
+                    ? "text-zinc-900 dark:text-white"
+                    : "text-zinc-400 dark:text-zinc-500",
+                )}
+              >
+                {item.label}
+              </span>
+            </button>
+          );
+        })}
 
-        <NavBtn
-          active={activeSection === "calendar" && activeView === "month"}
-          onClick={() => onViewChange?.("month")}
-          label="Mese"
-          icon={<Calendar className="w-[18px] h-[18px]" />}
-        />
+        {isAdmin &&
+          (["stats", "admin-courses"] as const).map((id) => {
+            const isActive = activeSection === "admin" && activeView === id;
+            const label = id === "stats" ? "Stats" : "Admin";
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => onViewChange?.(id)}
+                className="relative flex flex-col items-center justify-center gap-1 flex-1 rounded-[16px] mx-0.5 transition-all active:scale-90"
+              >
+                {isActive && (
+                  <motion.div
+                    layoutId="nth-nav-fill"
+                    className="absolute inset-y-2 inset-x-0 rounded-[14px] bg-zinc-900/6 dark:bg-white/8"
+                    transition={SPRING}
+                  />
+                )}
+                {isActive && (
+                  <motion.div
+                    layoutId="nth-nav-dot"
+                    className="absolute top-2 left-1/2 -translate-x-1/2 rounded-full"
+                    style={{
+                      width: "18px",
+                      height: "2px",
+                      backgroundColor: "#FF2B2B",
+                    }}
+                    transition={SPRING}
+                  />
+                )}
+                <span
+                  className={cn(
+                    "font-mono text-[8px] font-black tracking-[0.12em] uppercase relative z-10 transition-colors",
+                    isActive
+                      ? "text-zinc-900 dark:text-white"
+                      : "text-zinc-400 dark:text-zinc-500",
+                  )}
+                >
+                  {label}
+                </span>
+              </button>
+            );
+          })}
 
-        {isAdmin && (
-          <>
-            <NavBtn
-              active={activeSection === "admin" && activeView === "stats"}
-              onClick={() => onViewChange?.("stats")}
-              label="Stats"
-              icon={<BarChart3 className="w-[18px] h-[18px]" />}
+        <div className="w-px my-3 bg-zinc-200 dark:bg-zinc-800 shrink-0" />
+
+        <button
+          type="button"
+          onClick={onSettings}
+          className="relative flex flex-col items-center justify-center gap-1 w-[58px] rounded-[16px] mx-0.5 transition-all active:scale-90"
+        >
+          {activeSection === "settings" && (
+            <motion.div
+              layoutId="nth-nav-fill"
+              className="absolute inset-y-2 inset-x-0 rounded-[14px] bg-zinc-900/6 dark:bg-white/8"
+              transition={SPRING}
             />
-            <NavBtn
-              active={
-                activeSection === "admin" && activeView === "admin-courses"
-              }
-              onClick={() => onViewChange?.("admin-courses")}
-              label="Corsi"
-              icon={<ShieldCheck className="w-[18px] h-[18px]" />}
+          )}
+          {activeSection === "settings" && (
+            <motion.div
+              layoutId="nth-nav-dot"
+              className="absolute top-2 left-1/2 -translate-x-1/2 rounded-full"
+              style={{
+                width: "14px",
+                height: "2px",
+                backgroundColor: "#FF2B2B",
+              }}
+              transition={SPRING}
             />
-          </>
-        )}
-
-        <NavBtn
-          active={activeSection === "settings"}
-          onClick={() => onSettings?.()}
-          label="Impost"
-          icon={<Settings className="w-[18px] h-[18px]" />}
-        />
+          )}
+          <Settings
+            className={cn(
+              "w-[18px] h-[18px] relative z-10 transition-colors",
+              activeSection === "settings"
+                ? "text-zinc-900 dark:text-white"
+                : "text-zinc-400 dark:text-zinc-500",
+            )}
+            strokeWidth={activeSection === "settings" ? 2.2 : 1.6}
+          />
+        </button>
       </div>
     </nav>
-  );
-}
-
-function NavBtn({
-  active,
-  onClick,
-  icon,
-  label,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "relative flex flex-col items-center justify-center gap-1 flex-1 py-3.5 transition-all active:scale-95",
-        active
-          ? "text-zinc-900 dark:text-white"
-          : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300",
-      )}
-    >
-      {active && (
-        <motion.div
-          layoutId="nav-active"
-          className="absolute inset-x-3 inset-y-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl"
-          transition={{ type: "spring", stiffness: 400, damping: 35 }}
-        />
-      )}
-      <span className="relative z-10">{icon}</span>
-      <span className="relative z-10 text-[9px] font-bold uppercase tracking-widest font-mono leading-none">
-        {label}
-      </span>
-    </button>
   );
 }

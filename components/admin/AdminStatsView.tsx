@@ -43,6 +43,12 @@ import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
 const DEVICE_COLORS = ["#a78bfa", "#34d399", "#fb923c", "#60a5fa"];
+
+const deviceIcon = (type: string) => {
+  if (type === "mobile") return <Smartphone className="w-3.5 h-3.5" />;
+  if (type === "tablet") return <Tablet className="w-3.5 h-3.5" />;
+  return <Monitor className="w-3.5 h-3.5" />;
+};
 const BROWSER_COLORS = [
   "#a78bfa",
   "#34d399",
@@ -342,12 +348,6 @@ export function AdminStatsView() {
     return 13;
   }, [activeDays]);
 
-  const deviceIcon = (type: string) => {
-    if (type === "mobile") return <Smartphone className="w-3.5 h-3.5" />;
-    if (type === "tablet") return <Tablet className="w-3.5 h-3.5" />;
-    return <Monitor className="w-3.5 h-3.5" />;
-  };
-
   if (loadingOverview) {
     return (
       <div className="space-y-6 pb-10">
@@ -384,7 +384,7 @@ export function AdminStatsView() {
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6 pb-10"
     >
-      {/* Header con refresh */}
+      {}
       <div className="flex items-center justify-between">
         <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400">
           Analytics
@@ -402,7 +402,7 @@ export function AdminStatsView() {
         </button>
       </div>
 
-      {/* Visite KPI */}
+      {}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard
           title="Visite Totali"
@@ -436,7 +436,7 @@ export function AdminStatsView() {
         />
       </div>
 
-      {/* DAU / WAU / MAU */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <StatCard
           title="Attivi Oggi (DAU)"
@@ -464,7 +464,7 @@ export function AdminStatsView() {
         />
       </div>
 
-      {/* Andamento visite */}
+      {}
       <ChartCard title="Andamento Visite">
         <div className="flex flex-wrap items-center gap-2 mb-5 sm:mb-6">
           {DATE_PRESETS.map((p) => (
@@ -588,7 +588,7 @@ export function AdminStatsView() {
         </div>
       </ChartCard>
 
-      {/* Orari + Dispositivi */}
+      {}
       <div className="grid grid-cols-1 lg:grid-cols-7 gap-5 sm:gap-6">
         <ChartCard
           title={`Orari di Accesso (ultimi ${activeDays}g, ora IT)`}
@@ -713,7 +713,7 @@ export function AdminStatsView() {
         </ChartCard>
       </div>
 
-      {/* Pagine Top + Browser */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
         <ChartCard title="Pagine Top">
           <div className="space-y-4">
@@ -817,7 +817,7 @@ export function AdminStatsView() {
         </ChartCard>
       </div>
 
-      {/* OS + Push Notifications */}
+      {}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
         <ChartCard title="Sistema Operativo">
           <ResponsiveContainer width="100%" height={220}>

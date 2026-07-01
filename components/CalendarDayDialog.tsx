@@ -1,5 +1,6 @@
-import { X } from "lucide-react";
-import { useRef } from "react";
+"use client";
+
+import { AnimatePresence, motion } from "framer-motion";
 import { CalendarDayView } from "@/components/CalendarDayView";
 import type { DaySchedule } from "@/lib/orario-utils";
 
@@ -9,46 +10,57 @@ interface CalendarDayDialogProps {
   onClose: () => void;
 }
 
+const SPRING = {
+  type: "spring",
+  stiffness: 380,
+  damping: 38,
+  mass: 1,
+} as const;
+
 export function CalendarDayDialog({
   day,
   isOpen,
   onClose,
 }: CalendarDayDialogProps) {
-  const overlayRef = useRef<HTMLDivElement>(null);
-
-  if (!isOpen) return null;
-
   return (
-    <div
-      ref={overlayRef}
-      onKeyDown={(e) => {
-        if (e.key === "Escape") onClose();
-      }}
-      onClick={(e) => {
-        if (e.target === overlayRef.current) onClose();
-      }}
-      role="dialog"
-      aria-modal="true"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 lg:bg-black/60 backdrop-blur-md p-0 lg:p-10 animate-in fade-in duration-300"
-    >
-      <div className="relative w-full h-full lg:w-full lg:max-w-4xl lg:h-auto lg:max-h-[85vh] animate-in zoom-in-95 slide-in-from-bottom-10 lg:slide-in-from-bottom-0 duration-300">
-        <CalendarDayView day={day} onClose={onClose} />
-      </div>
-      <div
-        className="absolute left-1/2 -translate-x-1/2"
-        style={{ bottom: "calc(24px + env(safe-area-inset-bottom))" }}
-      >
-        <button
-          type="button"
-          onClick={onClose}
-          className="flex items-center justify-center gap-2 px-5 py-3 rounded-full bg-white/80 dark:bg-black/80 backdrop-blur-lg border border-white/20 dark:border-black/20 shadow-xl text-zinc-900 dark:text-white hover:bg-white/90 dark:hover:bg-black/90 transition-all active:scale-95"
-        >
-          <X className="w-5 h-5" />
-          <span className="text-sm font-bold font-mono uppercase tracking-wider">
-            Chiudi
-          </span>
-        </button>
-      </div>
-    </div>
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            key="backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            onClick={onClose}
+          />
+
+          <motion.div
+            key="sheet"
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            exit={{ y: "100%" }}
+            transition={SPRING}
+            drag="y"
+            dragConstraints={{ top: 0 }}
+            dragElastic={{ top: 0, bottom: 0.3 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 80 || info.velocity.y > 500) onClose();
+            }}
+            className="fixed inset-x-0 bottom-0 z-50 rounded-t-[28px] overflow-hidden bg-white dark:bg-[#0D0D0D]"
+            style={{
+              maxHeight: "88dvh",
+              boxShadow:
+                "0 -8px 40px rgba(0,0,0,0.18), 0 -1px 0 rgba(0,0,0,0.06)",
+            }}
+            role="dialog"
+            aria-modal="true"
+          >
+            <CalendarDayView day={day} onClose={onClose} />
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
   );
 }
