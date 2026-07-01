@@ -15,6 +15,13 @@ import { courseSnapshots } from "@/lib/db/schema";
 import { toTitleCase } from "@/lib/utils";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 
+/** Safely parse JSON from a Response — returns null on empty/malformed body */
+const safeResponseJson = async (res: Response): Promise<unknown> => {
+  const text = await res.text();
+  if (!text || text.trim() === "") return null;
+  return JSON.parse(text);
+};
+
 type OrarioData = Array<{
   day: number;
   events: Array<{
@@ -77,8 +84,9 @@ const fetchRawEvents = async (
     );
 
     if (!response.ok) throw new Error(`API error: ${response.status}`);
-    const rawData = await response.json();
-    return Array.isArray(rawData) ? rawData : rawData.impegni || [];
+    const rawData = await safeResponseJson(response);
+    if (!rawData) return [];
+    return Array.isArray(rawData) ? rawData : (rawData as { impegni?: CinecaEvent[] }).impegni || [];
   } catch (error) {
     console.error("Failed to fetch orario:", error);
     return [];
@@ -339,8 +347,9 @@ export const orarioRouter = createTRPCRouter({
           );
 
           if (!response.ok) throw new Error(`API error: ${response.status}`);
-          const rawData = await response.json();
-          return Array.isArray(rawData) ? rawData : rawData.impegni || [];
+          const rawData = await safeResponseJson(response);
+          if (!rawData) return [];
+          return Array.isArray(rawData) ? rawData : (rawData as { impegni?: CinecaEvent[] }).impegni || [];
         } catch (error) {
           console.error(`Failed to fetch monthly orario for ${id}:`, error);
           return [];
@@ -564,10 +573,11 @@ export const orarioRouter = createTRPCRouter({
           );
 
           if (!response.ok) throw new Error(`API error: ${response.status}`);
-          const rawData = await response.json();
+          const rawData = await safeResponseJson(response);
+          if (!rawData) return [];
           const rawEvents: CinecaEvent[] = Array.isArray(rawData)
-            ? rawData
-            : rawData.impegni || [];
+            ? (rawData as CinecaEvent[])
+            : ((rawData as { impegni?: CinecaEvent[] }).impegni || []);
 
           return rawEvents
             .filter((e) => {
@@ -634,10 +644,11 @@ export const orarioRouter = createTRPCRouter({
           );
 
           if (!response.ok) throw new Error(`API error: ${response.status}`);
-          const rawData = await response.json();
+          const rawData = await safeResponseJson(response);
+          if (!rawData) return [];
           const rawEvents: CinecaEvent[] = Array.isArray(rawData)
-            ? rawData
-            : rawData.impegni || [];
+            ? (rawData as CinecaEvent[])
+            : ((rawData as { impegni?: CinecaEvent[] }).impegni || []);
 
           return rawEvents.flatMap((e) =>
             (e.docenti || []).map((d) => toTitleCase(`${d.cognome} ${d.nome}`)),
