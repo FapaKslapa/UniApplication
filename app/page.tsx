@@ -506,7 +506,7 @@ function HomeContent() {
                         className={cn(
                           "relative rounded-[28px] transition-all duration-200",
                           id === "calendar" &&
-                            "flex-1 min-h-[400px] flex flex-col",
+                            "flex-grow flex-shrink flex-1 min-h-[220px] flex flex-col",
                           isEditingLayout &&
                             "animate-wiggle border-2 border-dashed border-[#FF2B2B]/20 p-2 bg-zinc-50/50 dark:bg-zinc-950/20 cursor-grab active:cursor-grabbing",
                         )}
