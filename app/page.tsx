@@ -496,7 +496,7 @@ function HomeContent() {
                 >
                   {widgetOrder.map((id) => {
                     const isHidden = hiddenWidgets.includes(id);
-                    if (isHidden && !isEditingLayout) return null;
+                    if (isHidden) return null;
 
                     return (
                       <Reorder.Item
@@ -507,8 +507,6 @@ function HomeContent() {
                           "relative rounded-[28px] transition-all duration-200",
                           id === "calendar" &&
                             "flex-1 min-h-[400px] flex flex-col",
-                          isHidden &&
-                            "opacity-30 border border-dashed border-zinc-300 dark:border-zinc-800 scale-[0.98]",
                           isEditingLayout &&
                             "animate-wiggle border-2 border-dashed border-[#FF2B2B]/20 p-2 bg-zinc-50/50 dark:bg-zinc-950/20 cursor-grab active:cursor-grabbing",
                         )}
@@ -680,12 +678,14 @@ function HomeContent() {
           setNotificationChanges(null);
         }}
       />
-      <BottomNav
-        activeView={activeView}
-        activeSection={activeSection}
-        onViewChange={setActiveView}
-        onSettings={() => router.push("/settings")}
-      />
+      {!isEditingLayout && (
+        <BottomNav
+          activeView={activeView}
+          activeSection={activeSection}
+          onViewChange={setActiveView}
+          onSettings={() => router.push("/settings")}
+        />
+      )}
 
       <AnimatePresence>
         {selectedDay && !isDesktop && (
