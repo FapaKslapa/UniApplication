@@ -403,16 +403,14 @@
 }
 
 @keyframes wiggle {
-  0% {
-    transform: rotate(-0.5deg) translate(0.5px, 0.5px);
+  0%,
+  100% {
+    transform: rotate(-0.12deg);
   }
   50% {
-    transform: rotate(0.5deg) translate(-0.5px, -0.5px);
-  }
-  100% {
-    transform: rotate(-0.5deg) translate(0.5px, 0.5px);
+    transform: rotate(0.12deg);
   }
 }
 .animate-wiggle {
-  animation: wiggle 0.22s ease-in-out infinite;
+  animation: wiggle 0.35s ease-in-out infinite;
 }
