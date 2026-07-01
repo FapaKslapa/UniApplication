@@ -3,31 +3,24 @@
 import { it } from "date-fns/locale";
 import { AnimatePresence, motion, type PanInfo } from "framer-motion";
 import {
-  AlertTriangle,
   ArrowLeftToLine,
   Calendar as CalendarIcon,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Clock,
   MapPin,
   User,
   Video,
 } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { GrainOverlay } from "@/components/GrainOverlay";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { api } from "@/lib/api";
 import { timeToMinutes } from "@/lib/date-utils";
 import type { DaySchedule } from "@/lib/orario-utils";
@@ -55,7 +48,7 @@ function MarqueeText({
   const style =
     offset > 0
       ? ({
-          animation: "marquee-text 7s ease-in-out infinite",
+          animation: "marquee-text 8s ease-in-out infinite",
           "--marquee-offset": `-${offset}px`,
         } as CSSProperties)
       : undefined;
@@ -73,10 +66,10 @@ function MarqueeText({
   );
 }
 
-const SPRING_CONFIG = {
+const SPRING = {
   type: "spring",
-  stiffness: 350,
-  damping: 35,
+  stiffness: 320,
+  damping: 32,
   mass: 1,
 } as const;
 
@@ -86,84 +79,63 @@ export default function NextLessonCard({
   schedule?: DaySchedule[];
 }) {
   const [dayOffset, setDayOffset] = useState(0);
-  const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
+  const [lessonIdx, setLessonIdx] = useState(0);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [isLandscape, setIsLandscape] = useState(false);
   const [direction, setDirection] = useState(0);
-  const [calendarMonth, setCalendarMonth] = useState<Date>(new Date());
+  const [calMonth, setCalMonth] = useState<Date>(new Date());
   const { hiddenSubjects, professorName, userRole, location } = useAppStore();
   const activeLinkIds = useActiveLinkIds();
 
-  const handleCalendarDragEnd = (_: unknown, info: PanInfo) => {
-    const threshold = 50;
-    if (info.offset.x < -threshold) {
-      setCalendarMonth((prev) => {
-        const d = new Date(prev);
+  const handleCalDrag = (_: unknown, info: PanInfo) => {
+    if (info.offset.x < -50)
+      setCalMonth((p) => {
+        const d = new Date(p);
         d.setMonth(d.getMonth() + 1);
         return d;
       });
-    } else if (info.offset.x > threshold) {
-      setCalendarMonth((prev) => {
-        const d = new Date(prev);
+    else if (info.offset.x > 50)
+      setCalMonth((p) => {
+        const d = new Date(p);
         d.setMonth(d.getMonth() - 1);
         return d;
       });
-    }
   };
 
-  const handleNextDay = () => {
-    setDirection(1);
-    setDayOffset((prev) => prev + 1);
-    setCurrentLessonIndex(0);
-  };
-
-  const handlePrevDay = () => {
+  const goPrevDay = () => {
     if (dayOffset > 0) {
       setDirection(-1);
-      setDayOffset((prev) => Math.max(prev - 1, 0));
-      setCurrentLessonIndex(0);
+      setDayOffset((p) => p - 1);
+      setLessonIdx(0);
     }
   };
-
-  const handleNextLesson = () => {
-    if (
-      displayedLessons.length > 0 &&
-      currentLessonIndex < displayedLessons.length - 1
-    ) {
-      setDirection(1);
-      setCurrentLessonIndex((prev) => prev + 1);
-      return true;
-    }
-    return false;
+  const goNextDay = () => {
+    setDirection(1);
+    setDayOffset((p) => p + 1);
+    setLessonIdx(0);
   };
-
-  const handlePrevLesson = () => {
-    if (currentLessonIndex > 0) {
+  const goPrevLesson = () => {
+    if (lessonIdx > 0) {
       setDirection(-1);
-      setCurrentLessonIndex((prev) => prev - 1);
+      setLessonIdx((p) => p - 1);
       return true;
     }
     return false;
   };
-
-  const handleDragEnd = (_: unknown, info: PanInfo) => {
-    const threshold = 50;
-    if (info.offset.x < -threshold) {
-      if (!handleNextLesson()) handleNextDay();
-    } else if (info.offset.x > threshold) {
-      if (!handlePrevLesson()) handlePrevDay();
+  const goNextLesson = () => {
+    if (lessons.length > 0 && lessonIdx < lessons.length - 1) {
+      setDirection(1);
+      setLessonIdx((p) => p + 1);
+      return true;
+    }
+    return false;
+  };
+  const onDragEnd = (_: unknown, info: PanInfo) => {
+    if (info.offset.x < -50) {
+      if (!goNextLesson()) goNextDay();
+    } else if (info.offset.x > 50) {
+      if (!goPrevLesson()) goPrevDay();
     }
   };
-
-  useEffect(() => {
-    const check = () =>
-      setIsLandscape(
-        window.innerWidth > window.innerHeight && window.innerHeight < 600,
-      );
-    check();
-    window.addEventListener("resize", check);
-    return () => window.removeEventListener("resize", check);
-  }, []);
 
   const { data, isFetching } = api.orario.getNextLesson.useQuery(
     {
@@ -172,15 +144,10 @@ export default function NextLessonCard({
       location,
       professorName: userRole === "professor" ? professorName : undefined,
     },
-    {
-      enabled:
-        activeLinkIds.length > 0 ||
-        (userRole === "professor" && !!professorName),
-      placeholderData: (previousData) => previousData,
-    },
+    { enabled: true, placeholderData: (p) => p },
   );
 
-  const displayedLessons = useMemo(
+  const lessons = useMemo(
     () =>
       (data?.lessons || []).filter(
         (l) =>
@@ -190,408 +157,344 @@ export default function NextLessonCard({
     [data, hiddenSubjects],
   );
 
-  const hasOverlap = (
-    lesson: { time: string; title: string },
-    index: number,
-  ) => {
-    if (!lesson.time || !lesson.time.includes(" - ")) return false;
-    const [start, end] = lesson.time.split(" - ");
-    const startMin = timeToMinutes(start);
-    const endMin = timeToMinutes(end);
-    if (startMin === null || endMin === null) return false;
+  const prevNextLessonRef = useRef(data?.nextLesson);
+  const prevDayOffsetRef = useRef(dayOffset);
+  if (
+    dayOffset !== prevDayOffsetRef.current ||
+    data?.nextLesson !== prevNextLessonRef.current
+  ) {
+    prevDayOffsetRef.current = dayOffset;
+    prevNextLessonRef.current = data?.nextLesson;
+    if (lessons.length > 0 && dayOffset === 0 && data?.nextLesson) {
+      const idx = lessons.findIndex(
+        (l) =>
+          l.time === data.nextLesson?.lesson.time &&
+          l.title === data.nextLesson?.lesson.title,
+      );
+      if (idx !== -1) setLessonIdx(idx);
+    }
+  }
 
-    return displayedLessons.some((l, idx) => {
-      if (idx === index || !l.time || !l.time.includes(" - ")) return false;
-      const [lStart, lEnd] = l.time.split(" - ");
-      const lStartMin = timeToMinutes(lStart);
-      const lEndMin = timeToMinutes(lEnd);
-      if (lStartMin === null || lEndMin === null) return false;
+  const displayIdx = Math.max(0, Math.min(lessonIdx, lessons.length - 1));
+  const lesson = lessons[displayIdx];
+  const isNow =
+    dayOffset === 0 &&
+    !!lesson &&
+    data?.nextLesson?.lesson.time === lesson.time &&
+    data?.nextLesson?.status === "current";
+  const isNext =
+    dayOffset === 0 &&
+    !!lesson &&
+    data?.nextLesson?.lesson.time === lesson.time &&
+    data?.nextLesson?.status === "next";
 
-      return startMin < lEndMin && endMin > lStartMin;
+  const hasOverlap = (l: { time: string }, idx: number) => {
+    if (!l.time?.includes(" - ")) return false;
+    const [s, e] = l.time.split(" - ");
+    const sMin = timeToMinutes(s);
+    const eMin = timeToMinutes(e);
+    if (sMin === null || eMin === null) return false;
+    return lessons.some((ll, i) => {
+      if (i === idx || !ll.time?.includes(" - ")) return false;
+      const [ls, le] = ll.time.split(" - ");
+      const lsMin = timeToMinutes(ls);
+      const leMin = timeToMinutes(le);
+      if (lsMin === null || leMin === null) return false;
+      return sMin < leMin && eMin > lsMin;
     });
   };
 
-  useEffect(() => {
-    if (displayedLessons.length > 0 && dayOffset === 0) {
-      if (data?.nextLesson) {
-        const idx = displayedLessons.findIndex(
-          (l) =>
-            l.time === data.nextLesson?.lesson.time &&
-            l.title === data.nextLesson?.lesson.title,
-        );
-        if (idx !== -1) {
-          setCurrentLessonIndex(idx);
-          return;
-        }
-      }
-    }
-  }, [displayedLessons, dayOffset, data?.nextLesson]);
-
-  const getDate = (offset: number): string => {
-    const d = new Date();
-    d.setDate(d.getDate() + offset);
-    return `${d.getDate()}/${d.getMonth() + 1}`;
-  };
-
-  const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const selected = new Date(date);
-      selected.setHours(0, 0, 0, 0);
-      const diff = Math.round(
-        (selected.getTime() - today.getTime()) / 86400000,
-      );
-      const target = Math.max(0, diff);
-      setDirection(target > dayOffset ? 1 : -1);
-      setDayOffset(target);
-      setIsCalendarOpen(false);
-      setCurrentLessonIndex(0);
-    }
-  };
-
   const variants = {
-    enter: (d: number) => ({
-      x: d > 0 ? 40 : -40,
-      opacity: 0,
-      scale: 0.98,
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      scale: 1,
-    },
-    exit: (d: number) => ({
-      x: d < 0 ? 40 : -40,
-      opacity: 0,
-      scale: 0.98,
-    }),
+    enter: (d: number) => ({ x: d > 0 ? 52 : -52, opacity: 0 }),
+    center: { x: 0, opacity: 1 },
+    exit: (d: number) => ({ x: d < 0 ? 52 : -52, opacity: 0 }),
   };
-
-  const displayIndex = Math.max(
-    0,
-    Math.min(currentLessonIndex, displayedLessons.length - 1),
-  );
-  const currentLesson = displayedLessons[displayIndex];
 
   return (
     <motion.div
       drag="x"
       dragConstraints={{ left: 0, right: 0 }}
-      dragElastic={0.1}
-      onDragEnd={handleDragEnd}
-      className={cn(
-        "w-full nothing-widget overflow-hidden flex flex-col touch-none transition-all duration-300",
-        isLandscape ? "h-full min-h-[140px]" : "h-[240px]",
-      )}
+      dragElastic={0.06}
+      onDragEnd={onDragEnd}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      className="zima-gradient w-full rounded-[28px] overflow-hidden touch-none relative"
+      style={{
+        boxShadow:
+          "0 24px 48px rgba(69, 112, 234, 0.35), 0 8px 16px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.15)",
+      }}
     >
       <div
-        className={cn(
-          "border-b border-black/5 dark:border-white/10 flex items-center justify-between bg-black/5 dark:bg-white/5 z-20 flex-shrink-0 gap-2",
-          isLandscape ? "p-2 px-4" : "px-4 py-3",
-        )}
-      >
-        <div className="flex items-center gap-2 min-w-0">
-          <Popover
-            open={isCalendarOpen}
-            onOpenChange={(open) => {
-              setIsCalendarOpen(open);
-              if (open) {
-                const d = new Date();
-                d.setDate(d.getDate() + dayOffset);
-                setCalendarMonth(d);
-              }
-            }}
-          >
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                className={cn(
-                  "flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-white/50 dark:bg-zinc-900/50 border border-black/5 dark:border-white/10 hover:border-black/10 dark:hover:border-white/20 transition-all font-mono text-zinc-900 dark:text-white min-w-0",
-                  isLandscape ? "text-xs" : "text-sm",
-                )}
-              >
-                <span className="truncate">{data?.dayName || "..."}</span>
-                <ChevronDown className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent
-              className="w-auto p-0 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden"
-              align="start"
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          backgroundImage:
+            "radial-gradient(rgba(255,255,255,0.15) 1px, transparent 1px)",
+          backgroundSize: "20px 20px",
+        }}
+      />
+
+      <GrainOverlay opacity={0.18} blendMode="soft-light" />
+
+      <div className="relative z-10 flex items-center justify-between gap-2 px-5 pt-5 pb-3">
+        <Popover
+          open={isCalendarOpen}
+          onOpenChange={(o) => {
+            setIsCalendarOpen(o);
+            if (o) {
+              const d = new Date();
+              d.setDate(d.getDate() + dayOffset);
+              setCalMonth(d);
+            }
+          }}
+        >
+          <PopoverTrigger asChild>
+            <button
+              type="button"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/15 border border-white/25 font-mono text-[11px] text-white font-bold tracking-[0.1em] uppercase active:scale-95 transition-transform"
             >
-              <motion.div
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                dragElastic={0.2}
-                onDragEnd={handleCalendarDragEnd}
-                className="touch-none"
-              >
-                <Calendar
-                  mode="single"
-                  month={calendarMonth}
-                  onMonthChange={setCalendarMonth}
-                  selected={
-                    new Date(
-                      new Date().setDate(new Date().getDate() + dayOffset),
-                    )
+              <span>{data?.dayName || "—"}</span>
+              <ChevronDown className="w-3 h-3 text-white/60 shrink-0" />
+            </button>
+          </PopoverTrigger>
+          <PopoverContent
+            className="w-auto p-0 bg-white dark:bg-[#0D0D0D] border border-zinc-200 dark:border-white/8 rounded-3xl shadow-2xl overflow-hidden"
+            align="start"
+          >
+            <motion.div
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={handleCalDrag}
+              className="touch-none"
+            >
+              <Calendar
+                mode="single"
+                month={calMonth}
+                onMonthChange={setCalMonth}
+                selected={new Date(Date.now() + dayOffset * 86400000)}
+                onSelect={(d) => {
+                  if (d) {
+                    const diff = Math.max(
+                      0,
+                      Math.round(
+                        (new Date(d).setHours(0, 0, 0, 0) -
+                          new Date().setHours(0, 0, 0, 0)) /
+                          86400000,
+                      ),
+                    );
+                    setDirection(diff > dayOffset ? 1 : -1);
+                    setDayOffset(diff);
+                    setIsCalendarOpen(false);
+                    setLessonIdx(0);
                   }
-                  onSelect={handleDateSelect}
-                  locale={it}
-                  className="font-mono"
-                />
-              </motion.div>
-            </PopoverContent>
-          </Popover>
-        </div>
+                }}
+                locale={it}
+                className="font-mono"
+              />
+            </motion.div>
+          </PopoverContent>
+        </Popover>
 
         <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={() => {
-              setDirection(-1);
-              setDayOffset(0);
-            }}
-            className={cn(
-              "p-1.5 text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all",
-              dayOffset === 0 ? "hidden" : "block",
-            )}
-          >
-            <ArrowLeftToLine className="w-3.5 h-3.5" />
-          </button>
-
-          <div className="flex bg-transparent border border-black/5 dark:border-white/10 rounded-lg overflow-hidden p-0.5 gap-0.5">
+          {dayOffset !== 0 && (
             <button
               type="button"
-              onClick={handlePrevDay}
-              disabled={dayOffset === 0}
-              className="p-1 hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded disabled:opacity-20"
+              onClick={() => {
+                setDirection(-1);
+                setDayOffset(0);
+              }}
+              className="p-1.5 text-white/50 hover:text-white transition-colors"
             >
-              <ChevronLeft className="w-3.5 h-3.5 text-zinc-400" />
+              <ArrowLeftToLine className="w-3.5 h-3.5" />
+            </button>
+          )}
+          <div className="flex border border-white/20 rounded-xl overflow-hidden p-0.5 gap-0.5">
+            <button
+              type="button"
+              onClick={goPrevDay}
+              disabled={dayOffset === 0}
+              className="p-1.5 hover:bg-white/10 transition-colors rounded-lg disabled:opacity-20"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 text-white/70" />
             </button>
             <button
               type="button"
-              onClick={handleNextDay}
-              className="p-1 hover:bg-black/5 dark:hover:bg-white/5 transition-all rounded"
+              onClick={goNextDay}
+              className="p-1.5 hover:bg-white/10 transition-colors rounded-lg"
             >
-              <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />
+              <ChevronRight className="w-3.5 h-3.5 text-white/70" />
             </button>
           </div>
-
-          <div className="hidden sm:block h-4 w-px bg-black/5 dark:bg-white/10 mx-1" />
-          <span className="hidden sm:block text-[10px] font-mono text-zinc-400 px-1">
-            {getDate(dayOffset)}
-          </span>
         </div>
       </div>
 
-      <div
-        className={cn(
-          "relative overflow-hidden flex-1 flex flex-col",
-          isLandscape ? "p-4" : "p-4 lg:p-5",
-        )}
-      >
+      <div className="relative z-10 px-5 pb-2 min-h-[160px]">
         <AnimatePresence initial={false} custom={direction} mode="popLayout">
           {isFetching && !data ? (
             <motion.div
-              key="loading"
+              key="spin"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 flex items-center justify-center"
+              className="flex items-center justify-center h-[160px]"
             >
-              <div className="w-5 h-5 border-2 border-zinc-200 dark:border-zinc-800 border-t-zinc-900 dark:border-t-white rounded-full animate-spin" />
+              <div className="w-5 h-5 border border-white/20 border-t-white rounded-full animate-spin" />
+            </motion.div>
+          ) : lessons.length === 0 ? (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center h-[160px] gap-2"
+            >
+              <CalendarIcon className="w-8 h-8 text-white/30" strokeWidth={1} />
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">
+                Nessuna lezione
+              </p>
             </motion.div>
           ) : (
             <motion.div
-              key={`${dayOffset}-${displayIndex}-${displayedLessons.length > 0}`}
+              key={`${dayOffset}-${displayIdx}`}
               custom={direction}
               variants={variants}
               initial="enter"
               animate="center"
               exit="exit"
-              transition={SPRING_CONFIG}
-              className="flex flex-col items-center justify-center flex-1 w-full"
+              transition={SPRING}
+              className="flex flex-col"
             >
-              {displayedLessons.length === 0 ? (
-                <div className="flex flex-col items-center justify-center text-center">
-                  <div className="w-16 h-16 rounded-[1.5rem] bg-zinc-50 dark:bg-zinc-900 flex items-center justify-center mb-4 border border-zinc-100 dark:border-zinc-800 shadow-sm relative shrink-0">
-                    <CalendarIcon
-                      className="w-8 h-8 text-zinc-300 dark:text-zinc-700"
-                      strokeWidth={1.5}
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <motion.p
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    delay: 0.03,
+                    duration: 0.28,
+                    ease: [0.16, 1, 0.3, 1],
+                  }}
+                  className="font-mono font-black text-white leading-none tabular-nums"
+                  style={{
+                    fontSize: "clamp(2rem, 9vw, 3rem)",
+                    letterSpacing: "-0.03em",
+                  }}
+                >
+                  {lesson.time}
+                </motion.p>
+
+                {(isNow || isNext) && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="shrink-0 mt-1 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white font-mono text-[9px] font-black uppercase tracking-[0.15em]"
+                    style={{ color: isNow ? "#FF2B2B" : "#4570EA" }}
+                  >
+                    <span
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{
+                        backgroundColor: isNow ? "#FF2B2B" : "#4570EA",
+                        animation: "pulse 2s infinite",
+                      }}
                     />
-                  </div>
-                  <p
-                    className={cn(
-                      "font-serif font-bold text-zinc-900 dark:text-white tracking-tight leading-none",
-                      isLandscape ? "text-base" : "text-lg",
+                    {isNow ? "NOW" : "NEXT"}
+                  </motion.div>
+                )}
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  delay: 0.07,
+                  duration: 0.28,
+                  ease: [0.16, 1, 0.3, 1],
+                }}
+                className="mb-4"
+              >
+                <MarqueeText
+                  text={lesson.title}
+                  className="font-serif italic font-semibold text-white/95 leading-tight text-[1.05rem]"
+                />
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.12, duration: 0.25 }}
+                className="rounded-[16px] bg-white/15 border border-white/20 px-4 py-3 space-y-1.5 backdrop-blur-sm"
+              >
+                {lesson.location && (
+                  <div className="flex items-center gap-2 min-w-0">
+                    {lesson.isVideo ? (
+                      <Video className="w-3 h-3 shrink-0 text-white/70" />
+                    ) : (
+                      <MapPin className="w-3 h-3 shrink-0 text-white/70" />
                     )}
-                  >
-                    Nessuna lezione
-                  </p>
-                  <p className="mt-2 text-[9px] font-mono font-bold text-zinc-400 uppercase tracking-[0.2em]">
-                    Libero
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col h-full w-full">
-                  <div
-                    className={cn(
-                      "flex items-center justify-between w-full",
-                      isLandscape ? "mb-1" : "mb-2",
-                    )}
-                  >
-                    <div className="flex items-center gap-2 text-zinc-900 dark:text-white">
-                      <Clock
-                        className={cn(
-                          "opacity-40 text-red-500",
-                          isLandscape ? "w-3.5 h-3.5" : "w-4 h-4",
-                        )}
-                      />
-                      <span
-                        className={cn(
-                          "font-mono font-bold tracking-tighter",
-                          isLandscape ? "text-base" : "text-lg",
-                        )}
-                      >
-                        {currentLesson.time}
+                    <span className="font-mono text-[11px] text-white/85 truncate">
+                      {lesson.location}
+                    </span>
+                    {hasOverlap(lesson, displayIdx) && (
+                      <span className="text-[#F5E642] font-mono font-black text-[10px] ml-auto shrink-0">
+                        OVERLAP
                       </span>
-                    </div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {dayOffset === 0 &&
-                        data?.nextLesson?.lesson.time ===
-                          currentLesson.time && (
-                          <span className="flex items-center gap-1.5 text-[9px] font-bold font-mono px-2.5 py-1 rounded border border-black/10 dark:border-white/15 bg-black/5 dark:bg-white/10 text-zinc-900 dark:text-white uppercase tracking-wider">
-                            <span className="nothing-red-dot"></span>
-                            NOW
-                          </span>
-                        )}
-                    </div>
-                  </div>
-
-                  <div className="mb-2 w-full min-w-0">
-                    <MarqueeText
-                      text={currentLesson.title}
-                      className={cn(
-                        "font-bold text-zinc-900 dark:text-white leading-tight font-serif",
-                        isLandscape ? "text-base" : "text-lg",
-                      )}
-                    />
-                  </div>
-
-                  <div
-                    className={cn(
-                      "flex items-end justify-between mt-auto w-full",
-                      isLandscape ? "gap-4" : "",
                     )}
-                  >
-                    <div
-                      className={cn(
-                        "space-y-1",
-                        isLandscape ? "flex items-center gap-4 space-y-0" : "",
-                      )}
-                    >
-                      {currentLesson.location && (
-                        <div className="flex items-center gap-2 text-xs text-zinc-500 font-medium font-mono min-w-0">
-                          {currentLesson.isVideo ? (
-                            <Video className="w-3 h-3 shrink-0 opacity-50 text-blue-500" />
-                          ) : (
-                            <MapPin className="w-3 h-3 shrink-0 opacity-50 text-zinc-400" />
-                          )}
-                          <span className="truncate">
-                            {currentLesson.location}
-                          </span>
-                        </div>
-                      )}
-                      {currentLesson.professor && (
-                        <div className="flex items-center gap-2 text-[11px] text-zinc-400 italic font-serif min-w-0">
-                          <User className="w-3 h-3 shrink-0 opacity-40" />
-                          <span className="truncate">
-                            {currentLesson.professor}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0 ml-4">
-                      {currentLesson.isVideo && (
-                        <div className="p-1.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
-                          <Video className="w-4 h-4" strokeWidth={2.5} />
-                        </div>
-                      )}
-                      {hasOverlap(currentLesson, displayIndex) && (
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <div className="p-1.5 rounded-xl bg-amber-500/10 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 animate-in zoom-in duration-300">
-                                <AlertTriangle
-                                  className="w-4 h-4"
-                                  strokeWidth={2.5}
-                                />
-                              </div>
-                            </TooltipTrigger>
-                            <TooltipContent className="bg-zinc-900 text-white border-zinc-800 rounded-xl px-3 py-2">
-                              <p className="text-[10px] font-bold font-serif uppercase tracking-wider">
-                                Sovrapposizione oraria
-                              </p>
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
-                      )}
-                    </div>
                   </div>
-                </div>
-              )}
+                )}
+                {lesson.professor && (
+                  <div className="flex items-center gap-2 min-w-0">
+                    <User className="w-3 h-3 shrink-0 text-white/70" />
+                    <span className="font-mono text-[11px] text-white/85 truncate">
+                      {lesson.professor}
+                    </span>
+                  </div>
+                )}
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <div
-        className={cn(
-          "border-t border-black/5 dark:border-white/10 flex justify-between items-center bg-black/5 dark:bg-white/5 flex-shrink-0",
-          isLandscape ? "p-2 px-4" : "px-4 py-3",
-        )}
-      >
-        <div className="flex gap-1.5">
-          {displayedLessons.length > 0 ? (
-            displayedLessons.map((lesson, i) => (
-              <div
-                key={`${lesson.time}-${lesson.title}`}
-                className={cn(
-                  "w-1 h-1 rounded-full transition-all duration-300",
-                  i === displayIndex
-                    ? "bg-red-500 w-3"
-                    : "bg-black/20 dark:bg-white/20",
-                )}
+      <div className="relative z-10 flex justify-between items-center px-5 py-4 mt-1 border-t border-white/10">
+        <div className="flex gap-1.5 items-center">
+          {lessons.length > 1 ? (
+            lessons.map((_, i) => (
+              <motion.div
+                key={i}
+                animate={{ width: i === displayIdx ? 20 : 5 }}
+                className="h-1 rounded-full"
+                style={{
+                  backgroundColor:
+                    i === displayIdx
+                      ? "rgba(255,255,255,0.9)"
+                      : "rgba(255,255,255,0.25)",
+                }}
+                transition={SPRING}
               />
             ))
           ) : (
-            <div className="w-4 h-1 rounded-full bg-black/20 dark:bg-white/20 opacity-50" />
+            <div className="h-1 w-5 rounded-full bg-white/20" />
           )}
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-0.5">
           <button
             type="button"
             onClick={() => {
-              if (!handlePrevLesson()) {
-                handlePrevDay();
-              }
+              if (!goPrevLesson()) goPrevDay();
             }}
-            disabled={dayOffset === 0 && displayIndex === 0}
-            className="p-1.5 rounded-lg text-zinc-400 disabled:opacity-10 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all"
+            disabled={dayOffset === 0 && displayIdx === 0}
+            className="p-2 rounded-xl text-white/50 disabled:opacity-20 hover:bg-white/10 transition-colors active:scale-90"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={() => {
-              if (!handleNextLesson()) {
-                handleNextDay();
-              }
+              if (!goNextLesson()) goNextDay();
             }}
-            className="p-1.5 rounded-lg text-zinc-400 disabled:opacity-10 hover:bg-zinc-100 dark:hover:bg-zinc-900 transition-all"
+            className="p-2 rounded-xl text-white/50 hover:bg-white/10 transition-colors active:scale-90"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-4 h-4" />
           </button>
         </div>
       </div>

@@ -1,4 +1,7 @@
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "admin123";
+if (!process.env.ADMIN_PASSWORD) {
+  throw new Error("ADMIN_PASSWORD is not set");
+}
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 export function verifyAdminPassword(password: string): boolean {
   return password === ADMIN_PASSWORD;

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 export function useLocalStorage<T>(
   key: string,
-  initialValue: T,
+  initialValue: T | (() => T),
 ): [T, (value: T | ((val: T) => T)) => void] {
   const initialValueRef = useRef(initialValue);
 
@@ -12,18 +12,30 @@ export function useLocalStorage<T>(
 
   const readValue = useCallback((): T => {
     if (typeof window === "undefined") {
-      return initialValueRef.current;
+      const init = initialValueRef.current;
+      return init instanceof Function ? init() : init;
     }
     try {
       const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValueRef.current;
+      if (item) return JSON.parse(item);
+      const init = initialValueRef.current;
+      const fallback = init instanceof Function ? init() : init;
+      window.localStorage.setItem(key, JSON.stringify(fallback));
+      return fallback;
     } catch (error) {
       console.warn(`Error reading localStorage key "${key}":`, error);
-      return initialValueRef.current;
+      const init = initialValueRef.current;
+      return init instanceof Function ? init() : init;
     }
   }, [key]);
 
   const [storedValue, setStoredValue] = useState<T>(readValue);
+
+  const [prevKey, setPrevKey] = useState(key);
+  if (key !== prevKey) {
+    setPrevKey(key);
+    setStoredValue(readValue());
+  }
 
   const setValue = useCallback(
     (value: T | ((val: T) => T)) => {
@@ -43,10 +55,6 @@ export function useLocalStorage<T>(
     },
     [key, storedValue],
   );
-
-  useEffect(() => {
-    setStoredValue(readValue());
-  }, [readValue]);
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -70,13 +78,6 @@ function generateUserId(): string {
 }
 
 export function useUserId(): string {
-  const [userId, setUserId] = useLocalStorage<string>("userId", "");
-
-  useEffect(() => {
-    if (!userId) {
-      setUserId(generateUserId());
-    }
-  }, [userId, setUserId]);
-
+  const [userId] = useLocalStorage<string>("userId", generateUserId);
   return userId;
 }

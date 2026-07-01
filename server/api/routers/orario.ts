@@ -2,6 +2,7 @@ import { inArray } from "drizzle-orm";
 import { DateTime } from "luxon";
 import { z } from "zod";
 import { getVisibleCourses } from "@/lib/courses";
+
 import {
   addDays,
   formatDate,
@@ -434,7 +435,7 @@ export const orarioRouter = createTRPCRouter({
         })
         .filter((e): e is NonNullable<typeof e> => e !== null);
 
-      return processed.filter(
+      const deduped = processed.filter(
         (val, index, self) =>
           index ===
           self.findIndex(
@@ -444,6 +445,8 @@ export const orarioRouter = createTRPCRouter({
               t.title === val.title,
           ),
       );
+
+      return deduped;
     }),
 
   getNextLesson: publicProcedure
@@ -465,9 +468,8 @@ export const orarioRouter = createTRPCRouter({
         ids = visibleCourses.map((c) => c.linkId);
       }
 
-      if (ids.length === 0) {
+      if (ids.length === 0)
         return { hasLessons: false, lessons: [], dayName: "" };
-      }
 
       const allRawEvents = await Promise.all(
         ids.map((id) => fetchRawEvents(input.dayOffset, id)),
@@ -587,9 +589,9 @@ export const orarioRouter = createTRPCRouter({
       };
 
       const allSubjectsLists = await Promise.all(ids.map(fetchSubjectsForId));
-      const combinedSubjects = new Set(allSubjectsLists.flat());
+      const combined = Array.from(new Set(allSubjectsLists.flat())).sort();
 
-      return Array.from(combinedSubjects).sort();
+      return combined;
     }),
 
   getProfessors: publicProcedure
@@ -687,7 +689,6 @@ export const orarioRouter = createTRPCRouter({
 
       if (allChanges.length === 0) return null;
 
-      // Prendiamo il timestamp più recente per il "versioning" lato client
       const latestUpdate = Math.max(
         ...snapshots.map((s: any) => s.lastUpdated.getTime()),
       );

@@ -44,7 +44,9 @@ async function checkUpdates() {
     columns: { linkId: true },
   });
 
-  const linkIds: string[] = Array.from(new Set(activeSubs.map((s: any) => s.linkId as string)));
+  const linkIds: string[] = Array.from(
+    new Set(activeSubs.map((s: any) => s.linkId as string)),
+  );
 
   if (linkIds.length === 0) {
     return;
@@ -173,7 +175,6 @@ function findDetailedChanges(
 
   const getEventId = (e: TimetableEvent) => `${e.date}-${e.title}`;
 
-  // Mappa degli eventi vecchi per un confronto rapido
   const oldMap = new Map<string, TimetableEvent[]>();
   for (const e of oldEvents) {
     const id = getEventId(e);
@@ -181,7 +182,6 @@ function findDetailedChanges(
     oldMap.get(id)?.push(e);
   }
 
-  // Mappa degli eventi nuovi
   const newMap = new Map<string, TimetableEvent[]>();
   for (const e of newEvents) {
     const id = getEventId(e);
@@ -189,18 +189,15 @@ function findDetailedChanges(
     newMap.get(id)?.push(e);
   }
 
-  // 1. Cerchiamo Nuovi e Modificati
   for (const e of newEvents) {
     const id = getEventId(e);
     const matchingOld = oldMap.get(id);
 
     if (!matchingOld) {
-      // È una nuova lezione (non esisteva in quella data con quel titolo)
       changes.push({ type: "ADDED", ...e });
       continue;
     }
 
-    // Cerchiamo se esiste un match esatto per tempo
     const exactMatch = matchingOld.find(
       (o) =>
         o.time === e.time &&
@@ -209,7 +206,6 @@ function findDetailedChanges(
     );
 
     if (!exactMatch) {
-      // Se non c'è match esatto, cerchiamo quello con lo stesso orario ma campi diversi (Modifica)
       const timeMatch = matchingOld.find((o) => o.time === e.time);
       if (timeMatch) {
         const diffs: TimetableChange["diffs"] = {};
@@ -222,8 +218,7 @@ function findDetailedChanges(
           changes.push({ type: "MODIFIED", ...e, diffs });
         }
       } else {
-        // Se cambia l'orario, lo consideriamo come modifica dell'orario della stessa lezione
-        const firstOld = matchingOld[0]; // Assunzione semplificata
+        const firstOld = matchingOld[0];
         changes.push({
           type: "MODIFIED",
           ...e,
@@ -233,11 +228,10 @@ function findDetailedChanges(
     }
   }
 
-  // 2. Cerchiamo Annullati
   for (const o of oldEvents) {
     const id = getEventId(o);
     const matchingNew = newMap.get(id);
-    if (!matchingNew || !matchingNew.find((n) => n.time === o.time)) {
+    if (!matchingNew?.find((n) => n.time === o.time)) {
       changes.push({ type: "CANCELED", ...o });
     }
   }
@@ -246,12 +240,10 @@ function findDetailedChanges(
 }
 
 if (process.argv.includes("--cron")) {
-  // Ogni 20 minuti: controlla aggiornamenti orario
   cron.schedule("*/20 * * * *", () => {
     checkUpdates().catch(console.error);
   });
 
-  // Ogni domenica alle 03:00: scopri nuovi corsi e resetta anno precedente
   cron.schedule("0 3 * * 0", () => {
     console.log("[cron] Avvio scraping settimanale corsi Insubria...");
     scrapeAllCourses({ verbose: true }).catch(console.error);

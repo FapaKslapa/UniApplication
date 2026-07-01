@@ -16,11 +16,9 @@ type DeviceRow = { deviceType: string; count: number };
 type OsRow = { os: string; count: number };
 type PageRow = { path: string; count: number; unique: number };
 type BrowserRow = { browser: string; count: number };
-type CountRow = { value: number };
 type PushCourseRow = { linkId: string; count: number };
 type PushTrendRow = { date: string; count: number };
 
-// ─── Rate limiting in-memory (per IP, finestra 60s) ─────────────────────────
 const visitRateLimit = new Map<
   string,
   { count: number; windowStart: number }
@@ -40,7 +38,6 @@ function isRateLimited(ip: string): boolean {
   return false;
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 const get = (r: any[]) => Number(r[0]?.value ?? 0);
 
 function italyBoundaries() {
@@ -56,10 +53,7 @@ function italyBoundaries() {
   };
 }
 
-// ─────────────────────────────────────────────────────────────────────────────
-
 export const statsRouter = createTRPCRouter({
-  // ── Traccia una visita (pubblico) ──────────────────────────────────────────
   trackVisit: publicProcedure
     .input(
       z.object({
@@ -96,7 +90,6 @@ export const statsRouter = createTRPCRouter({
       return { ok: true };
     }),
 
-  // ── Overview KPI ──────────────────────────────────────────────────────────
   getOverview: adminProcedure.query(async () => {
     const { todayStart, weekStart, italyOffsetHours } = italyBoundaries();
     const h24ago = new Date(Date.now() - 86_400_000);
@@ -127,9 +120,7 @@ export const statsRouter = createTRPCRouter({
       db.all(
         sql`SELECT COUNT(*) as value FROM visits WHERE createdAt >= ${w2ago} AND createdAt < ${new Date(Date.now() - 604_800_000)}`,
       ),
-      db.all(
-        sql`SELECT COUNT(DISTINCT ip) as value FROM visits`,
-      ),
+      db.all(sql`SELECT COUNT(DISTINCT ip) as value FROM visits`),
       db.all(
         sql`SELECT COUNT(DISTINCT ip) as value FROM visits WHERE createdAt >= ${todayStart}`,
       ),
@@ -162,7 +153,6 @@ export const statsRouter = createTRPCRouter({
     };
   }),
 
-  // ── Utenti attivi DAU / WAU / MAU ─────────────────────────────────────────
   getActiveUsers: adminProcedure.query(async () => {
     const {
       todayStart,
@@ -193,9 +183,7 @@ export const statsRouter = createTRPCRouter({
         db.all(
           sql`SELECT COUNT(*) as value FROM analytics_users WHERE last_seen >= ${prevMonthStart} AND last_seen < ${monthStart}`,
         ),
-        db.all(
-          sql`SELECT COUNT(*) as value FROM analytics_users`,
-        ),
+        db.all(sql`SELECT COUNT(*) as value FROM analytics_users`),
         db.all(
           sql`SELECT COUNT(*) as value FROM analytics_users WHERE created_at >= ${todayStart}`,
         ),
@@ -223,7 +211,6 @@ export const statsRouter = createTRPCRouter({
     };
   }),
 
-  // ── Statistiche giornaliere (con range custom) ────────────────────────────
   getDailyStats: adminProcedure
     .input(
       z.object({
@@ -266,7 +253,6 @@ export const statsRouter = createTRPCRouter({
       }));
     }),
 
-  // ── Distribuzione oraria (timezone italiana, con filtro giorni) ───────────
   getHourlyVisits: adminProcedure
     .input(
       z.object({ days: z.number().min(1).max(365).default(30) }).optional(),
@@ -292,7 +278,6 @@ export const statsRouter = createTRPCRouter({
       }));
     }),
 
-  // ── Distribuzione dispositivi ─────────────────────────────────────────────
   getDeviceDistribution: adminProcedure.query(async () => {
     const result = await db.all(sql`
       SELECT deviceType, COUNT(*) as count
@@ -306,7 +291,6 @@ export const statsRouter = createTRPCRouter({
     }));
   }),
 
-  // ── Distribuzione OS ──────────────────────────────────────────────────────
   getOsDistribution: adminProcedure.query(async () => {
     const result = await db.all(sql`
       SELECT os, COUNT(*) as count
@@ -322,7 +306,6 @@ export const statsRouter = createTRPCRouter({
     }));
   }),
 
-  // ── Top pagine ────────────────────────────────────────────────────────────
   getTopPages: adminProcedure.query(async () => {
     const result = await db.all(sql`
       SELECT path, COUNT(*) as count, COUNT(DISTINCT ip) as "unique"
@@ -339,7 +322,6 @@ export const statsRouter = createTRPCRouter({
     }));
   }),
 
-  // ── Distribuzione browser ─────────────────────────────────────────────────
   getBrowserDistribution: adminProcedure.query(async () => {
     const result = await db.all(sql`
       SELECT browser, COUNT(*) as count
@@ -355,7 +337,6 @@ export const statsRouter = createTRPCRouter({
     }));
   }),
 
-  // ── Statistiche push notification ─────────────────────────────────────────
   getPushStats: adminProcedure.query(async () => {
     const fromDate = new Date(Date.now() - 30 * 86_400_000);
 

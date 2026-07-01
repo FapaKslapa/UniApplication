@@ -25,11 +25,13 @@ function Calendar({
     props.month || props.defaultMonth || new Date(),
   );
 
-  React.useEffect(() => {
+  const prevMonthRef = React.useRef(props.month);
+  if (props.month !== prevMonthRef.current) {
+    prevMonthRef.current = props.month;
     if (props.month) {
       setInternalDate(props.month);
     }
-  }, [props.month]);
+  }
 
   React.useEffect(() => {
     if (view === "years") {

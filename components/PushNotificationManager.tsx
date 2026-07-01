@@ -1,7 +1,7 @@
 "use client";
 
 import { Bell, BellRing } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
@@ -26,32 +26,38 @@ export function PushNotificationManager({
   const updateFiltersMutation =
     api.notifications.updateAllFilters.useMutation();
 
-  const checkSubscription = useCallback(async () => {
-    try {
-      if (!("serviceWorker" in navigator)) return;
-
-      const registration = await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise<null>((_, reject) =>
-          setTimeout(() => reject(new Error("Timeout SW")), 5000),
-        ),
-      ]);
-
-      if (!registration) return;
-
-      const subscription = await registration.pushManager.getSubscription();
-      setIsSubscribed(!!subscription);
-    } catch (e) {
-      console.error("Check subscription failed:", e);
-    }
-  }, []);
-
   useEffect(() => {
-    if ("Notification" in window) {
-      setPermission(Notification.permission);
-      checkSubscription();
+    if (!("Notification" in window)) return;
+    setPermission(Notification.permission);
+
+    let timeoutId: NodeJS.Timeout;
+
+    async function checkSubscription() {
+      try {
+        if (!("serviceWorker" in navigator)) return;
+
+        const registration = await Promise.race([
+          navigator.serviceWorker.ready,
+          new Promise<null>((_, reject) => {
+            timeoutId = setTimeout(() => reject(new Error("Timeout SW")), 5000);
+          }),
+        ]);
+
+        if (!registration) return;
+
+        const subscription = await registration.pushManager.getSubscription();
+        setIsSubscribed(!!subscription);
+      } catch (e) {
+        console.error("Check subscription failed:", e);
+      }
     }
-  }, [checkSubscription]);
+
+    checkSubscription();
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, []);
 
   useEffect(() => {
     if (isSubscribed && hiddenSubjects.length > 0) {

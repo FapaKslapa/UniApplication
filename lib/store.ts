@@ -1,16 +1,11 @@
-/**
- * Zustand store con persist su localStorage.
- * Centralizza tutto lo stato utente dell'app.
- */
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 export interface AppState {
-  // Corsi studente
   calendarIds: string[];
   courseNames: string[];
   courseIds: string[];
-  // Legacy (singolo corso)
+
   calendarId: string;
   courseName: string;
   storedCourseId: string;

@@ -7,7 +7,6 @@ import {
   Calendar as CalendarIcon,
   ChevronLeft,
   ChevronRight,
-  Clock,
   Filter,
   MapPin,
   MoreHorizontal,
@@ -15,6 +14,7 @@ import {
 } from "lucide-react";
 import { DateTime } from "luxon";
 import { useEffect, useMemo, useState } from "react";
+import { GrainOverlay } from "@/components/GrainOverlay";
 import {
   Popover,
   PopoverContent,
@@ -38,6 +38,11 @@ const SPRING_CONFIG = {
   damping: 35,
   mass: 1,
 } as const;
+
+const swipeConfidenceThreshold = 10000;
+const swipePower = (offset: number, velocity: number) => {
+  return Math.abs(offset) * velocity;
+};
 
 interface MonthlyViewProps {
   onDaySelect: (day: DaySchedule) => void;
@@ -63,7 +68,7 @@ export function MonthlyView({
   const [direction, setDirection] = useState(0);
   const [isLandscape, setIsLandscape] = useState(false);
   const [_isMobile, setIsMobile] = useState(false);
-  const [showTabs, setShowTabs] = useState(false);
+  const [_showTabs, setShowTabs] = useState(false);
   const [selectedDate, setSelectedDate] = useState(
     DateTime.now().setLocale("it"),
   );
@@ -220,106 +225,6 @@ export function MonthlyView({
     }),
   };
 
-  const swipeConfidenceThreshold = 10000;
-  const swipePower = (offset: number, velocity: number) => {
-    return Math.abs(offset) * velocity;
-  };
-
-  const NavigationControls = () => (
-    <div className="flex items-center gap-2">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              onClick={handleToday}
-              className={cn(
-                "p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all rounded-lg active:scale-90",
-                isCurrentMonth && "opacity-0 pointer-events-none",
-              )}
-            >
-              <ArrowLeftToLine className="w-4 h-4 text-zinc-400" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Vai a Oggi</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-      <div className="flex bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm p-1 gap-1">
-        <button
-          type="button"
-          onClick={handlePrevMonth}
-          className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all rounded-lg active:scale-90"
-        >
-          <ChevronLeft className="w-4 h-4 text-zinc-400" />
-        </button>
-        <button
-          type="button"
-          onClick={handleNextMonth}
-          className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all rounded-lg active:scale-90"
-        >
-          <ChevronRight className="w-4 h-4 text-zinc-400" />
-        </button>
-      </div>
-    </div>
-  );
-
-  const ViewTabs = ({ className }: { className?: string }) => (
-    <Popover open={isViewMenuOpen} onOpenChange={setIsViewMenuOpen}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            "p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-xl transition-all active:scale-90 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800",
-            className,
-          )}
-        >
-          <MoreHorizontal className="w-5 h-5 text-zinc-400" />
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        align="end"
-        className="w-40 p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl"
-      >
-        <div className="flex flex-col gap-1">
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab("calendar");
-              setIsViewMenuOpen(false);
-            }}
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all",
-              activeTab === "calendar"
-                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
-                : "text-zinc-400 hover:text-zinc-50 hover:bg-zinc-50 dark:hover:bg-zinc-800/50",
-            )}
-          >
-            <CalendarDays className="w-4 h-4" />
-            <span>Mese</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setActiveTab("filters");
-              setIsViewMenuOpen(false);
-            }}
-            className={cn(
-              "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all",
-              activeTab === "filters"
-                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
-                : "text-zinc-400 hover:text-zinc-50 hover:bg-zinc-50 dark:hover:bg-zinc-800/50",
-            )}
-          >
-            <Filter className="w-4 h-4" />
-            <span>Filtri</span>
-          </button>
-        </div>
-      </PopoverContent>
-    </Popover>
-  );
-
   if (isLandscape) {
     return (
       <motion.div
@@ -330,10 +235,18 @@ export function MonthlyView({
       >
         <div className="w-[35%] min-w-[280px] max-w-[350px] border-r border-zinc-100 dark:border-zinc-900 flex flex-col bg-zinc-50/10 dark:bg-zinc-900/10">
           <div className="p-4 border-b border-zinc-100 dark:border-zinc-900 flex items-center justify-between">
-            <span className="font-serif font-bold text-sm capitalize">
+            <span
+              className="font-mono font-black text-sm capitalize"
+              style={{ letterSpacing: "-0.02em" }}
+            >
               {monthName} {yearName}
             </span>
-            <NavigationControls />
+            <NavigationControls
+              handleToday={handleToday}
+              handlePrevMonth={handlePrevMonth}
+              handleNextMonth={handleNextMonth}
+              isCurrentMonth={isCurrentMonth}
+            />
           </div>
 
           <div className="flex-1 relative overflow-hidden">
@@ -482,7 +395,12 @@ export function MonthlyView({
 
         <div className="flex-1 flex flex-col min-w-0">
           <div className="p-4 border-b border-zinc-100 dark:border-zinc-900 bg-white dark:bg-black flex items-center justify-between sticky top-0 z-20">
-            <ViewTabs />
+            <ViewTabs
+              isViewMenuOpen={isViewMenuOpen}
+              setIsViewMenuOpen={setIsViewMenuOpen}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
             {isFetching && (
               <div className="w-4 h-4 border-2 border-zinc-200 dark:border-zinc-800 border-t-zinc-900 dark:border-t-white rounded-full animate-spin" />
             )}
@@ -491,7 +409,7 @@ export function MonthlyView({
           <div className="flex-1 overflow-y-auto custom-scrollbar">
             {activeTab === "calendar" ? (
               <div className="p-4 space-y-4">
-                <h3 className="font-serif font-bold text-lg leading-none border-b border-zinc-50 dark:border-zinc-900/50 pb-4">
+                <h3 className="font-mono font-black text-sm leading-none border-b border-zinc-50 dark:border-zinc-900/50 pb-4 uppercase tracking-tight">
                   {selectedDate.toFormat("cccc d MMMM")}
                 </h3>
                 {selectedDayEvents.length > 0 ? (
@@ -521,22 +439,19 @@ export function MonthlyView({
                               materiaColorMap,
                             })
                           }
-                          className="w-full text-left p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 flex items-start gap-4 active:scale-[0.98] transition-all group"
+                          className="w-full text-left p-4 rounded-2xl bg-zinc-50 dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 active:scale-[0.98] transition-all"
                         >
-                          <div
-                            className="w-1.5 h-12 rounded-full shrink-0 group-hover:scale-y-110 transition-transform"
-                            style={{ backgroundColor: color }}
-                          />
-                          <div className="min-w-0 flex-1">
-                            <div className="flex items-center justify-between gap-2 mb-1.5">
-                              <div className="flex items-center gap-2">
-                                <Clock className="w-3.5 h-3.5 text-zinc-400" />
-                                <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase">
-                                  {e.time}
-                                </span>
-                              </div>
+                          <div className="min-w-0 w-full">
+                            <div className="flex items-center gap-2 mb-2">
+                              <span
+                                className="w-2 h-2 rounded-full shrink-0"
+                                style={{ backgroundColor: color }}
+                              />
+                              <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-wider">
+                                {e.time}
+                              </span>
                             </div>
-                            <h4 className="font-serif font-bold text-sm text-zinc-900 dark:text-white line-clamp-2 mb-1.5">
+                            <h4 className="font-mono font-bold text-xs text-zinc-900 dark:text-white uppercase tracking-tight line-clamp-2 mb-1.5">
                               {parsed.materia}
                             </h4>
                             <div className="flex items-start gap-1.5 text-[10px] text-zinc-400">
@@ -557,7 +472,7 @@ export function MonthlyView({
                 ) : (
                   <div className="h-[200px] flex flex-col items-center justify-center opacity-30 text-center">
                     <CalendarIcon className="w-10 h-10 mb-2" strokeWidth={1} />
-                    <p className="font-serif italic text-sm">
+                    <p className="font-mono text-xs uppercase tracking-widest">
                       Nessuna lezione per oggi
                     </p>
                   </div>
@@ -609,262 +524,450 @@ export function MonthlyView({
     );
   }
 
+  const totalVisible = monthlyEvents.filter(
+    (e) => !hiddenSubjects.includes(parseEventTitle(e.title).materia),
+  ).length;
+  const todayIso = DateTime.now().toISODate();
+  const todayCount = monthlyEvents.filter(
+    (e) =>
+      e.date === todayIso &&
+      !hiddenSubjects.includes(parseEventTitle(e.title).materia),
+  ).length;
+
   return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.98 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={SPRING_CONFIG}
-      className="w-full h-full flex flex-col bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-[2.5rem] overflow-hidden shadow-sm relative"
-    >
-      <div className="px-6 py-4 lg:px-8 lg:py-6 border-b border-zinc-100 dark:border-zinc-900 flex items-center justify-between bg-zinc-50/20 dark:bg-zinc-900/10 z-10">
-        <div className="flex flex-col min-w-0">
-          <h2 className="text-xl lg:text-2xl font-bold text-zinc-900 dark:text-white font-serif capitalize leading-tight tracking-tight truncate">
-            {monthName}
-          </h2>
-          <span className="text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-[0.3em] mt-1 lg:mt-2">
+    <div className="w-full flex flex-col gap-3">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={SPRING_CONFIG}
+        className="zima-gradient relative overflow-hidden rounded-[28px] flex-shrink-0"
+      >
+        <GrainOverlay opacity={0.18} blendMode="soft-light" />
+        <div
+          className="absolute inset-0 pointer-events-none z-0"
+          style={{
+            backgroundImage:
+              "radial-gradient(rgba(255,255,255,0.1) 1px, transparent 1px)",
+            backgroundSize: "22px 22px",
+          }}
+        />
+        <div className="relative z-10 p-5">
+          <span className="font-mono text-[10px] font-bold text-white/50 uppercase tracking-[0.3em]">
             {yearName}
           </span>
-        </div>
+          <h2
+            className="font-mono font-black text-white capitalize leading-tight mt-0.5"
+            style={{
+              fontSize: "clamp(2rem, 8vw, 2.5rem)",
+              letterSpacing: "-0.04em",
+            }}
+          >
+            {monthName}
+          </h2>
 
-        <div className="flex items-center gap-2 lg:gap-4">
-          {isLandscape && <ViewTabs />}
-          {showTabs && <ViewTabs />}
-          {(!showTabs || activeTab === "calendar") && <NavigationControls />}
-        </div>
-      </div>
+          <div className="flex gap-2 mt-4">
+            <div className="flex-1 bg-white/15 border border-white/20 rounded-[16px] px-3 py-2.5 backdrop-blur-sm">
+              <span
+                className="font-mono font-black text-white leading-none tabular-nums"
+                style={{ fontSize: "1.6rem", letterSpacing: "-0.03em" }}
+              >
+                {isFetching && totalVisible === 0 ? "—" : totalVisible}
+              </span>
+              <p className="font-mono text-[9px] text-white/60 uppercase tracking-[0.2em] mt-1">
+                lezioni / mese
+              </p>
+            </div>
+            <div className="flex-1 bg-white/15 border border-white/20 rounded-[16px] px-3 py-2.5 backdrop-blur-sm">
+              <span
+                className="font-mono font-black text-white leading-none tabular-nums"
+                style={{ fontSize: "1.6rem", letterSpacing: "-0.03em" }}
+              >
+                {todayCount}
+              </span>
+              <p className="font-mono text-[9px] text-white/60 uppercase tracking-[0.2em] mt-1">
+                oggi
+              </p>
+            </div>
+          </div>
 
-      {(!showTabs || activeTab === "calendar") && (
-        <div className="grid grid-cols-7 px-3 lg:px-5 border-b border-zinc-100 dark:border-zinc-900 shrink-0">
-          {[
-            { l: "L", id: "mon" },
-            { l: "M", id: "tue" },
-            { l: "M", id: "wed" },
-            { l: "G", id: "thu" },
-            { l: "V", id: "fri" },
-            { l: "S", id: "sat" },
-            { l: "D", id: "sun" },
-          ].map((d) => (
-            <div key={d.id} className="py-2.5 lg:py-4 text-center">
-              <span className="text-[9px] lg:text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-300 dark:text-zinc-700">
-                {d.l}
+          <div className="flex items-center justify-between mt-4">
+            <ViewTabs
+              isViewMenuOpen={isViewMenuOpen}
+              setIsViewMenuOpen={setIsViewMenuOpen}
+              activeTab={activeTab}
+              setActiveTab={setActiveTab}
+            />
+            <div className="flex items-center gap-2">
+              {!isCurrentMonth && (
+                <button
+                  type="button"
+                  onClick={handleToday}
+                  className="p-2 rounded-xl bg-white/15 border border-white/20 transition-colors active:scale-90"
+                >
+                  <ArrowLeftToLine className="w-4 h-4 text-white" />
+                </button>
+              )}
+              <div className="flex bg-white/15 border border-white/20 rounded-xl p-1 gap-1">
+                <button
+                  type="button"
+                  onClick={handlePrevMonth}
+                  className="p-1.5 hover:bg-white/15 transition-all rounded-lg active:scale-90"
+                >
+                  <ChevronLeft className="w-4 h-4 text-white" />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleNextMonth}
+                  className="p-1.5 hover:bg-white/15 transition-all rounded-lg active:scale-90"
+                >
+                  <ChevronRight className="w-4 h-4 text-white" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ ...SPRING_CONFIG, delay: 0.05 }}
+        className="card-3d rounded-[28px] overflow-hidden bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800/60 flex-shrink-0"
+      >
+        <div className="grid grid-cols-7 px-3 border-b border-zinc-100 dark:border-zinc-800/60">
+          {["L", "M", "M", "G", "V", "S", "D"].map((l, idx) => (
+            <div key={idx} className="py-3 text-center">
+              <span className="text-[9px] font-mono font-black uppercase tracking-widest text-zinc-300 dark:text-zinc-700">
+                {l}
               </span>
             </div>
           ))}
         </div>
-      )}
 
-      <div className="flex-1 relative flex flex-col items-center px-2 lg:px-6 py-1.5 lg:py-3 overflow-hidden">
-        <div className="w-full max-w-4xl mx-auto flex flex-col h-full gap-1 lg:gap-4">
-          {(!showTabs || activeTab === "calendar") && (
-            <AnimatePresence mode="wait" custom={direction}>
-              {isFetching && monthlyEvents.length === 0 ? (
-                <motion.div
-                  key="loading"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex-1 flex flex-col items-center justify-center min-h-[300px] gap-4"
-                >
-                  <div className="w-10 h-10 relative">
-                    <div className="absolute inset-0 rounded-full border-2 border-zinc-100 dark:border-zinc-900" />
-                    <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-zinc-400 dark:border-t-zinc-500 animate-spin" />
-                  </div>
-                  <p className="text-[10px] font-mono font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-[0.25em]">
-                    Caricamento...
-                  </p>
-                </motion.div>
-              ) : (
-                <motion.div
-                  key={`grid-${currentDate.toFormat("yyyy-MM")}`}
-                  custom={direction}
-                  variants={variants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={SPRING_CONFIG}
-                  drag="x"
-                  dragConstraints={{ left: 0, right: 0 }}
-                  dragElastic={0.4}
-                  dragDirectionLock
-                  onDragEnd={(_e, { offset, velocity }) => {
-                    const swipe = swipePower(offset.x, velocity.x);
-                    if (swipe < -swipeConfidenceThreshold) handleNextMonth();
-                    else if (swipe > swipeConfidenceThreshold)
-                      handlePrevMonth();
-                  }}
-                  className="grid grid-cols-7 gap-1 lg:gap-3 w-full touch-pan-y shrink-0"
-                >
-                  {daysInMonth.map((day) => {
-                    const isoDate = day.date.toISODate();
-                    if (!isoDate) return null;
-                    const dayEvents = monthlyEvents.filter(
-                      (e) =>
-                        e.date === isoDate &&
-                        !hiddenSubjects.includes(
-                          parseEventTitle(e.title).materia,
-                        ),
-                    );
-                    const isToday = day.date.hasSame(DateTime.now(), "day");
-                    const isCurrentMonth = day.isCurrentMonth;
-                    const hasEvents = dayEvents.length > 0;
-                    const uniqueMaterie = Array.from(
-                      new Set(
-                        dayEvents.map((e) => parseEventTitle(e.title).materia),
-                      ),
-                    );
-                    const displayMaterie =
-                      uniqueMaterie.length > 4
-                        ? uniqueMaterie.slice(0, 3)
-                        : uniqueMaterie.slice(0, 4);
-                    const hasMore = uniqueMaterie.length > 4;
-
-                    return (
-                      <button
-                        key={isoDate}
-                        type="button"
-                        onClick={() => {
-                          if (hasEvents) {
-                            onDaySelect({
-                              day: day.date.weekday - 1,
-                              dayOfMonth: day.date.day,
-                              date: day.date,
-                              events: dayEvents.map((e) => {
-                                const parsed = parseEventTitle(e.title);
-                                return {
-                                  time: e.time,
-                                  materia: parsed.materia,
-                                  aula: e.location,
-                                  docente: e.professor,
-                                  tipo: parsed.tipo,
-                                  isVideo: e.isVideo,
-                                  fullDate: e.date ?? undefined,
-                                };
-                              }),
-                              materiaColorMap,
-                            });
-                          }
-                        }}
-                        className={cn(
-                          "relative flex flex-col items-center justify-between py-2.5 lg:py-3 min-h-[58px] lg:min-h-[80px] w-full rounded-2xl lg:rounded-3xl transition-all border",
-                          !isCurrentMonth && "opacity-0 pointer-events-none",
-                          isCurrentMonth &&
-                            !isToday &&
-                            !hasEvents &&
-                            "bg-zinc-50 dark:bg-zinc-950 border-zinc-100 dark:border-zinc-900",
-                          isCurrentMonth &&
-                            hasEvents &&
-                            !isToday &&
-                            "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:border-zinc-400 dark:hover:border-zinc-600 active:scale-[0.96] cursor-pointer",
-                          isToday &&
-                            !hasEvents &&
-                            "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white",
-                          isToday &&
-                            hasEvents &&
-                            "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white active:scale-[0.96] cursor-pointer shadow-md",
-                        )}
-                      >
-                        <span
-                          className={cn(
-                            "text-xs lg:text-sm font-bold font-mono leading-none",
-                            isToday
-                              ? "text-white dark:text-black"
-                              : hasEvents
-                                ? "text-zinc-800 dark:text-zinc-100"
-                                : "text-zinc-300 dark:text-zinc-700",
-                          )}
-                        >
-                          {day.date.day}
-                        </span>
-
-                        <div className="grid grid-cols-2 gap-0.5 lg:gap-1 p-0.5">
-                          {displayMaterie.map((m) => (
-                            <div
-                              key={m}
-                              className="w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full shrink-0"
-                              style={{
-                                backgroundColor: isToday
-                                  ? "rgba(255,255,255,0.75)"
-                                  : getMateriaColor(m),
-                              }}
-                            />
-                          ))}
-                          {hasMore && (
-                            <div
-                              className={cn(
-                                "w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full shrink-0",
-                                isToday
-                                  ? "bg-white/30 dark:bg-black/30"
-                                  : "bg-zinc-300 dark:bg-zinc-600",
-                              )}
-                            />
-                          )}
-                          {uniqueMaterie.length === 0 && (
-                            <>
-                              <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full shrink-0 opacity-0" />
-                              <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 rounded-full shrink-0 opacity-0" />
-                            </>
-                          )}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          )}
-
-          {(!showTabs || activeTab === "filters") && (
-            <div className="w-full flex-1 min-h-0 flex flex-col pt-2">
-              <div className="px-2 pb-2 flex items-center gap-2 shrink-0">
-                <Filter className="w-3.5 h-3.5 text-zinc-400" />
-                <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400">
-                  Filtra Materie
-                </h3>
-              </div>
-              <div className="flex-1 overflow-y-auto custom-scrollbar px-1 pb-4">
-                <div className="grid grid-cols-1 gap-1.5">
-                  {allMaterie.map((materia) => {
-                    const isHidden = hiddenSubjects.includes(materia);
-                    return (
-                      <button
-                        key={materia}
-                        type="button"
-                        onClick={() => toggleSubject(materia)}
-                        className={cn(
-                          "flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all text-left",
-                          isHidden
-                            ? "bg-transparent border-zinc-100 dark:border-zinc-900 opacity-40"
-                            : "bg-white dark:bg-zinc-900/30 border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 active:scale-[0.98]",
-                        )}
-                      >
-                        <div
-                          className="w-2.5 h-2.5 rounded-full shrink-0"
-                          style={{ backgroundColor: getMateriaColor(materia) }}
-                        />
-                        <span className="text-[10px] font-bold uppercase tracking-tight truncate flex-1 font-mono text-zinc-700 dark:text-zinc-300">
-                          {materia.toLowerCase()}
-                        </span>
-                      </button>
-                    );
-                  })}
+        <div className="relative p-2 overflow-hidden">
+          <AnimatePresence mode="wait" custom={direction}>
+            {isFetching && monthlyEvents.length === 0 ? (
+              <motion.div
+                key="loading"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex items-center justify-center h-[280px]"
+              >
+                <div className="w-6 h-6 relative">
+                  <div className="absolute inset-0 rounded-full border-2 border-zinc-100 dark:border-zinc-900" />
+                  <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-zinc-400 dark:border-t-zinc-500 animate-spin" />
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            ) : (
+              <motion.div
+                key={`grid-${currentDate.toFormat("yyyy-MM")}`}
+                custom={direction}
+                variants={variants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={SPRING_CONFIG}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.4}
+                dragDirectionLock
+                onDragEnd={(_e, { offset, velocity }) => {
+                  const swipe = swipePower(offset.x, velocity.x);
+                  if (swipe < -swipeConfidenceThreshold) handleNextMonth();
+                  else if (swipe > swipeConfidenceThreshold) handlePrevMonth();
+                }}
+                className="grid grid-cols-7 gap-1 w-full touch-pan-y"
+              >
+                {daysInMonth.map((day) => {
+                  const isoDate = day.date.toISODate();
+                  if (!isoDate) return null;
+                  const dayEvents = monthlyEvents.filter(
+                    (e) =>
+                      e.date === isoDate &&
+                      !hiddenSubjects.includes(
+                        parseEventTitle(e.title).materia,
+                      ),
+                  );
+                  const isToday = day.date.hasSame(DateTime.now(), "day");
+                  const isCurrentMonthDay = day.isCurrentMonth;
+                  const hasEvents = dayEvents.length > 0;
+                  const uniqueMaterie = Array.from(
+                    new Set(
+                      dayEvents.map((e) => parseEventTitle(e.title).materia),
+                    ),
+                  );
+                  const displayMaterie =
+                    uniqueMaterie.length > 4
+                      ? uniqueMaterie.slice(0, 3)
+                      : uniqueMaterie.slice(0, 4);
+                  const hasMore = uniqueMaterie.length > 4;
+
+                  return (
+                    <button
+                      key={isoDate}
+                      type="button"
+                      onClick={() => {
+                        if (hasEvents) {
+                          onDaySelect({
+                            day: day.date.weekday - 1,
+                            dayOfMonth: day.date.day,
+                            date: day.date,
+                            events: dayEvents.map((e) => {
+                              const parsed = parseEventTitle(e.title);
+                              return {
+                                time: e.time,
+                                materia: parsed.materia,
+                                aula: e.location,
+                                docente: e.professor,
+                                tipo: parsed.tipo,
+                                isVideo: e.isVideo,
+                                fullDate: e.date ?? undefined,
+                              };
+                            }),
+                            materiaColorMap,
+                          });
+                        }
+                      }}
+                      className={cn(
+                        "relative flex flex-col items-center justify-between py-2.5 min-h-[58px] w-full rounded-2xl transition-all border",
+                        !isCurrentMonthDay && "opacity-0 pointer-events-none",
+                        isCurrentMonthDay &&
+                          !isToday &&
+                          !hasEvents &&
+                          "bg-zinc-50 dark:bg-zinc-900/30 border-transparent",
+                        isCurrentMonthDay &&
+                          hasEvents &&
+                          !isToday &&
+                          "bg-white dark:bg-zinc-900 border-zinc-100 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-600 active:scale-[0.96] cursor-pointer",
+                        isToday &&
+                          !hasEvents &&
+                          "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white",
+                        isToday &&
+                          hasEvents &&
+                          "bg-zinc-900 dark:bg-white border-zinc-900 dark:border-white active:scale-[0.96] cursor-pointer shadow-md",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "text-xs font-bold font-mono leading-none",
+                          isToday
+                            ? "text-white dark:text-black"
+                            : hasEvents
+                              ? "text-zinc-800 dark:text-zinc-100"
+                              : "text-zinc-300 dark:text-zinc-700",
+                        )}
+                      >
+                        {day.date.day}
+                      </span>
+                      <div className="grid grid-cols-2 gap-0.5 p-0.5">
+                        {displayMaterie.map((m) => (
+                          <div
+                            key={m}
+                            className="w-1 h-1 rounded-full shrink-0"
+                            style={{
+                              backgroundColor: isToday
+                                ? "rgba(255,255,255,0.75)"
+                                : getMateriaColor(m),
+                            }}
+                          />
+                        ))}
+                        {hasMore && (
+                          <div
+                            className={cn(
+                              "w-1 h-1 rounded-full shrink-0",
+                              isToday
+                                ? "bg-white/30 dark:bg-black/30"
+                                : "bg-zinc-300 dark:bg-zinc-600",
+                            )}
+                          />
+                        )}
+                        {uniqueMaterie.length === 0 && (
+                          <>
+                            <div className="w-1 h-1 rounded-full shrink-0 opacity-0" />
+                            <div className="w-1 h-1 rounded-full shrink-0 opacity-0" />
+                          </>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <div className="px-4 py-2.5 border-t border-zinc-100 dark:border-zinc-800/60 flex items-center justify-between">
+          <span className="text-[9px] font-mono font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">
+            {totalVisible} lezioni nel mese
+          </span>
+          {isFetching && (
+            <div className="w-3 h-3 border-2 border-zinc-200 dark:border-zinc-800 border-t-zinc-500 dark:border-t-zinc-400 rounded-full animate-spin" />
           )}
         </div>
-      </div>
+      </motion.div>
 
-      <div className="px-5 py-2.5 lg:px-8 lg:py-3 border-t border-zinc-100 dark:border-zinc-900 flex justify-between items-center shrink-0">
-        <div className="flex items-center gap-1.5">
-          <CalendarIcon className="w-3 h-3 text-zinc-300 dark:text-zinc-700" />
-          <span className="text-[9px] font-mono font-bold text-zinc-400 dark:text-zinc-600 uppercase tracking-widest">
-            {monthlyEvents.length} lezioni
-          </span>
-        </div>
-        {isFetching && (
-          <div className="w-3 h-3 border-2 border-zinc-200 dark:border-zinc-800 border-t-zinc-500 dark:border-t-zinc-400 rounded-full animate-spin" />
-        )}
+      {activeTab === "filters" && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="rounded-[24px] bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800/60 p-4"
+        >
+          <div className="flex items-center gap-2 mb-3">
+            <Filter className="w-3.5 h-3.5 text-zinc-400" />
+            <h3 className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400">
+              Filtra Materie
+            </h3>
+          </div>
+          <div className="grid grid-cols-1 gap-1.5">
+            {allMaterie.map((materia) => {
+              const isHidden = hiddenSubjects.includes(materia);
+              return (
+                <button
+                  key={materia}
+                  type="button"
+                  onClick={() => toggleSubject(materia)}
+                  className={cn(
+                    "flex items-center gap-3 px-4 py-3 rounded-2xl border transition-all text-left",
+                    isHidden
+                      ? "bg-transparent border-zinc-100 dark:border-zinc-900 opacity-40"
+                      : "bg-white dark:bg-zinc-900/30 border-zinc-100 dark:border-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 active:scale-[0.98]",
+                  )}
+                >
+                  <div
+                    className="w-2.5 h-2.5 rounded-full shrink-0"
+                    style={{ backgroundColor: getMateriaColor(materia) }}
+                  />
+                  <span className="text-[10px] font-bold uppercase tracking-tight truncate flex-1 font-mono text-zinc-700 dark:text-zinc-300">
+                    {materia.toLowerCase()}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+function NavigationControls({
+  handleToday,
+  handlePrevMonth,
+  handleNextMonth,
+  isCurrentMonth,
+}: {
+  handleToday: () => void;
+  handlePrevMonth: () => void;
+  handleNextMonth: () => void;
+  isCurrentMonth: boolean;
+}) {
+  return (
+    <div className="flex items-center gap-2">
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={handleToday}
+              className={cn(
+                "p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all rounded-lg active:scale-90",
+                isCurrentMonth && "opacity-0 pointer-events-none",
+              )}
+            >
+              <ArrowLeftToLine className="w-4 h-4 text-zinc-400" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>Vai a Oggi</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+      <div className="flex bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm p-1 gap-1">
+        <button
+          type="button"
+          onClick={handlePrevMonth}
+          className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all rounded-lg active:scale-90"
+        >
+          <ChevronLeft className="w-4 h-4 text-zinc-400" />
+        </button>
+        <button
+          type="button"
+          onClick={handleNextMonth}
+          className="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-all rounded-lg active:scale-90"
+        >
+          <ChevronRight className="w-4 h-4 text-zinc-400" />
+        </button>
       </div>
-    </motion.div>
+    </div>
+  );
+}
+
+function ViewTabs({
+  className,
+  isViewMenuOpen,
+  setIsViewMenuOpen,
+  activeTab,
+  setActiveTab,
+}: {
+  className?: string;
+  isViewMenuOpen: boolean;
+  setIsViewMenuOpen: (open: boolean) => void;
+  activeTab: "calendar" | "filters";
+  setActiveTab: (tab: "calendar" | "filters") => void;
+}) {
+  return (
+    <Popover open={isViewMenuOpen} onOpenChange={setIsViewMenuOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "p-2 hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-xl transition-all active:scale-90 border border-transparent hover:border-zinc-200 dark:hover:border-zinc-800",
+            className,
+          )}
+        >
+          <MoreHorizontal className="w-5 h-5 text-zinc-400" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent
+        align="end"
+        className="w-40 p-1.5 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl"
+      >
+        <div className="flex flex-col gap-1">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("calendar");
+              setIsViewMenuOpen(false);
+            }}
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all",
+              activeTab === "calendar"
+                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                : "text-zinc-400 hover:text-zinc-50 hover:bg-zinc-50 dark:hover:bg-zinc-800/50",
+            )}
+          >
+            <CalendarDays className="w-4 h-4" />
+            <span>Mese</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("filters");
+              setIsViewMenuOpen(false);
+            }}
+            className={cn(
+              "flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all",
+              activeTab === "filters"
+                ? "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-white"
+                : "text-zinc-400 hover:text-zinc-50 hover:bg-zinc-50 dark:hover:bg-zinc-800/50",
+            )}
+          >
+            <Filter className="w-4 h-4" />
+            <span>Filtri</span>
+          </button>
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
