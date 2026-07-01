@@ -505,6 +505,8 @@ function HomeContent() {
                         dragListener={isEditingLayout}
                         className={cn(
                           "relative rounded-[28px] transition-all duration-200",
+                          id === "calendar" &&
+                            "flex-1 min-h-[400px] flex flex-col",
                           isHidden &&
                             "opacity-30 border border-dashed border-zinc-300 dark:border-zinc-800 scale-[0.98]",
                           isEditingLayout &&
