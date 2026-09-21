@@ -16,6 +16,8 @@
       "migrations_dir": "./drizzle"
     }
   ],
+  "workers_dev": true,
+  "preview_urls": false,
   "routes": [
     {
       "pattern": "uniapplication.zimaserver.it",
