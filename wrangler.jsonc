@@ -16,6 +16,12 @@
       "migrations_dir": "./drizzle"
     }
   ],
+  "routes": [
+    {
+      "pattern": "uniapplication.zimaserver.it",
+      "custom_domain": true
+    }
+  ],
   "vars": {
     "BETTER_AUTH_URL": "https://uniapplication.zimaserver.it"
   },
