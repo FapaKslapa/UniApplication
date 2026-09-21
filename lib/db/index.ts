@@ -1,19 +1,24 @@
-import { drizzle } from "drizzle-orm/d1";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { type DrizzleD1Database, drizzle } from "drizzle-orm/d1";
 import * as schema from "./schema";
 
-// Build-time placeholder to prevent crashes when process.env.DB is not defined during static analysis
-const d1Placeholder = {
-  prepare: () => ({
-    bind: () => ({
-      all: async () => ({ results: [] }),
-      run: async () => ({ success: true }),
-      first: async () => null,
-    }),
-  }),
-  batch: async () => [],
-  exec: async () => ({ success: true }),
-} as any;
+type Database = DrizzleD1Database<typeof schema>;
 
-const d1 = process.env.DB || d1Placeholder;
+const instances = new WeakMap<object, Database>();
 
-export const db = drizzle(d1, { schema });
+function resolveDb(): Database {
+  const { env } = getCloudflareContext();
+  const cached = instances.get(env.DB);
+  if (cached) return cached;
+  const instance = drizzle(env.DB, { schema });
+  instances.set(env.DB, instance);
+  return instance;
+}
+
+export const db = new Proxy({} as Database, {
+  get(_target, property) {
+    const instance = resolveDb();
+    const value = Reflect.get(instance, property, instance);
+    return typeof value === "function" ? value.bind(instance) : value;
+  },
+});

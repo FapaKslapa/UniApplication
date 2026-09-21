@@ -49,3 +49,6 @@ node_modules
 
 # build & caches
 /.open-next/
+
+.wrangler
+.dev.vars
