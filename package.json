@@ -19,7 +19,8 @@
     "db:scrape-courses": "tsx scripts/scrape-courses.ts",
     "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "cf-typegen": "wrangler types --include-runtime false --env-interface CloudflareEnv cloudflare-env.d.ts"
+    "cf-typegen": "wrangler types --include-runtime false --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "deploy:cron": "wrangler deploy -c cron-worker/wrangler.jsonc"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",

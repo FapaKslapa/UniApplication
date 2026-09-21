@@ -4,7 +4,7 @@
   "main": "index.ts",
   "compatibility_date": "2026-09-01",
   "triggers": {
-    "crons": ["*/20 * * * *", "0 3 * * 0"]
+    "crons": ["*/20 * * * *", "0 3 * * SUN"]
   },
   "services": [
     {
