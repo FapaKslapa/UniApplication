@@ -1,14 +1,7 @@
-import path from "node:path";
-import * as dotenv from "dotenv";
-
-dotenv.config({ path: path.join(process.cwd(), ".env.local") });
-
 import { eq } from "drizzle-orm";
-import cron from "node-cron";
 import { db } from "@/lib/db";
 import { courseSnapshots, pushSubscriptions } from "@/lib/db/schema";
 import { generateCourseHash, sendPushNotification } from "@/lib/notifications";
-import { scrapeAllCourses } from "@/scripts/scrape-courses";
 import { appRouter } from "@/server/api/root";
 import { createCallerFactory } from "@/server/api/trpc";
 
@@ -31,7 +24,7 @@ export type TimetableChange = TimetableEvent & {
   };
 };
 
-async function checkUpdates() {
+export async function checkUpdates() {
   console.log("Checking updates...");
 
   const caller = createCaller({
@@ -44,7 +37,9 @@ async function checkUpdates() {
     columns: { linkId: true },
   });
 
-  const linkIds: string[] = Array.from(new Set(activeSubs.map((s: any) => s.linkId as string)));
+  const linkIds: string[] = Array.from(
+    new Set(activeSubs.map((s) => s.linkId)),
+  );
 
   if (linkIds.length === 0) {
     return;
@@ -237,31 +232,10 @@ function findDetailedChanges(
   for (const o of oldEvents) {
     const id = getEventId(o);
     const matchingNew = newMap.get(id);
-    if (!matchingNew || !matchingNew.find((n) => n.time === o.time)) {
+    if (!matchingNew?.find((n) => n.time === o.time)) {
       changes.push({ type: "CANCELED", ...o });
     }
   }
 
   return changes;
-}
-
-if (process.argv.includes("--cron")) {
-  // Ogni 20 minuti: controlla aggiornamenti orario
-  cron.schedule("*/20 * * * *", () => {
-    checkUpdates().catch(console.error);
-  });
-
-  // Ogni domenica alle 03:00: scopri nuovi corsi e resetta anno precedente
-  cron.schedule("0 3 * * 0", () => {
-    console.log("[cron] Avvio scraping settimanale corsi Insubria...");
-    scrapeAllCourses({ verbose: true }).catch(console.error);
-  });
-} else {
-  checkUpdates()
-    .then(() => {
-      process.exit(0);
-    })
-    .catch((_err) => {
-      process.exit(1);
-    });
 }

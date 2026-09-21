@@ -44,6 +44,21 @@ interface CinecaEvent {
   }>;
 }
 
+const parseCinecaEvents = async (
+  response: Response,
+): Promise<CinecaEvent[]> => {
+  const text = (await response.text()).trim();
+  if (!text) return [];
+  try {
+    const data: unknown = JSON.parse(text);
+    if (Array.isArray(data)) return data as CinecaEvent[];
+    const impegni = (data as { impegni?: CinecaEvent[] } | null)?.impegni;
+    return Array.isArray(impegni) ? impegni : [];
+  } catch {
+    return [];
+  }
+};
+
 const fetchRawEvents = async (
   dayOffset = 0,
   linkId: string,
@@ -76,8 +91,7 @@ const fetchRawEvents = async (
     );
 
     if (!response.ok) throw new Error(`API error: ${response.status}`);
-    const rawData = await response.json();
-    return Array.isArray(rawData) ? rawData : rawData.impegni || [];
+    return await parseCinecaEvents(response);
   } catch (error) {
     console.error("Failed to fetch orario:", error);
     return [];
@@ -338,8 +352,7 @@ export const orarioRouter = createTRPCRouter({
           );
 
           if (!response.ok) throw new Error(`API error: ${response.status}`);
-          const rawData = await response.json();
-          return Array.isArray(rawData) ? rawData : rawData.impegni || [];
+          return await parseCinecaEvents(response);
         } catch (error) {
           console.error(`Failed to fetch monthly orario for ${id}:`, error);
           return [];
@@ -562,10 +575,7 @@ export const orarioRouter = createTRPCRouter({
           );
 
           if (!response.ok) throw new Error(`API error: ${response.status}`);
-          const rawData = await response.json();
-          const rawEvents: CinecaEvent[] = Array.isArray(rawData)
-            ? rawData
-            : rawData.impegni || [];
+          const rawEvents = await parseCinecaEvents(response);
 
           return rawEvents
             .filter((e) => {
@@ -632,10 +642,7 @@ export const orarioRouter = createTRPCRouter({
           );
 
           if (!response.ok) throw new Error(`API error: ${response.status}`);
-          const rawData = await response.json();
-          const rawEvents: CinecaEvent[] = Array.isArray(rawData)
-            ? rawData
-            : rawData.impegni || [];
+          const rawEvents = await parseCinecaEvents(response);
 
           return rawEvents.flatMap((e) =>
             (e.docenti || []).map((d) => toTitleCase(`${d.cognome} ${d.nome}`)),
@@ -673,8 +680,8 @@ export const orarioRouter = createTRPCRouter({
 
       const today = new Date().toISOString().split("T")[0];
       const allChanges = snapshots
-        .filter((s: any) => s.lastChanges)
-        .flatMap((s: any) => {
+        .filter((s) => s.lastChanges)
+        .flatMap((s) => {
           try {
             const lastChanges = s.lastChanges;
             if (!lastChanges) return [];
@@ -689,7 +696,7 @@ export const orarioRouter = createTRPCRouter({
 
       // Prendiamo il timestamp più recente per il "versioning" lato client
       const latestUpdate = Math.max(
-        ...snapshots.map((s: any) => s.lastUpdated.getTime()),
+        ...snapshots.map((s) => s.lastUpdated.getTime()),
       );
 
       return {

@@ -16,7 +16,6 @@ type DeviceRow = { deviceType: string; count: number };
 type OsRow = { os: string; count: number };
 type PageRow = { path: string; count: number; unique: number };
 type BrowserRow = { browser: string; count: number };
-type CountRow = { value: number };
 type PushCourseRow = { linkId: string; count: number };
 type PushTrendRow = { date: string; count: number };
 
@@ -41,7 +40,8 @@ function isRateLimited(ip: string): boolean {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
-const get = (r: any[]) => Number(r[0]?.value ?? 0);
+const get = (r: unknown[]) =>
+  Number((r[0] as { value?: unknown } | undefined)?.value ?? 0);
 
 function italyBoundaries() {
   const now = DateTime.now().setZone("Europe/Rome");
@@ -127,9 +127,7 @@ export const statsRouter = createTRPCRouter({
       db.all(
         sql`SELECT COUNT(*) as value FROM visits WHERE createdAt >= ${w2ago} AND createdAt < ${new Date(Date.now() - 604_800_000)}`,
       ),
-      db.all(
-        sql`SELECT COUNT(DISTINCT ip) as value FROM visits`,
-      ),
+      db.all(sql`SELECT COUNT(DISTINCT ip) as value FROM visits`),
       db.all(
         sql`SELECT COUNT(DISTINCT ip) as value FROM visits WHERE createdAt >= ${todayStart}`,
       ),
@@ -193,9 +191,7 @@ export const statsRouter = createTRPCRouter({
         db.all(
           sql`SELECT COUNT(*) as value FROM analytics_users WHERE last_seen >= ${prevMonthStart} AND last_seen < ${monthStart}`,
         ),
-        db.all(
-          sql`SELECT COUNT(*) as value FROM analytics_users`,
-        ),
+        db.all(sql`SELECT COUNT(*) as value FROM analytics_users`),
         db.all(
           sql`SELECT COUNT(*) as value FROM analytics_users WHERE created_at >= ${todayStart}`,
         ),

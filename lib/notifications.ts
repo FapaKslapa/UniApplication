@@ -1,17 +1,20 @@
 import crypto from "node:crypto";
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import webpush from "web-push";
 import { db } from "@/lib/db";
 import { pushSubscriptions } from "@/lib/db/schema";
 
-const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
-const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY || "";
+let vapidConfigured = false;
 
-webpush.setVapidDetails(
-  "mailto:stefanomarocco0@gmail.com",
-  vapidPublicKey,
-  vapidPrivateKey,
-);
+function configureVapid() {
+  if (vapidConfigured) return;
+  webpush.setVapidDetails(
+    "mailto:stefanomarocco0@gmail.com",
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "",
+    process.env.VAPID_PRIVATE_KEY || "",
+  );
+  vapidConfigured = true;
+}
 
 interface TimetableEvent {
   title: string;
@@ -45,9 +48,13 @@ export async function sendPushNotification(
   body: string,
   data?: Record<string, unknown>,
 ) {
+  configureVapid();
+
   const subs = await db.query.pushSubscriptions.findMany({
-    where: (table: any, { and, eq }: any) =>
-      and(eq(table.userId, userId), eq(table.linkId, linkId)),
+    where: and(
+      eq(pushSubscriptions.userId, userId),
+      eq(pushSubscriptions.linkId, linkId),
+    ),
   });
 
   for (const sub of subs) {

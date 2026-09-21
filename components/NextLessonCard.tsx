@@ -194,7 +194,7 @@ export default function NextLessonCard({
     lesson: { time: string; title: string },
     index: number,
   ) => {
-    if (!lesson.time || !lesson.time.includes(" - ")) return false;
+    if (!lesson.time?.includes(" - ")) return false;
     const [start, end] = lesson.time.split(" - ");
     const startMin = timeToMinutes(start);
     const endMin = timeToMinutes(end);

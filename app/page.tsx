@@ -560,14 +560,14 @@ function NotificationChangeDialog({
         </DialogHeader>
 
         <div className="p-5 max-h-[55dvh] overflow-y-auto custom-scrollbar space-y-4 bg-white dark:bg-zinc-900">
-          {changes.map((change, i) => {
+          {changes.map((change) => {
             const isCanceled = change.type === "CANCELED";
             const isAdded = change.type === "ADDED";
             const isModified = change.type === "MODIFIED";
 
             return (
               <div
-                key={`${change.title}-${change.date}-${i}`}
+                key={`${change.type}-${change.date}-${change.time}-${change.title}`}
                 className={cn(
                   "p-5 rounded-[2rem] border transition-all duration-300",
                   isCanceled

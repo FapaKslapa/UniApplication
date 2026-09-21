@@ -15,7 +15,7 @@ if (!databaseUrl) {
 // Clean connection URL
 const cleanUrl = databaseUrl.replace(/^["'](.+)["']$/, "$1");
 
-function escapeSqlValue(value: any): string {
+function escapeSqlValue(value: unknown): string {
   if (value === null || value === undefined) {
     return "NULL";
   }
@@ -34,8 +34,10 @@ function escapeSqlValue(value: any): string {
 }
 
 async function main() {
-  console.log("🚀 Starting data migration from MySQL to SQLite (Cloudflare D1)...");
-  
+  console.log(
+    "🚀 Starting data migration from MySQL to SQLite (Cloudflare D1)...",
+  );
+
   let connection: mysql.Connection;
   try {
     console.log("🔌 Connecting to MySQL database...");
@@ -55,7 +57,7 @@ async function main() {
     "api_logs",
     "push_subscriptions",
     "course_snapshots",
-    "visits"
+    "visits",
   ];
 
   let sqlOutput = `-- Auto-generated migration script from MySQL to SQLite\n`;
@@ -71,25 +73,28 @@ async function main() {
   for (const table of tables) {
     try {
       console.log(`📦 Fetching rows from table: ${table}...`);
-      const [rows] = await connection.query(`SELECT * FROM \`${table}\``) as [any[], any];
-      
+      const [rows] = (await connection.query(`SELECT * FROM \`${table}\``)) as [
+        Array<Record<string, unknown>>,
+        unknown,
+      ];
+
       if (rows.length === 0) {
         console.log(`ℹ️ Table ${table} is empty. Skipping.`);
         continue;
       }
 
-      console.log(`✍️ Generating inserts for ${rows.length} rows in ${table}...`);
-      
+      console.log(
+        `✍️ Generating inserts for ${rows.length} rows in ${table}...`,
+      );
+
       const columns = Object.keys(rows[0]);
-      const columnsStr = columns.map(col => `\`${col}\``).join(", ");
-      
+      const columnsStr = columns.map((col) => `\`${col}\``).join(", ");
+
       for (const row of rows) {
-        const values = columns.map(col => {
+        const values = columns.map((col) => {
           let val = row[col];
           // Convert MySQL date types or boolean buffers to standard types
-          if (val instanceof Date) {
-            val = val;
-          } else if (Buffer.isBuffer(val)) {
+          if (Buffer.isBuffer(val)) {
             // Buffer values could be booleans (e.g. tinyint(1) representing boolean)
             if (val.length === 1) {
               val = val[0] === 1;
@@ -99,14 +104,15 @@ async function main() {
           }
           return escapeSqlValue(val);
         });
-        
+
         sqlOutput += `INSERT INTO \`${table}\` (${columnsStr}) VALUES (${values.join(", ")});\n`;
       }
       sqlOutput += `\n`;
-      
-    } catch (err: any) {
-      if (err.code === "ER_NO_SUCH_TABLE") {
-        console.warn(`⚠️ Warning: Table ${table} does not exist in MySQL. Skipping.`);
+    } catch (err) {
+      if ((err as { code?: string }).code === "ER_NO_SUCH_TABLE") {
+        console.warn(
+          `⚠️ Warning: Table ${table} does not exist in MySQL. Skipping.`,
+        );
       } else {
         console.error(`❌ Error migrating table ${table}:`, err);
       }
@@ -117,14 +123,16 @@ async function main() {
 
   const outputPath = path.join(process.cwd(), "migration.sql");
   await fs.writeFile(outputPath, sqlOutput, "utf-8");
-  
+
   console.log(`\n✅ Migration script created successfully at: ${outputPath}`);
   console.log(`To import this data into Cloudflare D1, run:`);
-  console.log(`npx wrangler d1 execute uni-app-db --remote --file ./migration.sql`);
-  
+  console.log(
+    `npx wrangler d1 execute uni-app-db --remote --file ./migration.sql`,
+  );
+
   await connection.end();
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error("❌ Migration script execution failed:", err);
 });

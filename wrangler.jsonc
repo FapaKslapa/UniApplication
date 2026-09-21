@@ -16,6 +16,9 @@
       "migrations_dir": "./drizzle"
     }
   ],
+  "vars": {
+    "BETTER_AUTH_URL": "https://uniapplication.zimaserver.it"
+  },
   "observability": {
     "enabled": true
   }
