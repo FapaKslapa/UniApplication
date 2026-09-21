@@ -2,13 +2,16 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import {
+  Bell,
   BellRing,
+  CalendarDays,
   ChevronLeft,
   ChevronRight,
   GraduationCap,
   Heart,
   Sparkles,
   UserCircle,
+  Zap,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAppStore } from "@/lib/store";
@@ -46,9 +49,9 @@ const slides = [
     color: "text-blue-500",
     bgColor: "bg-blue-500/10",
     bullets: [
-      "📅  Vista settimanale e mensile",
-      "⚡  Lezione in corso sempre visibile",
-      "🔔  Notifiche su cambi orario",
+      { icon: CalendarDays, text: "Vista settimanale e mensile" },
+      { icon: Zap, text: "Lezione in corso sempre visibile" },
+      { icon: Bell, text: "Notifiche su cambi orario" },
     ],
   },
   {
@@ -184,12 +187,15 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
 
               {"bullets" in slide && slide.bullets && (
                 <ul className="w-full space-y-2 pt-1">
-                  {slide.bullets.map((b) => (
+                  {slide.bullets.map(({ icon: BulletIcon, text }) => (
                     <li
-                      key={b}
-                      className="text-left text-sm text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900 rounded-2xl px-4 py-2.5 font-medium"
+                      key={text}
+                      className="flex items-center gap-3 text-left text-sm text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900 rounded-2xl px-4 py-2.5 font-medium"
                     >
-                      {b}
+                      <BulletIcon
+                        className={cn("w-4 h-4 shrink-0", slide.color)}
+                      />
+                      <span>{text}</span>
                     </li>
                   ))}
                 </ul>

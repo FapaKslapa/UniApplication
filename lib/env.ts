@@ -28,7 +28,7 @@ const parsed = mergedSchema.safeParse(processEnv);
 
 if (!parsed.success) {
   console.error(
-    "❌ Invalid environment variables:",
+    "Invalid environment variables:",
     JSON.stringify(parsed.error.format(), null, 2),
   );
   throw new Error("Invalid environment variables");
