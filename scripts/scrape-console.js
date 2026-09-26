@@ -1,7 +1,7 @@
 (async () => {
   const AY_RE = /Anno Accademico (\d{4})\/(\d{4})/;
   const CINECA_RE =
-    /href="https:\/\/unins\.prod\.up\.cineca\.it\/calendarioPubblico\/linkCalendarioId=([a-f0-9]+)"[^>]*>(<[^>]+>)*([^<]+)/gi;
+    /href="https:\/\/unins\.prod\.up\.cineca\.it(?::\d+)?\/calendarioPubblico\/linkCalendarioId=([a-f0-9]+)"[^>]*>(<[^>]+>)*([^<]+)/gi;
   const LINK_RE =
     /href="(\/formazione\/offerta-formativa\/corsi-di-laurea\/[^"?#]+)"/g;
   const ARABIC_RE = /([1-9])\s*[°º]/;

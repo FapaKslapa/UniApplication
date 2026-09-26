@@ -15,7 +15,7 @@ const DRUPAL_AJAX_URL = `${BASE_URL}/views/ajax`;
 const COURSE_LINK_RE =
   /href="(\/formazione\/offerta-formativa\/corsi-di-laurea\/[^"?#]+)"/g;
 const CINECA_RE =
-  /href="https:\/\/unins\.prod\.up\.cineca\.it\/calendarioPubblico\/linkCalendarioId=([a-f0-9]+)"[^>]*>(<[^>]+>)*([^<]+)/gi;
+  /href="https:\/\/unins\.prod\.up\.cineca\.it(?::\d+)?\/calendarioPubblico\/linkCalendarioId=([a-f0-9]+)"[^>]*>(<[^>]+>)*([^<]+)/gi;
 const ACADEMIC_YEAR_RE = /Anno Accademico (\d{4})\/(\d{4})/;
 const H1_RE = /<h1[^>]*>\s*([^<]+?)\s*<\/h1>/i;
 const ARABIC_YEAR_RE = /([1-9])\s*[°º]/;
