@@ -133,6 +133,49 @@ const fetchCinecaEvents = async (
   }
 };
 
+// Wraps an expensive aggregate computation (fan-out over every course) in
+// an edge cache entry, so only one request per TTL window pays the CPU
+// cost of processing hundreds of events across 100+ courses.
+async function withEdgeCache<T>(
+  cacheKeyUrl: string,
+  ttlSeconds: number,
+  compute: () => Promise<T>,
+): Promise<T> {
+  const workerCaches =
+    typeof caches !== "undefined"
+      ? (caches as unknown as { default: Cache })
+      : undefined;
+  const cache = workerCaches?.default;
+  const cacheKey = cache ? new Request(cacheKeyUrl) : undefined;
+
+  if (cache && cacheKey) {
+    const cached = await cache.match(cacheKey);
+    if (cached) {
+      try {
+        return (await cached.json()) as T;
+      } catch {
+        // Corrupt cache entry — fall through and recompute.
+      }
+    }
+  }
+
+  const result = await compute();
+
+  if (cache && cacheKey) {
+    await cache.put(
+      cacheKey,
+      new Response(JSON.stringify(result), {
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": `max-age=${ttlSeconds}`,
+        },
+      }),
+    );
+  }
+
+  return result;
+}
+
 const fetchRawEvents = async (
   dayOffset = 0,
   linkId: string,
@@ -575,37 +618,52 @@ export const orarioRouter = createTRPCRouter({
 
       if (ids.length === 0) return [];
 
-      const currentDate = getCurrentItalianDateTime();
-      const startRange = currentDate.startOf("day");
-      const endRange = startRange.plus({ months: 6 }).endOf("day");
+      const compute = async () => {
+        const currentDate = getCurrentItalianDateTime();
+        const startRange = currentDate.startOf("day");
+        // 45 days keeps the aggregate fan-out (100+ courses) under the
+        // Worker CPU limit; a full semester window blew it up (error 1102).
+        const endRange = startRange.plus({ days: 45 }).endOf("day");
 
-      const fetchSubjectsForId = async (id: string) => {
-        try {
-          const rawEvents = await fetchCinecaEvents(id, startRange, endRange);
+        const fetchSubjectsForId = async (id: string) => {
+          try {
+            const rawEvents = await fetchCinecaEvents(id, startRange, endRange);
 
-          return rawEvents
-            .filter((e) => {
-              if (!input.professorName) return true;
-              const prof = e.docenti?.[0]
-                ? toTitleCase(`${e.docenti[0].cognome} ${e.docenti[0].nome}`)
-                : "N/A";
-              return prof.toLowerCase() === input.professorName?.toLowerCase();
-            })
-            .map((e) => {
-              const title = e.nome || "Lezione";
-              const aulaMatch = title.match(/^(.+?)Aula/);
-              return toTitleCase(aulaMatch ? aulaMatch[1].trim() : title);
-            });
-        } catch (error) {
-          console.error(`Failed to fetch subjects for ${id}:`, error);
-          return [];
-        }
+            return rawEvents
+              .filter((e) => {
+                if (!input.professorName) return true;
+                const prof = e.docenti?.[0]
+                  ? toTitleCase(`${e.docenti[0].cognome} ${e.docenti[0].nome}`)
+                  : "N/A";
+                return (
+                  prof.toLowerCase() === input.professorName?.toLowerCase()
+                );
+              })
+              .map((e) => {
+                const title = e.nome || "Lezione";
+                const aulaMatch = title.match(/^(.+?)Aula/);
+                return toTitleCase(aulaMatch ? aulaMatch[1].trim() : title);
+              });
+          } catch (error) {
+            console.error(`Failed to fetch subjects for ${id}:`, error);
+            return [];
+          }
+        };
+
+        const allSubjectsLists = await Promise.all(ids.map(fetchSubjectsForId));
+        const combinedSubjects = new Set(allSubjectsLists.flat());
+
+        return Array.from(combinedSubjects).sort();
       };
 
-      const allSubjectsLists = await Promise.all(ids.map(fetchSubjectsForId));
-      const combinedSubjects = new Set(allSubjectsLists.flat());
+      const isAggregate = !!(input.professorName || !input.linkIds?.length);
+      if (!isAggregate) return compute();
 
-      return Array.from(combinedSubjects).sort();
+      return withEdgeCache(
+        `https://orario-cache.internal/subjects?professor=${encodeURIComponent(input.professorName ?? "")}`,
+        20 * 60,
+        compute,
+      );
     }),
 
   getProfessors: publicProcedure
@@ -615,40 +673,55 @@ export const orarioRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input }) => {
+      const isAggregate = !input?.linkIds?.length;
       let ids = input?.linkIds || [];
 
-      if (ids.length === 0) {
+      if (isAggregate) {
         const visibleCourses = await getVisibleCourses();
         ids = visibleCourses.map((c) => c.linkId);
       }
 
       if (ids.length === 0) return [];
 
-      const currentDate = getCurrentItalianDateTime();
-      const startRange = currentDate.startOf("day");
-      const endRange = startRange.plus({ months: 3 }).endOf("day");
+      const compute = async () => {
+        const currentDate = getCurrentItalianDateTime();
+        const startRange = currentDate.startOf("day");
+        // 30 days keeps the aggregate fan-out (100+ courses) under the
+        // Worker CPU limit; a full semester window blew it up (error 1102).
+        const endRange = startRange.plus({ days: 30 }).endOf("day");
 
-      const fetchProfessorsForId = async (id: string) => {
-        try {
-          const rawEvents = await fetchCinecaEvents(id, startRange, endRange);
+        const fetchProfessorsForId = async (id: string) => {
+          try {
+            const rawEvents = await fetchCinecaEvents(id, startRange, endRange);
 
-          return rawEvents.flatMap((e) =>
-            (e.docenti || []).map((d) => toTitleCase(`${d.cognome} ${d.nome}`)),
-          );
-        } catch (error) {
-          console.error(`Failed to fetch professors for ${id}:`, error);
-          return [];
-        }
+            return rawEvents.flatMap((e) =>
+              (e.docenti || []).map((d) =>
+                toTitleCase(`${d.cognome} ${d.nome}`),
+              ),
+            );
+          } catch (error) {
+            console.error(`Failed to fetch professors for ${id}:`, error);
+            return [];
+          }
+        };
+
+        const allProfessorsLists = await Promise.all(
+          ids.map(fetchProfessorsForId),
+        );
+        const combinedProfessors = new Set(allProfessorsLists.flat());
+
+        return Array.from(combinedProfessors)
+          .filter((p) => p !== "N/A" && p.trim() !== "")
+          .sort();
       };
 
-      const allProfessorsLists = await Promise.all(
-        ids.map(fetchProfessorsForId),
-      );
-      const combinedProfessors = new Set(allProfessorsLists.flat());
+      if (!isAggregate) return compute();
 
-      return Array.from(combinedProfessors)
-        .filter((p) => p !== "N/A" && p.trim() !== "")
-        .sort();
+      return withEdgeCache(
+        "https://orario-cache.internal/professors",
+        20 * 60,
+        compute,
+      );
     }),
 
   getLatestChanges: publicProcedure
