@@ -59,6 +59,80 @@ const parseCinecaEvents = async (
   }
 };
 
+const CINECA_URL =
+  "https://unins.prod.up.cineca.it/api/Impegni/getImpegniCalendarioPubblico";
+// Course timetables rarely change mid-day; check-updates polls every 20
+// minutes, so caching for the same window avoids re-hitting Cineca once
+// per course (up to 100+ requests) on every professor/aggregate lookup.
+const CINECA_CACHE_TTL_SECONDS = 15 * 60;
+
+const fetchCinecaEvents = async (
+  linkId: string,
+  startRange: DateTime,
+  endRange: DateTime,
+): Promise<CinecaEvent[]> => {
+  if (!linkId) return [];
+
+  const workerCaches =
+    typeof caches !== "undefined"
+      ? (caches as unknown as { default: Cache })
+      : undefined;
+  const cache = workerCaches?.default;
+  const cacheKey = cache
+    ? new Request(
+        `https://cineca-cache.internal/${linkId}?start=${encodeURIComponent(startRange.toISO() ?? "")}&end=${encodeURIComponent(endRange.toISO() ?? "")}`,
+      )
+    : undefined;
+
+  if (cache && cacheKey) {
+    const cached = await cache.match(cacheKey);
+    if (cached) {
+      try {
+        return (await cached.json()) as CinecaEvent[];
+      } catch {
+        // Corrupt cache entry — fall through and refetch.
+      }
+    }
+  }
+
+  try {
+    const response = await fetch(CINECA_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        mostraImpegniAnnullati: true,
+        mostraIndisponibilitaTotali: false,
+        linkCalendarioId: linkId,
+        clienteId: "59f05192a635f443422fe8fd",
+        pianificazioneTemplate: false,
+        dataInizio: startRange.toISO(),
+        dataFine: endRange.toISO(),
+      }),
+      cache: "no-store",
+    });
+
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
+    const events = await parseCinecaEvents(response);
+
+    if (cache && cacheKey) {
+      await cache.put(
+        cacheKey,
+        new Response(JSON.stringify(events), {
+          headers: {
+            "Content-Type": "application/json",
+            "Cache-Control": `max-age=${CINECA_CACHE_TTL_SECONDS}`,
+          },
+        }),
+      );
+    }
+
+    return events;
+  } catch (error) {
+    console.error(`Failed to fetch Cineca events for ${linkId}:`, error);
+    return [];
+  }
+};
+
 const fetchRawEvents = async (
   dayOffset = 0,
   linkId: string,
@@ -71,31 +145,7 @@ const fetchRawEvents = async (
   const startRange = targetDate.minus({ days: dayOfWeek }).startOf("day");
   const endRange = startRange.plus({ days: 6 }).endOf("day");
 
-  try {
-    const response = await fetch(
-      "https://unins.prod.up.cineca.it/api/Impegni/getImpegniCalendarioPubblico",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          mostraImpegniAnnullati: true,
-          mostraIndisponibilitaTotali: false,
-          linkCalendarioId: linkId,
-          clienteId: "59f05192a635f443422fe8fd",
-          pianificazioneTemplate: false,
-          dataInizio: startRange.toISO(),
-          dataFine: endRange.toISO(),
-        }),
-        cache: "no-store",
-      },
-    );
-
-    if (!response.ok) throw new Error(`API error: ${response.status}`);
-    return await parseCinecaEvents(response);
-  } catch (error) {
-    console.error("Failed to fetch orario:", error);
-    return [];
-  }
+  return fetchCinecaEvents(linkId, startRange, endRange);
 };
 
 const processEvents = (
@@ -331,35 +381,9 @@ export const orarioRouter = createTRPCRouter({
       ).startOf("month");
       const endRange = startRange.endOf("month");
 
-      const fetchForId = async (id: string) => {
-        try {
-          const response = await fetch(
-            "https://unins.prod.up.cineca.it/api/Impegni/getImpegniCalendarioPubblico",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                mostraImpegniAnnullati: true,
-                mostraIndisponibilitaTotali: false,
-                linkCalendarioId: id,
-                clienteId: "59f05192a635f443422fe8fd",
-                pianificazioneTemplate: false,
-                dataInizio: startRange.toISO(),
-                dataFine: endRange.toISO(),
-              }),
-              cache: "no-store",
-            },
-          );
-
-          if (!response.ok) throw new Error(`API error: ${response.status}`);
-          return await parseCinecaEvents(response);
-        } catch (error) {
-          console.error(`Failed to fetch monthly orario for ${id}:`, error);
-          return [];
-        }
-      };
-
-      const allRawEvents = await Promise.all(ids.map(fetchForId));
+      const allRawEvents = await Promise.all(
+        ids.map((id) => fetchCinecaEvents(id, startRange, endRange)),
+      );
       const events: CinecaEvent[] = allRawEvents.flat();
 
       const processed = events
@@ -557,25 +581,7 @@ export const orarioRouter = createTRPCRouter({
 
       const fetchSubjectsForId = async (id: string) => {
         try {
-          const response = await fetch(
-            "https://unins.prod.up.cineca.it/api/Impegni/getImpegniCalendarioPubblico",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                mostraImpegniAnnullati: true,
-                mostraIndisponibilitaTotali: false,
-                linkCalendarioId: id,
-                clienteId: "59f05192a635f443422fe8fd",
-                pianificazioneTemplate: false,
-                dataInizio: startRange.toISO(),
-                dataFine: endRange.toISO(),
-              }),
-            },
-          );
-
-          if (!response.ok) throw new Error(`API error: ${response.status}`);
-          const rawEvents = await parseCinecaEvents(response);
+          const rawEvents = await fetchCinecaEvents(id, startRange, endRange);
 
           return rawEvents
             .filter((e) => {
@@ -624,25 +630,7 @@ export const orarioRouter = createTRPCRouter({
 
       const fetchProfessorsForId = async (id: string) => {
         try {
-          const response = await fetch(
-            "https://unins.prod.up.cineca.it/api/Impegni/getImpegniCalendarioPubblico",
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                mostraImpegniAnnullati: true,
-                mostraIndisponibilitaTotali: false,
-                linkCalendarioId: id,
-                clienteId: "59f05192a635f443422fe8fd",
-                pianificazioneTemplate: false,
-                dataInizio: startRange.toISO(),
-                dataFine: endRange.toISO(),
-              }),
-            },
-          );
-
-          if (!response.ok) throw new Error(`API error: ${response.status}`);
-          const rawEvents = await parseCinecaEvents(response);
+          const rawEvents = await fetchCinecaEvents(id, startRange, endRange);
 
           return rawEvents.flatMap((e) =>
             (e.docenti || []).map((d) => toTitleCase(`${d.cognome} ${d.nome}`)),
