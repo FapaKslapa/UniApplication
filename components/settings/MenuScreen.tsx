@@ -36,6 +36,7 @@ export function MenuScreen({
     <div className="mx-auto max-w-lg space-y-1 px-4 py-5 pb-28 md:pb-10">
       <SettingsGroup label="Configurazione">
         <MenuRow
+          key="courses"
           icon={BookOpen}
           tone="neutral"
           title="I miei corsi"
@@ -44,6 +45,7 @@ export function MenuScreen({
           onClick={onOpenCourses}
         />
         <MenuRow
+          key="subjects"
           icon={Eye}
           tone="neutral"
           title="Materie visibili"
@@ -58,9 +60,10 @@ export function MenuScreen({
       )}
 
       <SettingsGroup label="Altro">
-        <ThemeRow />
-        <LocationSwitcher />
+        <ThemeRow key="theme" />
+        <LocationSwitcher key="location" />
         <MenuRow
+          key="feedback"
           icon={Mail}
           title="Suggerimenti"
           subtitle={SUPPORT_EMAIL}

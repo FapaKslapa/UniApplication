@@ -26,6 +26,8 @@ export function SubjectFilterSheet({
   onToggle,
   onReset,
 }: SubjectFilterSheetProps) {
+  const hiddenSet = new Set(hiddenSubjects);
+
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="bg-popover">
@@ -48,7 +50,7 @@ export function SubjectFilterSheet({
         ) : (
           <div className="max-h-[70dvh] overflow-y-auto overscroll-contain px-4 pb-6">
             {subjects.map((subject) => {
-              const visible = !hiddenSubjects.includes(subject);
+              const visible = !hiddenSet.has(subject);
               return (
                 <div key={subject} className="flex h-14 items-center gap-3">
                   <span

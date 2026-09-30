@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCopyFeedback } from "@/components/settings/useCopyFeedback";
 import { api } from "@/lib/api";
 import type { Course } from "@/lib/courses";
@@ -15,13 +15,14 @@ export function useCourseDraft({ userId, onEdit }: Options) {
 
   const { data: allCoursesData, refetch: refetchCourses } =
     api.courses.getAll.useQuery({ userId });
-  const allCourses = allCoursesData ?? [];
+  const allCourses = useMemo(() => allCoursesData ?? [], [allCoursesData]);
 
   useEffect(() => {
     if (allCourses.length === 0 || selectedCourses.length > 0) return;
-    const ids =
-      courseIds.length > 0 ? courseIds : storedCourseId ? [storedCourseId] : [];
-    const matched = allCourses.filter((course) => ids.includes(course.id));
+    const ids = new Set(
+      courseIds.length > 0 ? courseIds : storedCourseId ? [storedCourseId] : [],
+    );
+    const matched = allCourses.filter((course) => ids.has(course.id));
     if (matched.length === 0) return;
     setSelectedCourses(matched);
   }, [allCourses, courseIds, selectedCourses.length, storedCourseId]);

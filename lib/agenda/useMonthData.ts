@@ -45,7 +45,7 @@ export function useMonthData(
     { enabled, placeholderData: (previous) => previous },
   );
 
-  const events = monthly.data ?? [];
+  const events = useMemo(() => monthly.data ?? [], [monthly.data]);
 
   const colorMap = useMemo(
     () =>

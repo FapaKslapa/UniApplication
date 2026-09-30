@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
 import { SlideBody } from "@/components/welcome/SlideBody";
@@ -16,10 +16,12 @@ type WelcomeDialogProps = {
 
 export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [wasOpen, setWasOpen] = useState(isOpen);
 
-  useEffect(() => {
+  if (isOpen !== wasOpen) {
+    setWasOpen(isOpen);
     if (isOpen) setCurrentSlide(0);
-  }, [isOpen]);
+  }
 
   const isLastSlide = currentSlide === slides.length - 1;
   const slide = slides[currentSlide];
@@ -75,6 +77,7 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
                 variant="outline"
                 size="icon"
                 onClick={handleBack}
+                aria-label="Indietro"
                 className="shrink-0"
               >
                 <ChevronLeft className="w-4 h-4" />

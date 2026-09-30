@@ -184,7 +184,7 @@ export function AdminCoursesView() {
               type="button"
               onClick={() => setFilter(f.id)}
               className={cn(
-                "flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-[10px] font-bold uppercase tracking-widest font-mono",
+                "flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full border transition-[color,background-color,border-color,box-shadow,transform] text-[10px] font-bold uppercase tracking-widest font-mono",
                 filter === f.id
                   ? "bg-zinc-900 dark:bg-white text-white dark:text-black border-transparent shadow-md scale-105"
                   : "bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-800 text-zinc-400 hover:border-zinc-300",
@@ -198,7 +198,8 @@ export function AdminCoursesView() {
         <button
           type="button"
           onClick={() => setAddCourseDialog(true)}
-          className="p-2.5 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl transition-all active:scale-90 shadow-md flex-shrink-0 ml-4"
+          aria-label="Aggiungi corso"
+          className="p-2.5 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-xl transition-transform active:scale-90 shadow-md flex-shrink-0 ml-4"
         >
           <Plus className="w-5 h-5" />
         </button>
@@ -251,7 +252,7 @@ export function AdminCoursesView() {
                   setNewCourse({ ...newCourse, name: e.target.value })
                 }
                 placeholder="Es: Informatica - Vare"
-                className="w-full px-5 py-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-2xl focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white focus:outline-none transition-all text-sm"
+                className="w-full px-5 py-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-2xl focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white focus:outline-none transition-shadow text-sm"
               />
             </div>
             <div className="space-y-2">
@@ -269,7 +270,7 @@ export function AdminCoursesView() {
                   setNewCourse({ ...newCourse, calendarUrl: e.target.value })
                 }
                 placeholder="https://..."
-                className="w-full px-5 py-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-2xl focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white focus:outline-none transition-all text-xs font-mono"
+                className="w-full px-5 py-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-2xl focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white focus:outline-none transition-shadow text-xs font-mono"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -326,7 +327,7 @@ export function AdminCoursesView() {
             <button
               type="button"
               onClick={() => setAddCourseDialog(false)}
-              className="px-6 py-3 font-bold text-xs uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-all"
+              className="px-6 py-3 font-bold text-xs uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
             >
               Annulla
             </button>
@@ -334,7 +335,7 @@ export function AdminCoursesView() {
               type="button"
               onClick={handleAddCourse}
               disabled={addCourseMutation.isPending}
-              className="flex-1 px-8 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg"
+              className="flex-1 px-8 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl font-bold text-xs uppercase tracking-widest transition-transform active:scale-95 shadow-lg"
             >
               Salva
             </button>
@@ -380,7 +381,7 @@ export function AdminCoursesView() {
               onClick={() =>
                 setConfirmDialog({ open: false, action: null, course: null })
               }
-              className="flex-1 py-3 font-bold text-xs uppercase tracking-widest text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl transition-all"
+              className="flex-1 py-3 font-bold text-xs uppercase tracking-widest text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl transition-colors"
             >
               Annulla
             </button>
@@ -388,7 +389,7 @@ export function AdminCoursesView() {
               type="button"
               onClick={executeAction}
               className={cn(
-                "flex-1 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest text-white transition-all active:scale-95 shadow-lg",
+                "flex-1 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest text-white transition-transform active:scale-95 shadow-lg",
                 confirmDialog.action === "delete"
                   ? "bg-red-500 shadow-red-500/20"
                   : "bg-zinc-900 dark:bg-white dark:text-black shadow-zinc-900/20",
@@ -446,7 +447,7 @@ function CourseCard({
   return (
     <motion.div
       layout
-      className="group bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 rounded-[2rem] p-6 shadow-sm hover:shadow-xl transition-all"
+      className="group bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 rounded-[2rem] p-6 shadow-sm hover:shadow-xl transition-shadow"
     >
       <div className="flex items-start justify-between gap-4 mb-6">
         <div className="min-w-0">
@@ -477,8 +478,11 @@ function CourseCard({
         <button
           type="button"
           onClick={() => onCopyLink(course.linkId, course.id)}
+          aria-label={
+            copiedCourseId === course.id ? "Link copiato" : "Copia link"
+          }
           className={cn(
-            "p-2.5 rounded-xl transition-all shadow-sm active:scale-90 border",
+            "p-2.5 rounded-xl transition-[color,background-color,border-color,transform] shadow-sm active:scale-90 border",
             copiedCourseId === course.id
               ? "bg-emerald-500 text-white border-transparent"
               : "bg-white dark:bg-zinc-800 text-zinc-400 border-zinc-100 dark:border-zinc-700",
@@ -503,7 +507,11 @@ function CourseCard({
           <div className="flex items-center gap-2 text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-tighter">
             <span>By {course.addedBy}</span>
             <div className="w-1 h-1 rounded-full bg-zinc-300" />
-            <span>{new Date(course.createdAt).toLocaleDateString("it")}</span>
+            <span>
+              {new Date(course.createdAt).toLocaleDateString("it", {
+                timeZone: "Europe/Rome",
+              })}
+            </span>
           </div>
           <div className="flex items-center gap-1">
             {onApprove && course.status !== "approved" && (
@@ -561,7 +569,7 @@ function ActionButton({
       type="button"
       onClick={onClick}
       className={cn(
-        "p-2.5 rounded-xl border transition-all active:scale-90 shadow-sm",
+        "p-2.5 rounded-xl border transition-[color,background-color,transform] active:scale-90 shadow-sm",
         cMap[color],
       )}
     >

@@ -124,8 +124,9 @@ export async function checkUpdates() {
             }
           }
 
+          const hiddenSet = new Set(hidden);
           const relevantChanges = changes.filter(
-            (c) => !hidden.includes(c.title),
+            (c) => !hiddenSet.has(c.title),
           );
 
           if (relevantChanges.length > 0) {

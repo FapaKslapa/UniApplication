@@ -156,6 +156,7 @@ export const useAppStore = create<AppState>()(
 );
 
 export function useActiveLinkIds(): string[] {
-  const { calendarIds, calendarId } = useAppStore();
+  const calendarIds = useAppStore((state) => state.calendarIds);
+  const calendarId = useAppStore((state) => state.calendarId);
   return calendarIds.length > 0 ? calendarIds : calendarId ? [calendarId] : [];
 }

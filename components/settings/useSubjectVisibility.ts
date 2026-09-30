@@ -14,8 +14,9 @@ export function useSubjectVisibility() {
     { enabled: !!linkIds },
   );
 
+  const hiddenSet = new Set(hiddenSubjects);
   const visibleCount = subjects
-    ? subjects.filter((subject) => !hiddenSubjects.includes(subject)).length
+    ? subjects.filter((subject) => !hiddenSet.has(subject)).length
     : 0;
 
   return { subjects, isLoading, hiddenSubjects, toggleSubject, visibleCount };

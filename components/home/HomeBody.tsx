@@ -1,10 +1,14 @@
 import type { DateTime } from "luxon";
-import { AdminArea } from "@/components/home/AdminArea";
+import dynamic from "next/dynamic";
 import { AgendaLayout } from "@/components/home/AgendaLayout";
 import { DocentiLayout } from "@/components/home/DocentiLayout";
 import { NotConfigured } from "@/components/home/NotConfigured";
 import type { HomeView } from "@/components/home/types";
 import type { AgendaMode } from "@/lib/agenda/types";
+
+const AdminArea = dynamic(() =>
+  import("@/components/home/AdminArea").then((mod) => mod.AdminArea),
+);
 
 type HomeBodyProps = {
   activeView: HomeView;

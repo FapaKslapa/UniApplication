@@ -14,9 +14,9 @@ export function SettingsGroup({ label, children }: SettingsGroupProps) {
         {label}
       </h2>
       <Card className="gap-0 overflow-hidden py-0">
-        {Children.toArray(children).map((child, index) => (
-          <Fragment key={isValidElement(child) ? child.key : index}>
-            {index > 0 && <Separator />}
+        {Children.toArray(children).map((child, position) => (
+          <Fragment key={isValidElement(child) ? child.key : undefined}>
+            {position > 0 && <Separator />}
             {child}
           </Fragment>
         ))}

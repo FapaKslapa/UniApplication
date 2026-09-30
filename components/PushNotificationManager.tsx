@@ -8,6 +8,22 @@ import { cn } from "@/lib/utils";
 
 const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeoutId = setTimeout(() => reject(new Error("Timeout SW")), ms);
+    promise.then(
+      (value) => {
+        clearTimeout(timeoutId);
+        resolve(value);
+      },
+      (error) => {
+        clearTimeout(timeoutId);
+        reject(error);
+      },
+    );
+  });
+}
+
 export function PushNotificationManager({
   linkId,
   compact = false,
@@ -19,6 +35,7 @@ export function PushNotificationManager({
   const [_permission, setPermission] =
     useState<NotificationPermission>("default");
   const [loading, setLoading] = useState(false);
+  const [isSupported, setIsSupported] = useState(false);
   const { hiddenSubjects } = useAppStore();
 
   const subscribeMutation = api.notifications.subscribe.useMutation();
@@ -30,14 +47,10 @@ export function PushNotificationManager({
     try {
       if (!("serviceWorker" in navigator)) return;
 
-      const registration = await Promise.race([
+      const registration = await withTimeout(
         navigator.serviceWorker.ready,
-        new Promise<null>((_, reject) =>
-          setTimeout(() => reject(new Error("Timeout SW")), 5000),
-        ),
-      ]);
-
-      if (!registration) return;
+        5000,
+      );
 
       const subscription = await registration.pushManager.getSubscription();
       setIsSubscribed(!!subscription);
@@ -47,6 +60,7 @@ export function PushNotificationManager({
   }, []);
 
   useEffect(() => {
+    setIsSupported("serviceWorker" in navigator && "PushManager" in window);
     if ("Notification" in window) {
       setPermission(Notification.permission);
       checkSubscription();
@@ -72,12 +86,10 @@ export function PushNotificationManager({
         return;
       }
 
-      const registration = await Promise.race([
+      const registration = await withTimeout(
         navigator.serviceWorker.ready,
-        new Promise<ServiceWorkerRegistration>((_, reject) =>
-          setTimeout(() => reject(new Error("Timeout SW")), 5000),
-        ),
-      ]);
+        5000,
+      );
 
       const subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,
@@ -109,12 +121,10 @@ export function PushNotificationManager({
   const handleUnsubscribe = async () => {
     setLoading(true);
     try {
-      const registration = await Promise.race([
+      const registration = await withTimeout(
         navigator.serviceWorker.ready,
-        new Promise<ServiceWorkerRegistration>((_, reject) =>
-          setTimeout(() => reject(new Error("Timeout SW")), 5000),
-        ),
-      ]);
+        5000,
+      );
 
       const subscription = await registration.pushManager.getSubscription();
       if (subscription) {
@@ -129,7 +139,7 @@ export function PushNotificationManager({
     }
   };
 
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+  if (!isSupported) {
     return null;
   }
 

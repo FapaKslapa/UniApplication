@@ -197,6 +197,7 @@ function CustomLineTooltip({
           ? new Date(label).toLocaleDateString("it-IT", {
               day: "numeric",
               month: "short",
+              timeZone: "Europe/Rome",
             })
           : ""}
       </p>
@@ -238,13 +239,14 @@ function DatePickerButton({
       <PopoverTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold font-mono bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 transition-all whitespace-nowrap min-w-[72px]"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold font-mono bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors whitespace-nowrap min-w-[72px]"
         >
           <CalendarDays className="w-3 h-3 text-zinc-400 shrink-0" />
           {date
             ? date.toLocaleDateString("it-IT", {
                 day: "numeric",
                 month: "short",
+                timeZone: "Europe/Rome",
               })
             : placeholder}
         </button>
@@ -310,8 +312,11 @@ export function AdminStatsView() {
 
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
-    await queryClient.invalidateQueries();
-    setIsRefreshing(false);
+    try {
+      await queryClient.invalidateQueries();
+    } finally {
+      setIsRefreshing(false);
+    }
   }, [queryClient]);
 
   const hourlyData = useMemo(() => {
@@ -393,7 +398,7 @@ export function AdminStatsView() {
           type="button"
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold font-mono bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all disabled:opacity-50"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold font-mono bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors disabled:opacity-50"
         >
           <RefreshCw
             className={cn("w-3 h-3", isRefreshing && "animate-spin")}
@@ -476,7 +481,7 @@ export function AdminStatsView() {
                 setShowCustom(false);
               }}
               className={cn(
-                "px-3 py-1.5 rounded-full text-[11px] font-bold font-mono transition-all",
+                "px-3 py-1.5 rounded-full text-[11px] font-bold font-mono transition-colors",
                 !showCustom && activeDays === p.days
                   ? "bg-zinc-900 dark:bg-white text-white dark:text-black"
                   : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white",
@@ -489,7 +494,7 @@ export function AdminStatsView() {
             type="button"
             onClick={() => setShowCustom(true)}
             className={cn(
-              "px-3 py-1.5 rounded-full text-[11px] font-bold font-mono transition-all",
+              "px-3 py-1.5 rounded-full text-[11px] font-bold font-mono transition-colors",
               showCustom
                 ? "bg-zinc-900 dark:bg-white text-white dark:text-black"
                 : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white",

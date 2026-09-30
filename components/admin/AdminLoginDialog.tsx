@@ -43,21 +43,24 @@ export function AdminLoginDialog({
       return;
     }
 
-    const result = await authClient.signIn.email({
-      email: adminEmail,
-      password,
-    });
-    setIsPending(false);
+    try {
+      const result = await authClient.signIn.email({
+        email: adminEmail,
+        password,
+      });
 
-    if (result.error) {
-      setError(result.error.message ?? "Password non corretta");
-      return;
+      if (result.error) {
+        setError(result.error.message ?? "Password non corretta");
+        return;
+      }
+
+      setIsAdmin(true);
+      setPassword("");
+      onSuccess?.();
+      onClose();
+    } finally {
+      setIsPending(false);
     }
-
-    setIsAdmin(true);
-    setPassword("");
-    onSuccess?.();
-    onClose();
   };
 
   return (

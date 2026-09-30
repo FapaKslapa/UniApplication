@@ -10,6 +10,7 @@ export function SubjectsScreen({ visibility }: SubjectsScreenProps) {
   const { subjects, isLoading, hiddenSubjects, toggleSubject, visibleCount } =
     visibility;
   const hasSubjects = !!subjects && subjects.length > 0;
+  const hiddenSet = new Set(hiddenSubjects);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -33,7 +34,7 @@ export function SubjectsScreen({ visibility }: SubjectsScreenProps) {
             <SubjectRow
               key={subject}
               subject={subject}
-              hidden={hiddenSubjects.includes(subject)}
+              hidden={hiddenSet.has(subject)}
               onToggle={() => toggleSubject(subject)}
             />
           ))}
