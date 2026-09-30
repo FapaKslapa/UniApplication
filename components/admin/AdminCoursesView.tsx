@@ -13,13 +13,13 @@ import {
 import { useState } from "react";
 import { AcademicYearPicker } from "@/components/ui/academic-year-picker";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Select,
   SelectContent,
@@ -229,16 +229,12 @@ export function AdminCoursesView() {
         )}
       </div>
 
-      <Dialog open={addCourseDialog} onOpenChange={setAddCourseDialog}>
-        <DialogContent className="max-w-lg rounded-[2.5rem] p-0 border-none bg-white dark:bg-zinc-900 overflow-hidden shadow-2xl">
-          <DialogHeader className="p-8 lg:p-10 bg-zinc-50 dark:bg-zinc-950/50 border-b border-zinc-100 dark:border-zinc-800">
-            <DialogTitle className="font-serif text-2xl">
-              Aggiungi Corso
-            </DialogTitle>
-            <DialogDescription className="font-mono text-[10px] uppercase tracking-widest text-zinc-400 mt-2">
-              Nuova configurazione sistema
-            </DialogDescription>
-          </DialogHeader>
+      <Drawer open={addCourseDialog} onOpenChange={setAddCourseDialog}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerTitle>Aggiungi corso</DrawerTitle>
+            <DrawerDescription>Nuova configurazione sistema</DrawerDescription>
+          </DrawerHeader>
           <div className="p-8 lg:p-10 space-y-6">
             <div className="space-y-2">
               <label
@@ -326,7 +322,7 @@ export function AdminCoursesView() {
               </div>
             </div>
           </div>
-          <DialogFooter className="p-8 bg-zinc-50 dark:bg-zinc-950/50 border-t border-zinc-100 dark:border-zinc-800 gap-3">
+          <DrawerFooter className="flex-row gap-3">
             <button
               type="button"
               onClick={() => setAddCourseDialog(false)}
@@ -338,22 +334,22 @@ export function AdminCoursesView() {
               type="button"
               onClick={handleAddCourse}
               disabled={addCourseMutation.isPending}
-              className="px-8 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg"
+              className="flex-1 px-8 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg"
             >
               Salva
             </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
 
-      <Dialog
+      <Drawer
         open={confirmDialog.open}
         onOpenChange={(o) =>
           !o && setConfirmDialog({ open: false, action: null, course: null })
         }
       >
-        <DialogContent className="rounded-[2.5rem] bg-white dark:bg-zinc-900 border-none shadow-2xl">
-          <DialogHeader className="p-6 text-center">
+        <DrawerContent>
+          <DrawerHeader className="items-center text-center">
             <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-4">
               {confirmDialog.action === "delete" ? (
                 <Trash2 className="text-red-500" />
@@ -361,10 +357,8 @@ export function AdminCoursesView() {
                 <ShieldCheck className="text-blue-500" />
               )}
             </div>
-            <DialogTitle className="font-serif text-xl">
-              Conferma Operazione
-            </DialogTitle>
-            <DialogDescription className="mt-2 text-sm text-zinc-500 font-medium leading-relaxed">
+            <DrawerTitle>Conferma operazione</DrawerTitle>
+            <DrawerDescription>
               Stai per{" "}
               {confirmDialog.action === "approve"
                 ? "approvare"
@@ -378,9 +372,9 @@ export function AdminCoursesView() {
                 {confirmDialog.course?.name}
               </span>
               .
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter className="p-6 gap-2">
+            </DrawerDescription>
+          </DrawerHeader>
+          <DrawerFooter className="flex-row gap-2">
             <button
               type="button"
               onClick={() =>
@@ -402,9 +396,9 @@ export function AdminCoursesView() {
             >
               Conferma
             </button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </motion.div>
   );
 }
