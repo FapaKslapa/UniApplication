@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { Moon, Sun } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -44,13 +44,13 @@ export function ThemeToggle() {
       className="rounded-full elevation-1 bg-white dark:bg-zinc-950 text-zinc-500 hover:text-zinc-900 dark:hover:text-white relative overflow-hidden"
       aria-label="Toggle theme"
     >
-      <motion.span
+      <m.span
         whileTap={{ scale: 0.9 }}
         whileHover={{ scale: 1.05 }}
         className="flex items-center justify-center"
       >
         <AnimatePresence mode="wait" initial={false}>
-          <motion.div
+          <m.div
             key={theme}
             initial={{ y: 20, opacity: 0, rotate: 45 }}
             animate={{ y: 0, opacity: 1, rotate: 0 }}
@@ -62,9 +62,9 @@ export function ThemeToggle() {
             ) : (
               <Moon className="w-5 h-5" />
             )}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
-      </motion.span>
+      </m.span>
     </Button>
   );
 }

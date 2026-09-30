@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { AlertTriangle, MapPin, User, Video } from "lucide-react";
 import type { DateTime } from "luxon";
 import { MarqueeText } from "@/components/agenda/MarqueeText";
@@ -48,7 +48,7 @@ export function NextLessonHero({
 
   if (pick.status === "finished") {
     return (
-      <motion.div
+      <m.div
         variants={scaleInVariants}
         initial="hidden"
         animate="visible"
@@ -57,7 +57,7 @@ export function NextLessonHero({
         <p className="text-sm font-semibold text-muted-foreground">
           Lezioni finite per oggi
         </p>
-      </motion.div>
+      </m.div>
     );
   }
 
@@ -71,7 +71,7 @@ export function NextLessonHero({
     STATUS_LABEL[pick.status]?.[variant] ?? STATUS_LABEL.next[variant];
 
   return (
-    <motion.div
+    <m.div
       variants={scaleInVariants}
       initial="hidden"
       animate="visible"
@@ -136,7 +136,7 @@ export function NextLessonHero({
 
         <AnimatePresence mode="wait">
           {pick.status === "next" && window && (
-            <motion.span
+            <m.span
               key={minutesUntil(window, nowMinutes)}
               initial={{ opacity: 0, y: -4 }}
               animate={{ opacity: 1, y: 0 }}
@@ -145,7 +145,7 @@ export function NextLessonHero({
               className="shrink-0 text-sm font-semibold tabular-nums text-muted-foreground"
             >
               tra {formatMinutes(minutesUntil(window, nowMinutes))}
-            </motion.span>
+            </m.span>
           )}
         </AnimatePresence>
       </div>
@@ -153,7 +153,7 @@ export function NextLessonHero({
       {pick.status === "current" && window && (
         <div className="space-y-1">
           <div className="h-1 overflow-hidden rounded-full bg-foreground/10">
-            <motion.div
+            <m.div
               className="h-full origin-left rounded-full"
               style={{ backgroundColor: color }}
               animate={{ scaleX: lessonProgress(window, nowMinutes) }}
@@ -165,6 +165,6 @@ export function NextLessonHero({
           </p>
         </div>
       )}
-    </motion.div>
+    </m.div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { AlertTriangle, MapPin, User, Video } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import type { LessonState } from "@/lib/agenda/lessons";
@@ -28,7 +28,7 @@ export function LessonRow({
   showProfessor = true,
 }: LessonRowProps) {
   return (
-    <motion.li
+    <m.li
       custom={index}
       variants={fadeUpVariants}
       initial="hidden"
@@ -99,6 +99,6 @@ export function LessonRow({
           </span>
         )}
       </div>
-    </motion.li>
+    </m.li>
   );
 }

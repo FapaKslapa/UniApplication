@@ -1,4 +1,4 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import type { DateTime } from "luxon";
 import { Button } from "@/components/ui/button";
 import { dayDotSubjects } from "@/lib/agenda/lessons";
@@ -50,7 +50,7 @@ export function MonthDayCell({
       </span>
       <span className="flex h-1.5 items-center gap-0.5">
         {dotSubjects.map((materia, dotIndex) => (
-          <motion.span
+          <m.span
             key={materia}
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}

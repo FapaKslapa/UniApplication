@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -44,7 +44,7 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
         <DrawerTitle className="sr-only">Benvenuto</DrawerTitle>
         <div className="relative flex-1 px-8 pt-2 pb-8 flex flex-col items-center text-center">
           <AnimatePresence mode="wait">
-            <motion.div
+            <m.div
               key={slide.id}
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -53,7 +53,7 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
               className="flex flex-col items-center space-y-6 w-full"
             >
               <SlideBody slide={slide} />
-            </motion.div>
+            </m.div>
           </AnimatePresence>
 
           <div className="flex gap-1.5 pt-10">

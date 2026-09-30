@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import type { DateTime } from "luxon";
 import { LessonRow } from "@/components/agenda/LessonRow";
 import { Badge } from "@/components/ui/badge";
@@ -32,7 +32,7 @@ export function WeekDaySection({
   const nowMinutes = minutesOfDay(now);
 
   return (
-    <motion.section
+    <m.section
       variants={fadeUpVariants}
       initial="hidden"
       whileInView="visible"
@@ -75,6 +75,6 @@ export function WeekDaySection({
           ))
         )}
       </ul>
-    </motion.section>
+    </m.section>
   );
 }

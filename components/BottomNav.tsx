@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { CalendarDays, Search, Settings, ShieldCheck } from "lucide-react";
 import type React from "react";
 import type { HomeView } from "@/components/home/types";
@@ -84,13 +84,13 @@ function NavBtn({
       )}
     >
       {active && (
-        <motion.div
+        <m.div
           layoutId="nav-active"
           className="absolute inset-x-2 inset-y-1.5 bg-muted rounded-full"
           transition={springs.smooth}
         />
       )}
-      <motion.span
+      <m.span
         animate={active ? { scale: [1, 1.15, 1] } : { scale: 1 }}
         transition={
           active
@@ -100,7 +100,7 @@ function NavBtn({
         className="relative z-10"
       >
         {icon}
-      </motion.span>
+      </m.span>
       <span className="relative z-10 text-[10px] font-semibold leading-none">
         {label}
       </span>

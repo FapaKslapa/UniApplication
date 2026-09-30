@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -13,7 +13,7 @@ export function ErrorScreen({
 }) {
   return (
     <div className="fixed inset-0 bg-white dark:bg-black flex flex-col items-center justify-center p-6 gap-6">
-      <motion.div
+      <m.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
@@ -50,7 +50,7 @@ export function ErrorScreen({
             Riprova
           </Button>
         )}
-      </motion.div>
+      </m.div>
     </div>
   );
 }

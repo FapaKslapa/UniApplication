@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ChevronRight, Code2, ExternalLink, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import { GitHubIcon } from "@/components/settings/GitHubIcon";
@@ -39,17 +39,17 @@ export function DevSection({
             GitHub · Admin
           </span>
         </span>
-        <motion.span
+        <m.span
           animate={{ rotate: open ? 90 : 0 }}
           transition={{ duration: 0.2 }}
         >
           <ChevronRight className="size-4 text-muted-foreground" />
-        </motion.span>
+        </m.span>
       </Button>
 
       <AnimatePresence initial={false}>
         {open && (
-          <motion.div
+          <m.div
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
@@ -96,7 +96,7 @@ export function DevSection({
               </span>
               <ChevronRight className="size-3.5 text-muted-foreground" />
             </Button>
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

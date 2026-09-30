@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, type PanInfo } from "framer-motion";
+import { AnimatePresence, m, type PanInfo } from "framer-motion";
 import type { DateTime } from "luxon";
 import { Button } from "@/components/ui/button";
 import { startOfWeek } from "@/lib/agenda/dates";
@@ -41,7 +41,7 @@ export function WeekStrip({
   return (
     <div className="relative overflow-x-hidden py-1">
       <AnimatePresence initial={false} custom={direction} mode="popLayout">
-        <motion.div
+        <m.div
           key={weekKey}
           custom={direction}
           variants={slideVariants}
@@ -73,7 +73,7 @@ export function WeekStrip({
                 )}
               >
                 {isSelected && (
-                  <motion.span
+                  <m.span
                     layoutId="strip-selected"
                     transition={springs.snappy}
                     className="absolute inset-0 -z-10 rounded-md bg-foreground"
@@ -97,7 +97,7 @@ export function WeekStrip({
                 </span>
                 <span className="flex h-1.5 items-center gap-0.5">
                   {dotSubjects.map((materia, dotIndex) => (
-                    <motion.span
+                    <m.span
                       key={materia}
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
@@ -113,7 +113,7 @@ export function WeekStrip({
               </Button>
             );
           })}
-        </motion.div>
+        </m.div>
       </AnimatePresence>
     </div>
   );

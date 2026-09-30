@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import type { DateTime } from "luxon";
 import { useState } from "react";
 import { AgendaHeader } from "@/components/agenda/AgendaHeader";
@@ -86,7 +86,7 @@ export function AgendaScreen({
 
       <AnimatePresence mode="popLayout" initial={false}>
         {mode === "day" && (
-          <motion.div
+          <m.div
             key="day"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -104,11 +104,11 @@ export function AgendaScreen({
               variant={source.kind}
               onShiftDay={shiftDay}
             />
-          </motion.div>
+          </m.div>
         )}
 
         {mode === "week" && (
-          <motion.div
+          <m.div
             key="week"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -124,11 +124,11 @@ export function AgendaScreen({
               onSelectDay={openDay}
               onShiftWeek={shiftWeek}
             />
-          </motion.div>
+          </m.div>
         )}
 
         {mode === "month" && (
-          <motion.div
+          <m.div
             key="month"
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -146,7 +146,7 @@ export function AgendaScreen({
               onSelectDay={openDay}
               onShiftMonth={shiftMonth}
             />
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
 

@@ -1,10 +1,10 @@
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { CalendarIcon } from "lucide-react";
 import { scaleInVariants } from "@/lib/motion";
 
 export function EmptyDay() {
   return (
-    <motion.div
+    <m.div
       variants={scaleInVariants}
       initial="hidden"
       animate="visible"
@@ -13,6 +13,6 @@ export function EmptyDay() {
       <CalendarIcon className="size-10" strokeWidth={1.5} />
       <p className="text-sm font-semibold">Nessuna lezione</p>
       <p className="text-xs">Libero</p>
-    </motion.div>
+    </m.div>
   );
 }

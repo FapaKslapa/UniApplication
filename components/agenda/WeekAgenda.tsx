@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type PanInfo, useReducedMotion } from "framer-motion";
+import { m, type PanInfo, useReducedMotion } from "framer-motion";
 import type { DateTime } from "luxon";
 import { useEffect, useRef } from "react";
 import { WeekDaySection } from "@/components/agenda/WeekDaySection";
@@ -52,7 +52,7 @@ export function WeekAgenda({
   if (isPending) return <WeekSkeleton />;
 
   return (
-    <motion.div
+    <m.div
       key={startOfWeek(selectedDate).toISODate()}
       ref={containerRef}
       drag="x"
@@ -75,6 +75,6 @@ export function WeekAgenda({
           />
         </div>
       ))}
-    </motion.div>
+    </m.div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import {
   Check,
   CheckCircle2,
@@ -148,7 +148,7 @@ export function AdminCoursesView() {
   const rejectedCourses = courses?.filter((c) => c.status === "rejected") || [];
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col gap-6 pb-20"
@@ -400,7 +400,7 @@ export function AdminCoursesView() {
           </DrawerFooter>
         </DrawerContent>
       </Drawer>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -445,7 +445,7 @@ function CourseCard({
   }[course.status as "pending" | "approved" | "rejected"];
 
   return (
-    <motion.div
+    <m.div
       layout
       className="group bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 rounded-[2rem] p-6 shadow-sm hover:shadow-xl transition-shadow"
     >
@@ -543,7 +543,7 @@ function CourseCard({
           </div>
         </div>
       </div>
-    </motion.div>
+    </m.div>
   );
 }
 

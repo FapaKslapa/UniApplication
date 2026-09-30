@@ -2,7 +2,7 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { it } from "date-fns/locale";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import {
   Activity,
   ArrowRight,
@@ -384,7 +384,7 @@ export function AdminStatsView() {
   }
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="space-y-6 pb-10"
@@ -925,6 +925,6 @@ export function AdminStatsView() {
           )}
         </ChartCard>
       </div>
-    </motion.div>
+    </m.div>
   );
 }

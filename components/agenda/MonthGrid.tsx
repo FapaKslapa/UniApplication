@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, type PanInfo } from "framer-motion";
+import { AnimatePresence, m, type PanInfo } from "framer-motion";
 import type { DateTime } from "luxon";
 import { MonthDayCell } from "@/components/agenda/MonthDayCell";
 import { MonthSkeleton } from "@/components/agenda/MonthSkeleton";
@@ -66,7 +66,7 @@ export function MonthGrid({
 
       <div className="relative min-h-0 flex-1 overflow-x-hidden">
         <AnimatePresence initial={false} custom={direction} mode="popLayout">
-          <motion.div
+          <m.div
             key={monthKey}
             custom={direction}
             variants={slideVariants}
@@ -96,7 +96,7 @@ export function MonthGrid({
                 />
               );
             })}
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { AnimatePresence, motion, type PanInfo } from "framer-motion";
+import { AnimatePresence, m, type PanInfo } from "framer-motion";
 import type { DateTime } from "luxon";
 import { AgendaSkeleton } from "@/components/agenda/AgendaSkeleton";
 import { DayTimeline } from "@/components/agenda/DayTimeline";
@@ -49,7 +49,7 @@ export function DayView({
 
   return (
     <AnimatePresence initial={false} custom={direction} mode="popLayout">
-      <motion.div
+      <m.div
         key={date.toISODate()}
         custom={direction}
         variants={slideVariants}
@@ -89,7 +89,7 @@ export function DayView({
             )}
           </>
         )}
-      </motion.div>
+      </m.div>
     </AnimatePresence>
   );
 }

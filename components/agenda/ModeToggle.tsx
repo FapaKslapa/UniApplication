@@ -1,6 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import type { AgendaMode } from "@/lib/agenda/types";
 import { springs } from "@/lib/motion";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,7 @@ export function ModeToggle({ mode, onChange }: ModeToggleProps) {
           )}
         >
           {mode === item.value && (
-            <motion.span
+            <m.span
               layoutId="mode-toggle"
               transition={springs.snappy}
               className="absolute inset-0 -z-10 rounded-full bg-card elevation-1"
