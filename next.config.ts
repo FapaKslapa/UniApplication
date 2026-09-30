@@ -5,6 +5,7 @@ initOpenNextCloudflareForDev();
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  agentRules: false,
   output: "standalone",
   compiler: {
     removeConsole: process.env.NODE_ENV === "production",
