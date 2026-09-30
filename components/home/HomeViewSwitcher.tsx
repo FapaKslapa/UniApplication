@@ -1,7 +1,7 @@
 import {
-  Calendar,
   CalendarDays,
   type LucideIcon,
+  Search,
   ShieldCheck,
 } from "lucide-react";
 import type { HomeView } from "@/components/home/types";
@@ -12,7 +12,7 @@ type ViewItem = { view: HomeView; label: string; icon: LucideIcon };
 
 const BASE_ITEMS: ViewItem[] = [
   { view: "week", label: "Agenda", icon: CalendarDays },
-  { view: "month", label: "Mese", icon: Calendar },
+  { view: "docenti", label: "Docenti", icon: Search },
 ];
 
 const ADMIN_ITEM: ViewItem = {

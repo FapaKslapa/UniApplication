@@ -25,10 +25,6 @@ export function shiftWeeks(date: DateTime, weeks: number): DateTime {
   return shiftDays(date, weeks * 7);
 }
 
-export function isSameDay(a: DateTime, b: DateTime): boolean {
-  return startOfDay(a).toISODate() === startOfDay(b).toISODate();
-}
-
 export function weekOffsetDays(selected: DateTime, today: DateTime): number {
   const weeks = startOfWeek(selected).diff(startOfWeek(today), "weeks").weeks;
   return Math.round(weeks) * 7;
@@ -37,4 +33,14 @@ export function weekOffsetDays(selected: DateTime, today: DateTime): number {
 export function minutesOfDay(date: DateTime): number {
   const local = date.setZone(ROME_ZONE);
   return local.hour * 60 + local.minute;
+}
+
+const MONTH_GRID_CELLS = 42;
+
+export function monthGridDays(date: DateTime): DateTime[] {
+  const monthStart = startOfDay(date).startOf("month");
+  const gridStart = monthStart.minus({ days: getDayOfWeek(monthStart) });
+  return Array.from({ length: MONTH_GRID_CELLS }, (_, index) =>
+    gridStart.plus({ days: index }),
+  );
 }

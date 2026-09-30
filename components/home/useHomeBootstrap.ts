@@ -13,8 +13,7 @@ export function useHomeBootstrap() {
     setHasSeenWelcome,
     hasSeenNotifIntro,
     setHasSeenNotifIntro,
-    userRole,
-    professorName,
+    favoriteProfessors,
     ensureUserId,
   } = useAppStore();
   const activeLinkIds = useActiveLinkIds();
@@ -23,8 +22,7 @@ export function useHomeBootstrap() {
   const [isNotifIntroOpen, setIsNotifIntroOpen] = useState(false);
 
   const hasConfigured =
-    (userRole === "student" && activeLinkIds.length > 0) ||
-    (userRole === "professor" && !!professorName);
+    activeLinkIds.length > 0 || favoriteProfessors.length > 0;
 
   useEffect(() => {
     ensureUserId();

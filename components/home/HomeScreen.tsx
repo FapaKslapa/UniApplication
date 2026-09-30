@@ -13,16 +13,17 @@ import { useTimetableChanges } from "@/components/home/useTimetableChanges";
 import { NotificationsIntroDialog } from "@/components/NotificationsIntroDialog";
 import { WelcomeDialog } from "@/components/WelcomeDialog";
 import { shiftDays, startOfDay } from "@/lib/agenda/dates";
-import type { AgendaMode, AgendaSource } from "@/lib/agenda/types";
+import type { AgendaMode } from "@/lib/agenda/types";
 import { api } from "@/lib/api";
 import { getCurrentItalianDateTime } from "@/lib/date-utils";
-import type { DaySchedule } from "@/lib/orario-utils";
 import { useAppStore } from "@/lib/store";
+
+const OWN_HEADER_VIEWS = new Set(["week", "docenti"]);
 
 export function HomeScreen() {
   const router = useRouter();
   const utils = api.useUtils();
-  const { courseNames, userRole, professorName, isAdmin } = useAppStore();
+  const { courseNames, isAdmin } = useAppStore();
   const { activeView, setActiveView } = useHomeView();
   const [selectedDate, setSelectedDate] = useState(() =>
     startOfDay(getCurrentItalianDateTime()),
@@ -31,27 +32,13 @@ export function HomeScreen() {
   const bootstrap = useHomeBootstrap();
   const timetableChanges = useTimetableChanges(bootstrap.isClient);
 
-  const isProfessor = userRole === "professor";
   const openSettings = () => router.push("/settings");
   const section = isAdminView(activeView) ? "admin" : "calendar";
-  const source: AgendaSource =
-    isProfessor && professorName
-      ? { kind: "professor", name: professorName }
-      : { kind: "courses" };
-  const title = getHomeTitle({
-    activeView,
-    isProfessor,
-    professorName,
-    courseNames,
-  });
+  const hasOwnHeader = OWN_HEADER_VIEWS.has(activeView);
+  const refresh = () => utils.orario.getOrario.invalidate();
+  const title = getHomeTitle({ activeView, courseNames });
 
   if (!bootstrap.isClient) return null;
-
-  const openDay = (day: DaySchedule) => {
-    if (day.date) setSelectedDate(startOfDay(day.date));
-    setAgendaMode("day");
-    setActiveView("week");
-  };
 
   return (
     <div className="fixed inset-0 flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
@@ -66,30 +53,29 @@ export function HomeScreen() {
           subtitle={
             section === "admin"
               ? "Accesso riservato • Gestione"
-              : `Orario Insubria${isProfessor ? " • Docente" : ""}`
+              : "Orario Insubria"
           }
-          showTitle={activeView !== "week"}
+          showTitle={!hasOwnHeader}
           activeView={activeView}
           isAdmin={isAdmin}
-          showRefresh={bootstrap.hasConfigured && section === "calendar"}
+          showRefresh={
+            bootstrap.hasConfigured && section === "calendar" && !hasOwnHeader
+          }
           onViewChange={setActiveView}
-          onRefresh={() => utils.orario.getOrario.invalidate()}
+          onRefresh={refresh}
           onOpenSettings={openSettings}
         />
         <HomeBody
           activeView={activeView}
           hasConfigured={bootstrap.hasConfigured}
-          isProfessor={isProfessor}
-          source={source}
           title={title}
           selectedDate={selectedDate}
           agendaMode={agendaMode}
-          materiaColorMap={{}}
           onSelectedDateChange={setSelectedDate}
           onAgendaModeChange={setAgendaMode}
-          onOpenDay={openDay}
           onViewChange={setActiveView}
           onConfigure={openSettings}
+          onRefresh={refresh}
         />
       </main>
 
@@ -107,6 +93,7 @@ export function HomeScreen() {
         onClose={timetableChanges.dismiss}
         onNavigate={(offset) => {
           setSelectedDate(shiftDays(getCurrentItalianDateTime(), offset));
+          setAgendaMode("day");
           setActiveView("week");
           timetableChanges.dismiss();
         }}

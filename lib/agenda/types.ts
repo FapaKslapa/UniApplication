@@ -1,7 +1,7 @@
 import type { DateTime } from "luxon";
 import type { ParsedEvent } from "@/lib/orario-utils";
 
-export type AgendaMode = "day" | "week";
+export type AgendaMode = "day" | "week" | "month";
 
 export type AgendaSource =
   | { kind: "courses" }

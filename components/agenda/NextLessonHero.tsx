@@ -22,11 +22,11 @@ const STATUS_LABEL: Record<string, { courses: string; professor: string }> = {
   first: { courses: "Prima lezione", professor: "Prima lezione" },
 };
 
-function formatCountdown(minutes: number): string {
-  if (minutes < 60) return `tra ${minutes} min`;
+function formatMinutes(minutes: number): string {
+  if (minutes < 60) return `${minutes} min`;
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
-  return rest === 0 ? `tra ${hours} h` : `tra ${hours} h ${rest} min`;
+  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
 }
 
 type NextLessonHeroProps = {
@@ -52,7 +52,7 @@ export function NextLessonHero({
         variants={scaleInVariants}
         initial="hidden"
         animate="visible"
-        className="flex h-[140px] shrink-0 items-center justify-center rounded-xl bg-muted p-4 text-center elevation-1"
+        className="flex h-24 shrink-0 items-center justify-center rounded-xl bg-muted p-4 text-center elevation-1"
       >
         <p className="text-sm font-semibold text-muted-foreground">
           Lezioni finite per oggi
@@ -75,53 +75,33 @@ export function NextLessonHero({
       variants={scaleInVariants}
       initial="hidden"
       animate="visible"
-      className="relative flex h-[140px] shrink-0 flex-col justify-between overflow-hidden rounded-xl p-4 elevation-2"
+      className="relative flex shrink-0 flex-col gap-3 overflow-hidden rounded-xl p-4 elevation-2"
       style={{
         backgroundColor: `color-mix(in oklab, ${color} 14%, var(--card))`,
       }}
     >
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <Badge className="gap-1.5">
-            {pick.status === "current" && (
-              <span className="size-1.5 rounded-full bg-current pulse-dot" />
-            )}
-            {label}
-          </Badge>
-          {isOverlapping && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-semibold text-warning">
-              <AlertTriangle className="size-3" strokeWidth={2.5} />
-              Sovrapposizione
-            </span>
-          )}
-        </div>
-        <AnimatePresence mode="wait">
-          {pick.status === "next" && window && (
-            <motion.span
-              key={minutesUntil(window, nowMinutes)}
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
-              transition={springs.gentle}
-              className="text-sm font-semibold tabular-nums text-muted-foreground"
-            >
-              {formatCountdown(minutesUntil(window, nowMinutes))}
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </div>
-
-      <div className="min-w-0">
         <p className="text-2xl font-bold tabular-nums leading-none">
           {lesson.time}
         </p>
-        <div className="mt-1.5">
-          <MarqueeText
-            text={lesson.materia}
-            className="text-base font-bold leading-tight"
-          />
+        <div className="flex shrink-0 items-center gap-1.5">
+          {isOverlapping && (
+            <span
+              role="img"
+              aria-label="Sovrapposizione oraria"
+              className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning"
+            >
+              <AlertTriangle className="size-3.5" strokeWidth={2.5} />
+            </span>
+          )}
+          <Badge>{label}</Badge>
         </div>
       </div>
+
+      <MarqueeText
+        text={lesson.materia}
+        className="text-base font-bold leading-tight"
+      />
 
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0 space-y-0.5">
@@ -154,22 +134,37 @@ export function NextLessonHero({
           )}
         </div>
 
-        {pick.status === "current" && window && (
-          <div className="w-24 shrink-0 space-y-1 text-right">
-            <p className="text-[10px] font-semibold text-muted-foreground">
-              mancano {minutesLeft(window, nowMinutes)} min
-            </p>
-            <div className="h-1 overflow-hidden rounded-full bg-foreground/10">
-              <motion.div
-                className="h-full origin-left rounded-full"
-                style={{ backgroundColor: color }}
-                animate={{ scaleX: lessonProgress(window, nowMinutes) }}
-                transition={springs.smooth}
-              />
-            </div>
-          </div>
-        )}
+        <AnimatePresence mode="wait">
+          {pick.status === "next" && window && (
+            <motion.span
+              key={minutesUntil(window, nowMinutes)}
+              initial={{ opacity: 0, y: -4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 4 }}
+              transition={springs.gentle}
+              className="shrink-0 text-sm font-semibold tabular-nums text-muted-foreground"
+            >
+              tra {formatMinutes(minutesUntil(window, nowMinutes))}
+            </motion.span>
+          )}
+        </AnimatePresence>
       </div>
+
+      {pick.status === "current" && window && (
+        <div className="space-y-1">
+          <div className="h-1 overflow-hidden rounded-full bg-foreground/10">
+            <motion.div
+              className="h-full origin-left rounded-full"
+              style={{ backgroundColor: color }}
+              animate={{ scaleX: lessonProgress(window, nowMinutes) }}
+              transition={springs.smooth}
+            />
+          </div>
+          <p className="text-right text-[10px] font-semibold text-muted-foreground">
+            mancano {formatMinutes(minutesLeft(window, nowMinutes))}
+          </p>
+        </div>
+      )}
     </motion.div>
   );
 }

@@ -9,6 +9,7 @@ type AgendaLayoutProps = {
   title: string;
   onSelectedDateChange: (date: DateTime) => void;
   onModeChange: (mode: AgendaMode) => void;
+  onRefresh: () => void;
 };
 
 export function AgendaLayout({
@@ -18,6 +19,7 @@ export function AgendaLayout({
   title,
   onSelectedDateChange,
   onModeChange,
+  onRefresh,
 }: AgendaLayoutProps) {
   return (
     <div className="mx-auto flex h-full min-h-0 w-full flex-1 flex-col md:max-w-md">
@@ -28,6 +30,7 @@ export function AgendaLayout({
         title={title}
         onSelectedDateChange={onSelectedDateChange}
         onModeChange={onModeChange}
+        onRefresh={onRefresh}
       />
     </div>
   );

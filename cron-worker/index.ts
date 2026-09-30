@@ -6,6 +6,7 @@ interface Env {
 const jobs: Record<string, string> = {
   "*/20 * * * *": "check-updates",
   "0 3 * * SUN": "scrape-courses",
+  "0 */6 * * *": "refresh-professors",
 };
 
 export default {

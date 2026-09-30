@@ -252,22 +252,6 @@
   animation: shimmer 1.6s ease-in-out infinite;
 }
 
-@keyframes pulse-dot {
-  0%,
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.6);
-    opacity: 0.45;
-  }
-}
-
-@utility pulse-dot {
-  animation: pulse-dot 1.8s ease-in-out infinite;
-}
-
 @media (prefers-reduced-motion: reduce) {
   *,
   ::before,

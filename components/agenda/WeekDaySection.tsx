@@ -5,7 +5,8 @@ import type { DateTime } from "luxon";
 import { LessonRow } from "@/components/agenda/LessonRow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { overlapFlags } from "@/lib/agenda/lessons";
+import { minutesOfDay } from "@/lib/agenda/dates";
+import { lessonState, overlapFlags } from "@/lib/agenda/lessons";
 import { fadeUpVariants } from "@/lib/motion";
 import type { ParsedEvent } from "@/lib/orario-utils";
 import { cn } from "@/lib/utils";
@@ -13,6 +14,7 @@ import { cn } from "@/lib/utils";
 type WeekDaySectionProps = {
   date: DateTime;
   events: ParsedEvent[];
+  now: DateTime;
   isToday: boolean;
   colorFor: (materia: string) => string;
   onSelectDay: (date: DateTime) => void;
@@ -21,11 +23,13 @@ type WeekDaySectionProps = {
 export function WeekDaySection({
   date,
   events,
+  now,
   isToday,
   colorFor,
   onSelectDay,
 }: WeekDaySectionProps) {
   const flags = overlapFlags(events);
+  const nowMinutes = minutesOfDay(now);
 
   return (
     <motion.section
@@ -64,7 +68,7 @@ export function WeekDaySection({
               index={index}
               color={colorFor(event.materia)}
               overlapping={flags[index]}
-              state="upcoming"
+              state={isToday ? lessonState(event.time, nowMinutes) : "upcoming"}
               compact
               showProfessor={false}
             />

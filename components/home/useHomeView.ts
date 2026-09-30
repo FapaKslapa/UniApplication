@@ -16,7 +16,7 @@ export function useHomeView() {
 
   useEffect(() => {
     const param = searchParams.get("view");
-    if (param === "month" || param === "week") setActiveView(param);
+    if (isHomeView(param)) setActiveView(param);
   }, [searchParams]);
 
   return { activeView, setActiveView };

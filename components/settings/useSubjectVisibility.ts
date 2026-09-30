@@ -1,19 +1,17 @@
 "use client";
 
-import type { CourseDraft } from "@/components/settings/useCourseDraft";
 import { useSubjectFilters } from "@/lib/agenda/useSubjectFilters";
 import { api } from "@/lib/api";
+import { useActiveLinkIds } from "@/lib/store";
 
-export function useSubjectVisibility(draft: CourseDraft) {
+export function useSubjectVisibility() {
   const { hiddenSubjects, toggleSubject } = useSubjectFilters();
-  const isStudent = draft.role === "student";
-  const linkIds =
-    isStudent && draft.previewIds.length > 0 ? draft.previewIds : undefined;
-  const professorName = isStudent ? undefined : draft.professorName;
+  const activeLinkIds = useActiveLinkIds();
+  const linkIds = activeLinkIds.length > 0 ? activeLinkIds : undefined;
 
   const { data: subjects, isLoading } = api.orario.getSubjects.useQuery(
-    { linkIds, professorName },
-    { enabled: isStudent ? !!linkIds : !!draft.professorName },
+    { linkIds },
+    { enabled: !!linkIds },
   );
 
   const visibleCount = subjects

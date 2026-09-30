@@ -5,10 +5,8 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Drawer, DrawerContent, DrawerTitle } from "@/components/ui/drawer";
-import { RoleSelectionButtons } from "@/components/welcome/RoleSelectionButtons";
 import { SlideBody } from "@/components/welcome/SlideBody";
 import { slides } from "@/components/welcome/slides";
-import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 type WelcomeDialogProps = {
@@ -18,28 +16,15 @@ type WelcomeDialogProps = {
 
 export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [roleSelected, setRoleSelected] = useState(false);
-  const { userRole, setUserRole } = useAppStore();
 
   useEffect(() => {
-    if (isOpen) {
-      setCurrentSlide(0);
-      setRoleSelected(false);
-    }
+    if (isOpen) setCurrentSlide(0);
   }, [isOpen]);
 
   const isLastSlide = currentSlide === slides.length - 1;
   const slide = slides[currentSlide];
-  const isRoleSlide = slide.isRoleSelection;
-  const canProceed = !isRoleSlide || roleSelected;
-
-  const handleRoleSelect = (role: "student" | "professor") => {
-    setUserRole(role);
-    setRoleSelected(true);
-  };
 
   const handleNext = () => {
-    if (!canProceed) return;
     if (isLastSlide) {
       onComplete();
     } else {
@@ -66,14 +51,6 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
               className="flex flex-col items-center space-y-6 w-full"
             >
               <SlideBody slide={slide} />
-
-              {isRoleSlide && (
-                <RoleSelectionButtons
-                  userRole={userRole}
-                  roleSelected={roleSelected}
-                  onSelect={handleRoleSelect}
-                />
-              )}
             </motion.div>
           </AnimatePresence>
 
@@ -83,9 +60,7 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
                 key={s.id}
                 className={cn(
                   "h-1 rounded-full transition-all duration-300",
-                  s.id === slide.id
-                    ? "w-6 bg-zinc-900 dark:bg-white"
-                    : "w-1.5 bg-zinc-200 dark:bg-zinc-800",
+                  s.id === slide.id ? "w-6 bg-foreground" : "w-1.5 bg-muted",
                 )}
               />
             ))}
@@ -108,7 +83,6 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
             <Button
               type="button"
               onClick={handleNext}
-              disabled={!canProceed}
               size="lg"
               className="flex-1"
             >
@@ -117,12 +91,12 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
             </Button>
           </div>
 
-          {!isLastSlide && !isRoleSlide && (
+          {!isLastSlide && (
             <Button
               type="button"
               variant="ghost"
               onClick={onComplete}
-              className="w-full text-zinc-400"
+              className="w-full text-muted-foreground"
             >
               Salta Intro
             </Button>

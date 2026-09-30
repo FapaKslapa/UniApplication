@@ -39,6 +39,8 @@ export function DayView({
   const pick = pickHeroLesson(events, minutesOfDay(now), isToday);
   const flags = overlapFlags(events);
   const heroIndex = pick?.lesson ? events.indexOf(pick.lesson) : -1;
+  const restEvents = events.filter((_, index) => index !== heroIndex);
+  const restFlags = flags.filter((_, index) => index !== heroIndex);
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     if (info.offset.x < -SWIPE_THRESHOLD) onShiftDay(1);
@@ -75,13 +77,16 @@ export function DayView({
               isOverlapping={heroIndex >= 0 ? flags[heroIndex] : false}
               variant={variant}
             />
-            <DayTimeline
-              events={events}
-              now={now}
-              isToday={isToday}
-              colorFor={colorFor}
-              showProfessor={variant === "courses"}
-            />
+            {restEvents.length > 0 && (
+              <DayTimeline
+                events={restEvents}
+                overlapping={restFlags}
+                now={now}
+                isToday={isToday}
+                colorFor={colorFor}
+                showProfessor={variant === "courses"}
+              />
+            )}
           </>
         )}
       </motion.div>

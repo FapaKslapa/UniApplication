@@ -3,8 +3,8 @@
 import { motion, type PanInfo, useReducedMotion } from "framer-motion";
 import type { DateTime } from "luxon";
 import { useEffect, useRef } from "react";
-import { AgendaSkeleton } from "@/components/agenda/AgendaSkeleton";
 import { WeekDaySection } from "@/components/agenda/WeekDaySection";
+import { WeekSkeleton } from "@/components/agenda/WeekSkeleton";
 import { startOfWeek } from "@/lib/agenda/dates";
 import type { DayEntry } from "@/lib/agenda/types";
 import { springs } from "@/lib/motion";
@@ -49,7 +49,7 @@ export function WeekAgenda({
     else if (info.offset.x > SWIPE_THRESHOLD) onShiftWeek(-1);
   };
 
-  if (isPending) return <AgendaSkeleton />;
+  if (isPending) return <WeekSkeleton />;
 
   return (
     <motion.div
@@ -61,13 +61,14 @@ export function WeekAgenda({
       dragElastic={0.15}
       onDragEnd={handleDragEnd}
       transition={springs.smooth}
-      className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain"
+      className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-1"
     >
       {days.map((day) => (
         <div key={day.date.toISODate()} data-day={day.date.toISODate()}>
           <WeekDaySection
             date={day.date}
             events={day.events}
+            now={today}
             isToday={day.date.hasSame(today, "day")}
             colorFor={colorFor}
             onSelectDay={onSelectDay}

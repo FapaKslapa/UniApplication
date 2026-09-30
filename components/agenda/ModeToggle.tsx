@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 const MODES: { value: AgendaMode; label: string }[] = [
   { value: "day", label: "Giorno" },
   { value: "week", label: "Settimana" },
+  { value: "month", label: "Mese" },
 ];
 
 type ModeToggleProps = {

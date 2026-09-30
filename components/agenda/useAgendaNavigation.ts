@@ -30,7 +30,12 @@ export function useAgendaNavigation({
     onSelectedDateChange(shiftWeeks(selectedDate, delta));
   };
 
+  const shiftMonth = (delta: -1 | 1) => {
+    setDirection(delta);
+    onSelectedDateChange(selectedDate.plus({ months: delta }));
+  };
+
   const goToday = (today: DateTime) => select(today);
 
-  return { direction, select, shiftDay, shiftWeek, goToday };
+  return { direction, select, shiftDay, shiftWeek, shiftMonth, goToday };
 }

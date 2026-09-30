@@ -1,15 +1,16 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Calendar, CalendarDays, Settings, ShieldCheck } from "lucide-react";
+import { CalendarDays, Search, Settings, ShieldCheck } from "lucide-react";
 import type React from "react";
+import type { HomeView } from "@/components/home/types";
 import { springs } from "@/lib/motion";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
 type BottomNavProps = {
-  activeView?: "week" | "month" | "stats" | "admin-courses";
-  onViewChange?: (v: "week" | "month" | "stats" | "admin-courses") => void;
+  activeView?: HomeView;
+  onViewChange?: (v: HomeView) => void;
   onSettings?: () => void;
   activeSection?: "calendar" | "settings" | "admin";
 };
@@ -36,10 +37,10 @@ export function BottomNav({
         />
 
         <NavBtn
-          active={activeSection === "calendar" && activeView === "month"}
-          onClick={() => onViewChange?.("month")}
-          label="Mese"
-          icon={<Calendar className="size-[18px]" />}
+          active={activeSection === "calendar" && activeView === "docenti"}
+          onClick={() => onViewChange?.("docenti")}
+          label="Docenti"
+          icon={<Search className="size-[18px]" />}
         />
 
         {isAdmin && (

@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion";
 import { AlertTriangle, MapPin, User, Video } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import type { LessonState } from "@/lib/agenda/lessons";
 import { fadeUpVariants } from "@/lib/motion";
 import type { ParsedEvent } from "@/lib/orario-utils";
@@ -57,7 +58,9 @@ export function LessonRow({
               {event.time}
             </span>
             {state === "current" && (
-              <span className="size-1.5 rounded-full bg-foreground pulse-dot" />
+              <Badge className="h-4 px-1.5 text-[9px] leading-none">
+                In corso
+              </Badge>
             )}
           </div>
           <p
@@ -87,9 +90,12 @@ export function LessonRow({
           )}
         </div>
         {overlapping && (
-          <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning/15 px-2 py-0.5 text-xs font-semibold text-warning">
-            <AlertTriangle className="size-3" strokeWidth={2.5} />
-            {!compact && "Sovrapposizione"}
+          <span
+            role="img"
+            aria-label="Sovrapposizione oraria"
+            className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning"
+          >
+            <AlertTriangle className="size-3.5" strokeWidth={2.5} />
           </span>
         )}
       </div>

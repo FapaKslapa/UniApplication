@@ -4,34 +4,6 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function LoadingScreen({
-  label = "Caricamento...",
-}: {
-  label?: string;
-}) {
-  return (
-    <div className="fixed inset-0 bg-white dark:bg-black flex flex-col items-center justify-center gap-5">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.25, ease: "easeOut" }}
-        className="flex flex-col items-center gap-5"
-      >
-        <div className="relative w-14 h-14">
-          <div className="absolute inset-0 rounded-full border-2 border-zinc-100 dark:border-zinc-900" />
-          <div className="absolute inset-0 rounded-full border-2 border-transparent border-t-zinc-900 dark:border-t-white animate-spin" />
-          <div className="absolute inset-2 rounded-full bg-zinc-100 dark:bg-zinc-900 flex items-center justify-center">
-            <div className="w-2 h-2 rounded-full bg-zinc-400 dark:bg-zinc-600 animate-pulse" />
-          </div>
-        </div>
-        <p className="text-sm font-medium text-zinc-400 dark:text-zinc-600">
-          {label}
-        </p>
-      </motion.div>
-    </div>
-  );
-}
-
 export function ErrorScreen({
   message,
   onRetryAction,

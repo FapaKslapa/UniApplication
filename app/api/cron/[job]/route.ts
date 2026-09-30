@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { checkUpdates } from "@/lib/jobs/check-updates";
+import { refreshProfessors } from "@/lib/jobs/refresh-professors";
 import { scrapeAllCourses } from "@/lib/jobs/scrape-courses";
 
 const jobs = {
@@ -8,6 +9,7 @@ const jobs = {
     return { ok: true };
   },
   "scrape-courses": () => scrapeAllCourses(db),
+  "refresh-professors": () => refreshProfessors(),
 } as const;
 
 export async function POST(

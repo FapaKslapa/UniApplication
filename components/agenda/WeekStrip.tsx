@@ -39,7 +39,7 @@ export function WeekStrip({
   };
 
   return (
-    <div className="relative overflow-hidden">
+    <div className="relative overflow-x-hidden py-1">
       <AnimatePresence initial={false} custom={direction} mode="popLayout">
         <motion.div
           key={weekKey}
@@ -105,15 +105,8 @@ export function WeekStrip({
                         ...springs.gentle,
                         delay: staggerDelay(dotIndex),
                       }}
-                      className={cn(
-                        "size-1 rounded-full",
-                        isSelected && "bg-background/70",
-                      )}
-                      style={
-                        isSelected
-                          ? undefined
-                          : { backgroundColor: colorFor(materia) }
-                      }
+                      className="size-1 rounded-full"
+                      style={{ backgroundColor: colorFor(materia) }}
                     />
                   ))}
                 </span>

@@ -12,7 +12,7 @@ export function SubjectsScreen({ visibility }: SubjectsScreenProps) {
   const hasSubjects = !!subjects && subjects.length > 0;
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex shrink-0 items-center justify-between gap-3 px-4 pt-4 pb-3">
         <p className="text-xs text-muted-foreground">
           Deseleziona le materie che non vuoi vedere nell'orario.

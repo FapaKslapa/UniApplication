@@ -1,4 +1,4 @@
-export const HOME_VIEWS = ["week", "month", "stats", "admin-courses"] as const;
+const HOME_VIEWS = ["week", "docenti", "stats", "admin-courses"] as const;
 
 export type HomeView = (typeof HOME_VIEWS)[number];
 

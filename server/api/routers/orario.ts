@@ -11,6 +11,8 @@ import {
 } from "@/lib/date-utils";
 import { db } from "@/lib/db";
 import { courseSnapshots } from "@/lib/db/schema";
+import { withEdgeCache } from "@/lib/edge-cache";
+import { computeAllProfessors, PROFESSORS_CACHE_URL } from "@/lib/professors";
 import { toTitleCase } from "@/lib/utils";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 
@@ -132,49 +134,6 @@ const fetchCinecaEvents = async (
     return [];
   }
 };
-
-// Wraps an expensive aggregate computation (fan-out over every course) in
-// an edge cache entry, so only one request per TTL window pays the CPU
-// cost of processing hundreds of events across 100+ courses.
-async function withEdgeCache<T>(
-  cacheKeyUrl: string,
-  ttlSeconds: number,
-  compute: () => Promise<T>,
-): Promise<T> {
-  const workerCaches =
-    typeof caches !== "undefined"
-      ? (caches as unknown as { default: Cache })
-      : undefined;
-  const cache = workerCaches?.default;
-  const cacheKey = cache ? new Request(cacheKeyUrl) : undefined;
-
-  if (cache && cacheKey) {
-    const cached = await cache.match(cacheKey);
-    if (cached) {
-      try {
-        return (await cached.json()) as T;
-      } catch {
-        // Corrupt cache entry — fall through and recompute.
-      }
-    }
-  }
-
-  const result = await compute();
-
-  if (cache && cacheKey) {
-    await cache.put(
-      cacheKey,
-      new Response(JSON.stringify(result), {
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": `max-age=${ttlSeconds}`,
-        },
-      }),
-    );
-  }
-
-  return result;
-}
 
 const fetchRawEvents = async (
   dayOffset = 0,
@@ -376,12 +335,36 @@ export const orarioRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input }) => {
-      let ids = input.linkIds || (input.linkId ? [input.linkId] : []);
+      const explicitIds = input.linkIds || (input.linkId ? [input.linkId] : []);
 
-      if (input.professorName || ids.length === 0) {
-        const visibleCourses = await getVisibleCourses();
-        ids = visibleCourses.map((c) => c.linkId);
+      if (input.professorName) {
+        const targetDate = addDays(
+          getCurrentItalianDateTime(),
+          input.dayOffset,
+        );
+        const weekStart = targetDate
+          .minus({ days: getDayOfWeek(targetDate) })
+          .toISODate();
+        const cacheKey = `https://orario-cache.internal/orario/professor/${encodeURIComponent(input.professorName)}/${weekStart}/${input.location}`;
+
+        return withEdgeCache(cacheKey, 15 * 60, async () => {
+          const visibleCourses = await getVisibleCourses();
+          const ids = visibleCourses.map((c) => c.linkId);
+          const allRawEvents = await Promise.all(
+            ids.map((id) => fetchRawEvents(input.dayOffset, id)),
+          );
+          return processEvents(
+            allRawEvents.flat(),
+            input.location,
+            input.professorName,
+          );
+        });
       }
+
+      const ids =
+        explicitIds.length > 0
+          ? explicitIds
+          : (await getVisibleCourses()).map((c) => c.linkId);
 
       if (ids.length === 0) return [];
 
@@ -389,11 +372,7 @@ export const orarioRouter = createTRPCRouter({
         ids.map((id) => fetchRawEvents(input.dayOffset, id)),
       );
 
-      return processEvents(
-        allRawEvents.flat(),
-        input.location,
-        input.professorName,
-      );
+      return processEvents(allRawEvents.flat(), input.location, undefined);
     }),
 
   getMonthlyOrario: publicProcedure
@@ -673,54 +652,28 @@ export const orarioRouter = createTRPCRouter({
       }),
     )
     .query(async ({ input }) => {
-      const isAggregate = !input?.linkIds?.length;
-      let ids = input?.linkIds || [];
-
-      if (isAggregate) {
-        const visibleCourses = await getVisibleCourses();
-        ids = visibleCourses.map((c) => c.linkId);
-      }
-
-      if (ids.length === 0) return [];
-
-      const compute = async () => {
+      if (input?.linkIds?.length) {
         const currentDate = getCurrentItalianDateTime();
         const startRange = currentDate.startOf("day");
-        // 30 days keeps the aggregate fan-out (100+ courses) under the
-        // Worker CPU limit; a full semester window blew it up (error 1102).
         const endRange = startRange.plus({ days: 30 }).endOf("day");
 
-        const fetchProfessorsForId = async (id: string) => {
-          try {
+        const lists = await Promise.all(
+          input.linkIds.map(async (id) => {
             const rawEvents = await fetchCinecaEvents(id, startRange, endRange);
-
             return rawEvents.flatMap((e) =>
               (e.docenti || []).map((d) =>
                 toTitleCase(`${d.cognome} ${d.nome}`),
               ),
             );
-          } catch (error) {
-            console.error(`Failed to fetch professors for ${id}:`, error);
-            return [];
-          }
-        };
-
-        const allProfessorsLists = await Promise.all(
-          ids.map(fetchProfessorsForId),
+          }),
         );
-        const combinedProfessors = new Set(allProfessorsLists.flat());
-
-        return Array.from(combinedProfessors)
+        return Array.from(new Set(lists.flat()))
           .filter((p) => p !== "N/A" && p.trim() !== "")
           .sort();
-      };
+      }
 
-      if (!isAggregate) return compute();
-
-      return withEdgeCache(
-        "https://orario-cache.internal/professors",
-        20 * 60,
-        compute,
+      return withEdgeCache(PROFESSORS_CACHE_URL, 20 * 60, () =>
+        computeAllProfessors(30),
       );
     }),
 

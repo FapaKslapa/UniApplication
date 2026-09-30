@@ -1,29 +1,21 @@
-import { cn } from "@/lib/utils";
-import type { WelcomeSlide } from "./slides";
+import type { WelcomeSlide } from "@/components/welcome/slides";
 
-interface SlideBodyProps {
+type SlideBodyProps = {
   slide: WelcomeSlide;
-}
+};
 
 export function SlideBody({ slide }: SlideBodyProps) {
   const Icon = slide.icon;
 
   return (
     <>
-      <div
-        className={cn(
-          "w-20 h-20 rounded-lg flex items-center justify-center transition-all duration-500",
-          slide.bgColor,
-        )}
-      >
-        <Icon className={cn("w-10 h-10", slide.color)} />
+      <div className="flex size-16 items-center justify-center rounded-xl bg-muted">
+        <Icon className="size-7 text-foreground" />
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-2xl font-bold text-zinc-900 dark:text-white tracking-tight">
-          {slide.title}
-        </h2>
-        <p className="text-zinc-500 dark:text-zinc-400 text-sm font-medium leading-relaxed">
+        <h2 className="text-xl font-bold tracking-tight">{slide.title}</h2>
+        <p className="text-sm font-medium leading-relaxed text-muted-foreground">
           {slide.description}
         </p>
       </div>
@@ -33,18 +25,18 @@ export function SlideBody({ slide }: SlideBodyProps) {
           {slide.bullets.map(({ icon: BulletIcon, text }) => (
             <li
               key={text}
-              className="flex items-center gap-3 text-left text-sm text-zinc-600 dark:text-zinc-300 bg-zinc-50 dark:bg-zinc-900 rounded-lg px-4 py-2.5 font-medium"
+              className="flex items-center gap-3 rounded-md bg-muted px-4 py-2.5 text-left text-sm font-medium"
             >
-              <BulletIcon className={cn("w-4 h-4 shrink-0", slide.color)} />
+              <BulletIcon className="size-4 shrink-0 text-muted-foreground" />
               <span>{text}</span>
             </li>
           ))}
         </ul>
       )}
 
-      {slide.communityNote && (
-        <p className="text-xs text-zinc-400 dark:text-zinc-500 bg-zinc-50 dark:bg-zinc-900 rounded-lg px-4 py-3 leading-relaxed w-full text-left">
-          {slide.communityNote}
+      {slide.note && (
+        <p className="w-full rounded-md bg-muted px-4 py-3 text-left text-xs leading-relaxed text-muted-foreground">
+          {slide.note}
         </p>
       )}
     </>
