@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Noto_Serif } from "next/font/google";
+import { Onest } from "next/font/google";
 import "@/app/globals.css";
 import Script from "next/script";
 import type React from "react";
@@ -7,15 +7,10 @@ import { AnalyticsTracker } from "@/components/AnalyticsTracker";
 import { ServiceWorkerRegistration } from "@/components/ServiceWorkerRegistration";
 import { TRPCProvider } from "@/lib/providers";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const onest = Onest({
+  variable: "--font-onest",
   subsets: ["latin"],
-});
-
-const notoSerif = Noto_Serif({
-  variable: "--font-noto-serif",
-  subsets: ["latin"],
-  weight: ["400", "600", "700"],
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -53,7 +48,7 @@ export default function RootLayout({
         </Script>
       </head>
       <body
-        className={`${geistSans.variable} ${notoSerif.variable} font-sans antialiased bg-white dark:bg-black`}
+        className={`${onest.variable} font-sans antialiased bg-white dark:bg-black`}
       >
         <TRPCProvider>
           <ServiceWorkerRegistration />
