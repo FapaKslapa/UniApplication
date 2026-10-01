@@ -24,7 +24,10 @@ export function DayTimeline({
   const nowMinutes = minutesOfDay(now);
 
   return (
-    <ul className="min-h-0 flex-1 space-y-1.5 overflow-y-auto overscroll-contain px-1 pb-2">
+    <ul
+      className="min-h-0 flex-1 space-y-1.5 overflow-y-auto overscroll-contain px-1 pb-2"
+      style={{ touchAction: "pan-y" }}
+    >
       {events.map((event, index) => (
         <LessonRow
           key={`${event.time}-${event.materia}`}

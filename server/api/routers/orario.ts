@@ -693,24 +693,22 @@ export const orarioRouter = createTRPCRouter({
       if (snapshots.length === 0) return null;
 
       const today = new Date().toISOString().split("T")[0];
-      const allChanges = snapshots
-        .filter((s) => s.lastChanges)
-        .flatMap((s) => {
-          try {
-            const lastChanges = s.lastChanges;
-            if (!lastChanges) return [];
-            const parsed = JSON.parse(lastChanges) as TimetableChange[];
-            return parsed.filter((c) => c.date >= today);
-          } catch {
-            return [];
-          }
-        });
+      const snapshotsWithChanges = snapshots.filter((s) => s.lastChanges);
+      const allChanges = snapshotsWithChanges.flatMap((s) => {
+        try {
+          const lastChanges = s.lastChanges;
+          if (!lastChanges) return [];
+          const parsed = JSON.parse(lastChanges) as TimetableChange[];
+          return parsed.filter((c) => c.date >= today);
+        } catch {
+          return [];
+        }
+      });
 
       if (allChanges.length === 0) return null;
 
-      // Prendiamo il timestamp più recente per il "versioning" lato client
       const latestUpdate = Math.max(
-        ...snapshots.map((s) => s.lastUpdated.getTime()),
+        ...snapshotsWithChanges.map((s) => s.lastUpdated.getTime()),
       );
 
       return {
