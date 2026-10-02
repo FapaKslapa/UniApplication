@@ -1,3 +1,5 @@
+import { m } from "framer-motion";
+import { springs } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export type FilterType = "all" | "pending" | "approved" | "rejected";
@@ -27,21 +29,27 @@ export function CourseFilterTabs({
   ] as const;
 
   return (
-    <div className="flex items-center gap-3 overflow-x-auto pb-2 px-1 no-scrollbar text-nowrap">
+    <div className="flex items-center gap-1 overflow-x-auto rounded-full bg-muted p-1 no-scrollbar text-nowrap">
       {tabs.map((f) => (
         <button
           key={f.id}
           type="button"
           onClick={() => onFilterChange(f.id)}
+          aria-pressed={filter === f.id}
           className={cn(
-            "flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full border transition-[color,background-color,border-color,box-shadow,transform] text-[10px] font-bold uppercase tracking-widest font-mono",
-            filter === f.id
-              ? "bg-zinc-900 dark:bg-white text-white dark:text-black border-transparent shadow-md scale-105"
-              : "bg-white dark:bg-zinc-950 border-zinc-100 dark:border-zinc-800 text-zinc-400 hover:border-zinc-300",
+            "relative z-10 flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-xs font-semibold transition-colors",
+            filter === f.id ? "text-foreground" : "text-muted-foreground",
           )}
         >
+          {filter === f.id && (
+            <m.span
+              layoutId="course-filter-tab"
+              transition={springs.snappy}
+              className="absolute inset-0 -z-10 rounded-full bg-card elevation-1"
+            />
+          )}
           {f.label}
-          <span className="opacity-50">{f.count}</span>
+          <span className="opacity-60">{f.count}</span>
         </button>
       ))}
     </div>

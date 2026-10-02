@@ -54,11 +54,11 @@ export function OsPushCharts({
               content={({ active, payload }) => {
                 if (!active || !payload?.length) return null;
                 return (
-                  <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-3 rounded-xl shadow-xl">
+                  <div className="rounded-lg bg-popover p-3 text-popover-foreground elevation-1">
                     <p className="text-xs font-bold">
                       {payload[0]?.payload?.os}
                     </p>
-                    <p className="text-[10px] text-zinc-400">
+                    <p className="text-[10px] text-muted-foreground">
                       {Number(payload[0]?.value).toLocaleString()} ·{" "}
                       {osTotal > 0
                         ? ((Number(payload[0]?.value) / osTotal) * 100).toFixed(
@@ -82,13 +82,13 @@ export function OsPushCharts({
 
       <ChartCard title="Push Notifications">
         <div className="flex items-center gap-4 mb-6">
-          <div className="flex items-center gap-3 bg-zinc-50 dark:bg-zinc-900 rounded-2xl px-4 py-4 flex-1">
+          <div className="flex items-center gap-3 rounded-xl bg-muted px-4 py-4 flex-1">
             <Bell className="w-5 h-5 text-violet-500 shrink-0" />
             <div>
-              <p className="text-2xl font-extrabold tracking-tighter text-zinc-900 dark:text-white">
+              <p className="text-2xl font-extrabold tracking-tighter text-foreground">
                 {(pushStats?.total ?? 0).toLocaleString("it-IT")}
               </p>
-              <p className="text-[10px] text-zinc-400 font-mono uppercase tracking-widest">
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest">
                 Iscrizioni attive
               </p>
             </div>
@@ -97,7 +97,7 @@ export function OsPushCharts({
 
         {(pushStats?.topCourses ?? []).length > 0 && (
           <div className="space-y-3">
-            <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-zinc-400">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">
               Top corsi iscritti
             </p>
             {(pushStats?.topCourses ?? []).slice(0, 5).map((c, i) => {
@@ -105,17 +105,17 @@ export function OsPushCharts({
               return (
                 <div key={c.linkId}>
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-[10px] font-mono font-bold text-zinc-300 dark:text-zinc-600 w-4 shrink-0">
+                    <span className="text-[10px] font-bold text-muted-foreground/60 w-4 shrink-0">
                       {i + 1}
                     </span>
-                    <span className="text-[11px] font-mono text-zinc-500 flex-1 truncate min-w-0">
+                    <span className="text-[11px] text-muted-foreground flex-1 truncate min-w-0">
                       {c.linkId}
                     </span>
-                    <span className="text-xs font-bold font-mono shrink-0">
+                    <span className="text-xs font-bold shrink-0">
                       {c.count}
                     </span>
                   </div>
-                  <div className="h-1 rounded-full bg-zinc-100/40 dark:bg-zinc-800/40 ml-6">
+                  <div className="h-1 rounded-full bg-muted ml-6">
                     <div
                       className="h-full rounded-full bg-violet-500/40"
                       style={{ width: `${(c.count / maxCount) * 100}%` }}

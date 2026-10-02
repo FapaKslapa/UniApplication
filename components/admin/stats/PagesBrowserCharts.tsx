@@ -38,20 +38,18 @@ export function PagesBrowserCharts({
           {(topPages ?? []).map((page, i) => (
             <div key={page.path}>
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[10px] font-mono font-bold text-zinc-300 dark:text-zinc-600 w-4 shrink-0">
+                <span className="text-[10px] font-bold text-muted-foreground/60 w-4 shrink-0">
                   {i + 1}
                 </span>
-                <span className="text-xs font-mono text-zinc-600 dark:text-zinc-400 flex-1 truncate min-w-0">
+                <span className="text-xs text-muted-foreground flex-1 truncate min-w-0">
                   {page.path}
                 </span>
-                <span className="text-[10px] font-mono text-zinc-400 shrink-0">
+                <span className="text-[10px] text-muted-foreground shrink-0">
                   {page.unique} unici
                 </span>
-                <span className="text-xs font-bold font-mono shrink-0">
-                  {page.count}
-                </span>
+                <span className="text-xs font-bold shrink-0">{page.count}</span>
               </div>
-              <div className="h-1 rounded-full bg-zinc-100/40 dark:bg-zinc-800/40 ml-6">
+              <div className="h-1 rounded-full bg-muted ml-6">
                 <div
                   className="h-full rounded-full bg-violet-500/60"
                   style={{
@@ -90,11 +88,11 @@ export function PagesBrowserCharts({
               content={({ active, payload }) => {
                 if (!active || !payload?.length) return null;
                 return (
-                  <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-3 rounded-xl shadow-xl">
+                  <div className="rounded-lg bg-popover p-3 text-popover-foreground elevation-1">
                     <p className="text-xs font-bold">
                       {payload[0]?.payload?.browser}
                     </p>
-                    <p className="text-[10px] text-zinc-400">
+                    <p className="text-[10px] text-muted-foreground">
                       {Number(payload[0]?.value).toLocaleString()}
                     </p>
                   </div>
@@ -120,10 +118,10 @@ export function PagesBrowserCharts({
                   background: BROWSER_COLORS[i % BROWSER_COLORS.length],
                 }}
               />
-              <span className="text-[11px] text-zinc-600 dark:text-zinc-400 truncate flex-1 min-w-0">
+              <span className="text-[11px] text-muted-foreground truncate flex-1 min-w-0">
                 {b.browser}
               </span>
-              <span className="text-[10px] font-mono text-zinc-400 shrink-0">
+              <span className="text-[10px] text-muted-foreground shrink-0">
                 {browserTotal > 0
                   ? ((b.count / browserTotal) * 100).toFixed(0)
                   : 0}

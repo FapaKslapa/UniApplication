@@ -43,15 +43,25 @@ function isRateLimited(ip: string): boolean {
 const get = (r: unknown[]) =>
   Number((r[0] as { value?: unknown } | undefined)?.value ?? 0);
 
+const toEpochSeconds = (date: Date) => Math.floor(date.getTime() / 1000);
+
 function italyBoundaries() {
   const now = DateTime.now().setZone("Europe/Rome");
   return {
-    todayStart: now.startOf("day").toJSDate(),
-    yesterdayStart: now.minus({ days: 1 }).startOf("day").toJSDate(),
-    weekStart: now.minus({ days: 7 }).startOf("day").toJSDate(),
-    prevWeekStart: now.minus({ days: 14 }).startOf("day").toJSDate(),
-    monthStart: now.minus({ days: 30 }).startOf("day").toJSDate(),
-    prevMonthStart: now.minus({ days: 60 }).startOf("day").toJSDate(),
+    todayStart: toEpochSeconds(now.startOf("day").toJSDate()),
+    yesterdayStart: toEpochSeconds(
+      now.minus({ days: 1 }).startOf("day").toJSDate(),
+    ),
+    weekStart: toEpochSeconds(now.minus({ days: 7 }).startOf("day").toJSDate()),
+    prevWeekStart: toEpochSeconds(
+      now.minus({ days: 14 }).startOf("day").toJSDate(),
+    ),
+    monthStart: toEpochSeconds(
+      now.minus({ days: 30 }).startOf("day").toJSDate(),
+    ),
+    prevMonthStart: toEpochSeconds(
+      now.minus({ days: 60 }).startOf("day").toJSDate(),
+    ),
     italyOffsetHours: now.offset / 60,
   };
 }
@@ -99,9 +109,10 @@ export const statsRouter = createTRPCRouter({
   // ── Overview KPI ──────────────────────────────────────────────────────────
   getOverview: adminProcedure.query(async () => {
     const { todayStart, weekStart, italyOffsetHours } = italyBoundaries();
-    const h24ago = new Date(Date.now() - 86_400_000);
-    const h48ago = new Date(Date.now() - 172_800_000);
-    const w2ago = new Date(Date.now() - 1_209_600_000);
+    const h24ago = toEpochSeconds(new Date(Date.now() - 86_400_000));
+    const h48ago = toEpochSeconds(new Date(Date.now() - 172_800_000));
+    const w2ago = toEpochSeconds(new Date(Date.now() - 1_209_600_000));
+    const w1ago = toEpochSeconds(new Date(Date.now() - 604_800_000));
 
     const [
       total,
@@ -122,10 +133,10 @@ export const statsRouter = createTRPCRouter({
         sql`SELECT COUNT(*) as value FROM visits WHERE createdAt >= ${h48ago} AND createdAt < ${h24ago}`,
       ),
       db.all(
-        sql`SELECT COUNT(*) as value FROM visits WHERE createdAt >= ${new Date(Date.now() - 604_800_000)}`,
+        sql`SELECT COUNT(*) as value FROM visits WHERE createdAt >= ${w1ago}`,
       ),
       db.all(
-        sql`SELECT COUNT(*) as value FROM visits WHERE createdAt >= ${w2ago} AND createdAt < ${new Date(Date.now() - 604_800_000)}`,
+        sql`SELECT COUNT(*) as value FROM visits WHERE createdAt >= ${w2ago} AND createdAt < ${w1ago}`,
       ),
       db.all(sql`SELECT COUNT(DISTINCT ip) as value FROM visits`),
       db.all(
@@ -239,6 +250,8 @@ export const statsRouter = createTRPCRouter({
         toDate = new Date();
         fromDate = new Date(toDate.getTime() - (input.days ?? 30) * 86_400_000);
       }
+      const from = toEpochSeconds(fromDate);
+      const to = toEpochSeconds(toDate);
 
       const result = await db.all(sql`
         SELECT
@@ -247,7 +260,7 @@ export const statsRouter = createTRPCRouter({
           COUNT(DISTINCT ip) as "unique",
           COUNT(DISTINCT client_id) as uniqueClients
         FROM visits
-        WHERE createdAt >= ${fromDate} AND createdAt <= ${toDate}
+        WHERE createdAt >= ${from} AND createdAt <= ${to}
         GROUP BY date
         ORDER BY date ASC
       `);
@@ -269,12 +282,12 @@ export const statsRouter = createTRPCRouter({
     )
     .query(async ({ input }) => {
       const days = input?.days ?? 30;
-      const fromDate = new Date(Date.now() - days * 86_400_000);
+      const fromDate = toEpochSeconds(new Date(Date.now() - days * 86_400_000));
       const offsetHours = DateTime.now().setZone("Europe/Rome").offset / 60;
 
       const result = await db.all(sql`
-        SELECT 
-          cast(strftime('%H', (createdAt / case when createdAt > 9999999999 then 1000 else 1 end) + ${offsetHours * 3600}, 'unixepoch') as integer) as hour, 
+        SELECT
+          cast(strftime('%H', (createdAt / case when createdAt > 9999999999 then 1000 else 1 end) + ${offsetHours * 3600}, 'unixepoch') as integer) as hour,
           COUNT(*) as count
         FROM visits
         WHERE createdAt >= ${fromDate}
@@ -353,7 +366,7 @@ export const statsRouter = createTRPCRouter({
 
   // ── Statistiche push notification ─────────────────────────────────────────
   getPushStats: adminProcedure.query(async () => {
-    const fromDate = new Date(Date.now() - 30 * 86_400_000);
+    const fromDate = toEpochSeconds(new Date(Date.now() - 30 * 86_400_000));
 
     const [total, topCourses, trend] = await Promise.all([
       db.all(sql`SELECT COUNT(*) as value FROM push_subscriptions`),

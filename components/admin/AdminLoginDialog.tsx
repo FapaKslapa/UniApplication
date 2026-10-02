@@ -1,6 +1,6 @@
 "use client";
 
-import { ShieldCheck } from "lucide-react";
+import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,9 @@ export function AdminLoginDialog({
   onClose,
   onSuccess,
 }: AdminLoginDialogProps) {
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isPending, setIsPending] = useState(false);
   const setIsAdmin = useAppStore((state) => state.setIsAdmin);
@@ -36,25 +38,16 @@ export function AdminLoginDialog({
     setError("");
     setIsPending(true);
 
-    const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
-    if (!adminEmail) {
-      setError("NEXT_PUBLIC_ADMIN_EMAIL non configurato");
-      setIsPending(false);
-      return;
-    }
-
     try {
-      const result = await authClient.signIn.email({
-        email: adminEmail,
-        password,
-      });
+      const result = await authClient.signIn.email({ email, password });
 
       if (result.error) {
-        setError(result.error.message ?? "Password non corretta");
+        setError(result.error.message ?? "Credenziali non corrette");
         return;
       }
 
       setIsAdmin(true);
+      setEmail("");
       setPassword("");
       onSuccess?.();
       onClose();
@@ -78,21 +71,45 @@ export function AdminLoginDialog({
 
         <form onSubmit={handleLogin} className="flex flex-col gap-3 px-5 pb-8">
           <Input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
             autoFocus
+            autoComplete="username"
             className="h-12 rounded-md bg-card"
           />
+          <div className="relative">
+            <Input
+              type={showPassword ? "text" : "password"}
+              placeholder="Password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+              className="h-12 rounded-md bg-card pr-11"
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={
+                showPassword ? "Nascondi password" : "Mostra password"
+              }
+              className="absolute top-1/2 right-1 size-9 -translate-y-1/2 rounded-full text-muted-foreground"
+            >
+              {showPassword ? (
+                <EyeOff className="size-4" />
+              ) : (
+                <Eye className="size-4" />
+              )}
+            </Button>
+          </div>
           {error && (
             <p className="text-xs font-semibold text-destructive">{error}</p>
           )}
           <Button type="submit" size="lg" disabled={isPending}>
             {isPending ? "Accesso..." : "Entra"}
-          </Button>
-          <Button type="button" variant="ghost" onClick={onClose}>
-            Annulla
           </Button>
         </form>
       </DrawerContent>

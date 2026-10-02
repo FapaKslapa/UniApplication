@@ -2,10 +2,12 @@ import { it } from "date-fns/locale";
 import { CalendarDays, TrendingDown, TrendingUp } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 
 function TrendBadge({ value }: { value: number | null }) {
@@ -14,10 +16,10 @@ function TrendBadge({ value }: { value: number | null }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold font-mono",
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
         up
-          ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
-          : "bg-red-500/15 text-red-600 dark:text-red-400",
+          ? "bg-green-500/10 text-green-600 dark:text-green-400"
+          : "bg-destructive/10 text-destructive",
       )}
     >
       {up ? (
@@ -47,18 +49,20 @@ export function StatCard({
   trend?: number | null;
 }) {
   return (
-    <div className="bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-[2rem] p-4 sm:p-5 shadow-sm">
+    <div className="rounded-xl bg-card p-4 sm:p-5 elevation-1">
       <div className="flex items-start justify-between mb-2 sm:mb-3">
-        <p className="text-[9px] font-mono font-bold uppercase tracking-widest text-zinc-400 leading-tight flex-1 pr-2">
+        <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground leading-tight flex-1 pr-2">
           {title}
         </p>
         <div className={cn("p-2 rounded-xl shrink-0", iconColor)}>{icon}</div>
       </div>
-      <p className="text-2xl sm:text-3xl font-extrabold tracking-tighter text-zinc-900 dark:text-white mb-1">
+      <p className="text-2xl sm:text-3xl font-extrabold tracking-tighter text-foreground mb-1">
         {value.toLocaleString("it-IT")}
       </p>
       <div className="flex items-center gap-2 flex-wrap">
-        <p className="text-[10px] text-zinc-400 font-medium">{subtitle}</p>
+        <p className="text-[10px] text-muted-foreground font-medium">
+          {subtitle}
+        </p>
         {trend !== undefined && <TrendBadge value={trend ?? null} />}
       </div>
     </div>
@@ -75,13 +79,8 @@ export function ChartCard({
   className?: string;
 }) {
   return (
-    <div
-      className={cn(
-        "bg-white dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-900 rounded-[2.5rem] p-5 sm:p-6 shadow-sm",
-        className,
-      )}
-    >
-      <p className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400 mb-5 sm:mb-6">
+    <div className={cn("rounded-xl bg-card p-5 sm:p-6 elevation-2", className)}>
+      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-5 sm:mb-6">
         {title}
       </p>
       {children}
@@ -90,14 +89,7 @@ export function ChartCard({
 }
 
 export function SkeletonCard({ className }: { className?: string }) {
-  return (
-    <div
-      className={cn(
-        "bg-zinc-200/40 dark:bg-zinc-800/40 animate-pulse rounded-[2rem]",
-        className,
-      )}
-    />
-  );
+  return <div className={cn("bg-muted animate-pulse rounded-xl", className)} />;
 }
 
 export function CustomLineTooltip({
@@ -111,8 +103,8 @@ export function CustomLineTooltip({
 }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-3 rounded-xl shadow-xl">
-      <p className="text-[10px] font-mono text-zinc-400 mb-2">
+    <div className="rounded-lg bg-popover p-3 text-popover-foreground elevation-1">
+      <p className="text-[10px] text-muted-foreground mb-2">
         {label
           ? new Date(label).toLocaleDateString("it-IT", {
               day: "numeric",
@@ -123,10 +115,8 @@ export function CustomLineTooltip({
       </p>
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2">
-          <span className="text-xs font-bold text-zinc-900 dark:text-white">
-            {p.value.toLocaleString()}
-          </span>
-          <span className="text-[10px] text-zinc-400">
+          <span className="text-xs font-bold">{p.value.toLocaleString()}</span>
+          <span className="text-[10px] text-muted-foreground">
             {p.name === "count"
               ? "visite"
               : p.name === "unique"
@@ -155,38 +145,47 @@ export function DatePickerButton({
   disabledFn?: (date: Date) => boolean;
 }) {
   return (
-    <Popover open={open} onOpenChange={onOpenChange}>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-bold font-mono bg-zinc-50 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600 transition-colors whitespace-nowrap min-w-[72px]"
-        >
-          <CalendarDays className="w-3 h-3 text-zinc-400 shrink-0" />
-          {date
-            ? date.toLocaleDateString("it-IT", {
-                day: "numeric",
-                month: "short",
-                timeZone: "Europe/Rome",
-              })
-            : placeholder}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent
-        className="w-auto p-0 bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-3xl shadow-2xl overflow-hidden"
-        align="start"
+    <>
+      <button
+        type="button"
+        onClick={() => onOpenChange(true)}
+        className="flex items-center gap-1.5 whitespace-nowrap min-w-[72px] rounded-full bg-secondary px-3 py-1.5 text-[11px] font-bold text-secondary-foreground"
       >
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={(d) => {
-            onSelect(d);
-            onOpenChange(false);
-          }}
-          disabled={disabledFn}
-          locale={it}
-          className="font-mono"
-        />
-      </PopoverContent>
-    </Popover>
+        <CalendarDays className="w-3 h-3 text-muted-foreground shrink-0" />
+        {date
+          ? date.toLocaleDateString("it-IT", {
+              day: "numeric",
+              month: "short",
+              timeZone: "Europe/Rome",
+            })
+          : placeholder}
+      </button>
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent className="bg-popover">
+          <DrawerHeader className="flex-row items-center gap-4">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background elevation-1">
+              <CalendarDays className="size-5" />
+            </div>
+            <div className="text-left">
+              <DrawerTitle className="text-xl">Scegli una data</DrawerTitle>
+              <DrawerDescription>{placeholder}</DrawerDescription>
+            </div>
+          </DrawerHeader>
+          <div className="flex justify-center px-2 pb-6">
+            <Calendar
+              mode="single"
+              locale={it}
+              selected={date}
+              onSelect={(d) => {
+                onSelect(d);
+                onOpenChange(false);
+              }}
+              disabled={disabledFn}
+              className="bg-transparent"
+            />
+          </div>
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 }

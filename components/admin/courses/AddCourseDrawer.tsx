@@ -1,4 +1,6 @@
+import { Plus } from "lucide-react";
 import { AcademicYearPicker } from "@/components/ui/academic-year-picker";
+import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerContent,
@@ -41,16 +43,21 @@ export function AddCourseDrawer({
 }: AddCourseDrawerProps) {
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent>
-        <DrawerHeader>
-          <DrawerTitle>Aggiungi corso</DrawerTitle>
-          <DrawerDescription>Nuova configurazione sistema</DrawerDescription>
+      <DrawerContent className="bg-popover">
+        <DrawerHeader className="flex-row items-center gap-4">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background elevation-1">
+            <Plus className="size-5" />
+          </div>
+          <div className="min-w-0 flex-1 text-left">
+            <DrawerTitle className="text-xl">Aggiungi corso</DrawerTitle>
+            <DrawerDescription>Nuova configurazione sistema</DrawerDescription>
+          </div>
         </DrawerHeader>
-        <div className="p-8 lg:p-10 space-y-6">
+        <div className="space-y-5 px-5 pb-6">
           <div className="space-y-2">
             <label
               htmlFor="admin-course-name"
-              className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400 ml-1"
+              className="ml-1 text-xs font-medium text-muted-foreground"
             >
               Nome Corso
             </label>
@@ -60,13 +67,13 @@ export function AddCourseDrawer({
               value={newCourse.name}
               onChange={(e) => onChange({ ...newCourse, name: e.target.value })}
               placeholder="Es: Informatica - Vare"
-              className="w-full px-5 py-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-2xl focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white focus:outline-none transition-shadow text-sm"
+              className="w-full rounded-md bg-card px-4 py-3 text-sm elevation-1 transition-shadow focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div className="space-y-2">
             <label
               htmlFor="admin-course-url"
-              className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400 ml-1"
+              className="ml-1 text-xs font-medium text-muted-foreground"
             >
               Cineca URL
             </label>
@@ -78,14 +85,14 @@ export function AddCourseDrawer({
                 onChange({ ...newCourse, calendarUrl: e.target.value })
               }
               placeholder="https://..."
-              className="w-full px-5 py-4 bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800 rounded-2xl focus:ring-2 focus:ring-zinc-900 dark:focus:ring-white focus:outline-none transition-shadow text-xs font-mono"
+              className="w-full rounded-md bg-card px-4 py-3 text-xs elevation-1 transition-shadow focus:outline-none focus:ring-2 focus:ring-ring"
             />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label
                 htmlFor="admin-course-year"
-                className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400 ml-1"
+                className="ml-1 text-xs font-medium text-muted-foreground"
               >
                 Anno
               </label>
@@ -97,17 +104,13 @@ export function AddCourseDrawer({
               >
                 <SelectTrigger
                   id="admin-course-year"
-                  className="h-12 rounded-2xl bg-zinc-50 dark:bg-zinc-950 border border-zinc-100 dark:border-zinc-800"
+                  className="h-12 rounded-md bg-card elevation-1"
                 >
                   <SelectValue placeholder="Seleziona..." />
                 </SelectTrigger>
-                <SelectContent className="rounded-2xl">
+                <SelectContent>
                   {[1, 2, 3, 4, 5, 6].map((y) => (
-                    <SelectItem
-                      key={y}
-                      value={String(y)}
-                      className="rounded-xl"
-                    >
+                    <SelectItem key={y} value={String(y)}>
                       {y}° Anno
                     </SelectItem>
                   ))}
@@ -117,7 +120,7 @@ export function AddCourseDrawer({
             <div className="space-y-2">
               <label
                 htmlFor="admin-academic-year"
-                className="text-[10px] font-mono font-bold uppercase tracking-widest text-zinc-400 ml-1"
+                className="ml-1 text-xs font-medium text-muted-foreground"
               >
                 Accademico
               </label>
@@ -130,21 +133,21 @@ export function AddCourseDrawer({
           </div>
         </div>
         <DrawerFooter className="flex-row gap-3">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={() => onOpenChange(false)}
-            className="px-6 py-3 font-bold text-xs uppercase tracking-widest text-zinc-400 hover:text-zinc-900 dark:hover:text-white transition-colors"
           >
             Annulla
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={onSave}
             disabled={isSaving}
-            className="flex-1 px-8 py-3 bg-zinc-900 dark:bg-white text-white dark:text-black rounded-2xl font-bold text-xs uppercase tracking-widest transition-transform active:scale-95 shadow-lg"
+            className="flex-1"
           >
             Salva
-          </button>
+          </Button>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

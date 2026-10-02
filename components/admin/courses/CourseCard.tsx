@@ -7,59 +7,58 @@ import {
   Trash2,
   XCircle,
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import type { Course } from "@/lib/courses";
 import { cn } from "@/lib/utils";
 
 const statusConfigMap = {
   pending: {
-    bg: "bg-amber-50 dark:bg-amber-900/20",
-    border: "border-amber-200 dark:border-amber-800",
-    text: "text-amber-700 dark:text-amber-400",
+    className: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
     label: "Attesa",
   },
   approved: {
-    bg: "bg-emerald-50 dark:bg-emerald-900/20",
-    border: "border-emerald-200 dark:border-emerald-800",
-    text: "text-emerald-700 dark:text-emerald-400",
+    className: "bg-green-500/15 text-green-600 dark:text-green-400",
     label: "Attivo",
   },
   rejected: {
-    bg: "bg-red-50 dark:bg-red-900/20",
-    border: "border-red-200 dark:border-red-800",
-    text: "text-red-700 dark:text-red-400",
+    className: "bg-destructive/15 text-destructive",
     label: "Rifiutato",
   },
 } as const;
 
 const actionButtonColors: Record<string, string> = {
-  emerald:
-    "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 hover:bg-emerald-500 hover:text-white border-emerald-100 dark:border-emerald-800",
-  blue: "bg-blue-50 dark:bg-blue-900/20 text-blue-600 hover:bg-blue-500 hover:text-white border-blue-100 dark:border-blue-800",
-  amber:
-    "bg-amber-50 dark:bg-amber-900/20 text-amber-600 hover:bg-amber-500 hover:text-white border-amber-100 dark:border-amber-800",
-  red: "bg-red-50 dark:bg-red-900/20 text-red-600 hover:bg-red-500 hover:text-white border-red-100 dark:border-red-800",
+  emerald: "text-green-600 dark:text-green-400",
+  blue: "text-blue-600 dark:text-blue-400",
+  amber: "text-amber-600 dark:text-amber-400",
+  red: "text-destructive",
 };
 
 function ActionButton({
   onClick,
   icon,
   color,
+  label,
 }: {
   onClick: () => void;
   icon: React.ReactNode;
   color: string;
+  label: string;
 }) {
   return (
-    <button
+    <Button
       type="button"
+      variant="outline"
+      size="icon"
+      aria-label={label}
       onClick={onClick}
       className={cn(
-        "p-2.5 rounded-xl border transition-[color,background-color,transform] active:scale-90 shadow-sm",
+        "size-9 rounded-full elevation-1",
         actionButtonColors[color],
       )}
     >
       {icon}
-    </button>
+    </Button>
   );
 }
 
@@ -84,104 +83,96 @@ export function CourseCard({
 }: CourseCardProps) {
   const statusConfig =
     statusConfigMap[course.status as "pending" | "approved" | "rejected"];
+  const isCopied = copiedCourseId === course.id;
 
   return (
     <m.div
       layout
-      className="group bg-white dark:bg-zinc-900/50 border border-zinc-100 dark:border-zinc-800 rounded-[2rem] p-6 shadow-sm hover:shadow-xl transition-shadow"
+      className="group space-y-4 rounded-xl bg-card p-5 elevation-1"
     >
-      <div className="flex items-start justify-between gap-4 mb-6">
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <h3 className="text-base font-bold font-serif text-zinc-900 dark:text-white mb-2 leading-tight truncate">
+          <h3 className="mb-2 truncate text-base font-bold leading-tight">
             {course.name}
           </h3>
-          <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className={cn(
-                "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[9px] font-bold font-mono uppercase border",
-                statusConfig.bg,
-                statusConfig.border,
-                statusConfig.text,
-              )}
-            >
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className={statusConfig.className}>
               {statusConfig.label}
-            </span>
+            </Badge>
             {course.verified && (
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 text-blue-600 text-[9px] font-bold font-mono uppercase">
+              <Badge className="bg-blue-500/15 text-blue-600 dark:text-blue-400">
                 <ShieldCheck className="h-3 w-3" /> Verificato
-              </span>
+              </Badge>
             )}
-            <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-zinc-50 dark:bg-zinc-800 border border-zinc-100 dark:border-zinc-700 text-zinc-500 text-[9px] font-bold font-mono uppercase">
-              {course.year}° Anno
-            </span>
+            <Badge variant="secondary">{course.year}° Anno</Badge>
           </div>
         </div>
-        <button
+        <Button
           type="button"
+          variant="outline"
+          size="icon"
           onClick={() => onCopyLink(course.linkId, course.id)}
-          aria-label={
-            copiedCourseId === course.id ? "Link copiato" : "Copia link"
-          }
+          aria-label={isCopied ? "Link copiato" : "Copia link"}
           className={cn(
-            "p-2.5 rounded-xl transition-[color,background-color,border-color,transform] shadow-sm active:scale-90 border",
-            copiedCourseId === course.id
-              ? "bg-emerald-500 text-white border-transparent"
-              : "bg-white dark:bg-zinc-800 text-zinc-400 border-zinc-100 dark:border-zinc-700",
+            "size-9 shrink-0 rounded-full elevation-1",
+            isCopied &&
+              "border-transparent bg-green-500 text-white hover:bg-green-500 hover:text-white",
           )}
         >
-          {copiedCourseId === course.id ? (
+          {isCopied ? (
             <Check className="w-4 h-4" />
           ) : (
             <Copy className="w-4 h-4" />
           )}
-        </button>
+        </Button>
       </div>
 
-      <div className="space-y-4">
-        <div className="p-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl border border-zinc-100 dark:border-zinc-800">
-          <code className="text-[10px] font-mono text-zinc-400 block truncate">
-            {course.linkId}
-          </code>
-        </div>
+      <div className="rounded-md bg-muted p-3">
+        <code className="block truncate text-[11px] text-muted-foreground">
+          {course.linkId}
+        </code>
+      </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-[10px] font-mono font-bold text-zinc-400 uppercase tracking-tighter">
-            <span>By {course.addedBy}</span>
-            <div className="w-1 h-1 rounded-full bg-zinc-300" />
-            <span>
-              {new Date(course.createdAt).toLocaleDateString("it", {
-                timeZone: "Europe/Rome",
-              })}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            {onApprove && course.status !== "approved" && (
-              <ActionButton
-                onClick={onApprove}
-                icon={<CheckCircle2 className="w-3.5 h-3.5" />}
-                color="emerald"
-              />
-            )}
-            {onVerify && !course.verified && (
-              <ActionButton
-                onClick={onVerify}
-                icon={<ShieldCheck className="w-3.5 h-3.5" />}
-                color="blue"
-              />
-            )}
-            {onReject && course.status === "pending" && (
-              <ActionButton
-                onClick={onReject}
-                icon={<XCircle className="w-3.5 h-3.5" />}
-                color="amber"
-              />
-            )}
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0 space-y-0.5 text-xs text-muted-foreground">
+          <p className="truncate">By {course.addedBy}</p>
+          <p className="truncate">
+            {new Date(course.createdAt).toLocaleDateString("it", {
+              timeZone: "Europe/Rome",
+            })}
+          </p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {onApprove && course.status !== "approved" && (
             <ActionButton
-              onClick={onDelete}
-              icon={<Trash2 className="w-3.5 h-3.5" />}
-              color="red"
+              onClick={onApprove}
+              icon={<CheckCircle2 className="w-3.5 h-3.5" />}
+              color="emerald"
+              label="Approva corso"
             />
-          </div>
+          )}
+          {onVerify && !course.verified && (
+            <ActionButton
+              onClick={onVerify}
+              icon={<ShieldCheck className="w-3.5 h-3.5" />}
+              color="blue"
+              label="Verifica corso"
+            />
+          )}
+          {onReject && course.status === "pending" && (
+            <ActionButton
+              onClick={onReject}
+              icon={<XCircle className="w-3.5 h-3.5" />}
+              color="amber"
+              label="Rifiuta corso"
+            />
+          )}
+          <ActionButton
+            onClick={onDelete}
+            icon={<Trash2 className="w-3.5 h-3.5" />}
+            color="red"
+            label="Elimina corso"
+          />
         </div>
       </div>
     </m.div>

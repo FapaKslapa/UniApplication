@@ -74,10 +74,10 @@ export function VisitsTrendChart({
               setShowCustom(false);
             }}
             className={cn(
-              "px-3 py-1.5 rounded-full text-[11px] font-bold font-mono transition-colors",
+              "px-3 py-1.5 rounded-full text-[11px] font-bold transition-colors",
               !showCustom && activeDays === p.days
-                ? "bg-zinc-900 dark:bg-white text-white dark:text-black"
-                : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white",
+                ? "bg-foreground text-background"
+                : "bg-secondary text-secondary-foreground hover:text-foreground",
             )}
           >
             {p.label}
@@ -87,10 +87,10 @@ export function VisitsTrendChart({
           type="button"
           onClick={() => setShowCustom(true)}
           className={cn(
-            "px-3 py-1.5 rounded-full text-[11px] font-bold font-mono transition-colors",
+            "px-3 py-1.5 rounded-full text-[11px] font-bold transition-colors",
             showCustom
-              ? "bg-zinc-900 dark:bg-white text-white dark:text-black"
-              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white",
+              ? "bg-foreground text-background"
+              : "bg-secondary text-secondary-foreground hover:text-foreground",
           )}
         >
           Personalizzato
@@ -105,7 +105,7 @@ export function VisitsTrendChart({
               onSelect={setCustomFrom}
               disabledFn={customTo ? (d) => d > customTo : undefined}
             />
-            <ArrowRight className="w-3.5 h-3.5 text-zinc-400 shrink-0" />
+            <ArrowRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
             <DatePickerButton
               date={customTo}
               placeholder="Al"
@@ -173,13 +173,13 @@ export function VisitsTrendChart({
             className="w-6 h-0.5 rounded-full"
             style={{ background: primaryStroke }}
           />
-          <span className="text-[10px] font-mono text-zinc-400">
+          <span className="text-[10px] text-muted-foreground">
             Visite totali
           </span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-6 border-t-2 border-dashed border-[#a78bfa]" />
-          <span className="text-[10px] font-mono text-zinc-400">
+          <span className="text-[10px] text-muted-foreground">
             Utenti unici
           </span>
         </div>

@@ -70,8 +70,8 @@ export function HourlyDeviceCharts({
               content={({ active, payload }) => {
                 if (!active || !payload?.length) return null;
                 return (
-                  <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-3 rounded-xl shadow-xl">
-                    <p className="text-[10px] font-mono text-zinc-400">
+                  <div className="rounded-lg bg-popover p-3 text-popover-foreground elevation-1">
+                    <p className="text-[10px] text-muted-foreground">
                       Ore {payload[0]?.payload?.hour}:00
                     </p>
                     <p className="text-sm font-bold">
@@ -118,9 +118,9 @@ export function HourlyDeviceCharts({
                   if (!active || !payload?.length) return null;
                   const d = payload[0];
                   return (
-                    <div className="bg-white dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 p-3 rounded-xl shadow-xl">
+                    <div className="rounded-lg bg-popover p-3 text-popover-foreground elevation-1">
                       <p className="text-xs font-bold capitalize">{d?.name}</p>
-                      <p className="text-[10px] text-zinc-400">
+                      <p className="text-[10px] text-muted-foreground">
                         {Number(d?.value).toLocaleString()} ·{" "}
                         {deviceTotal > 0
                           ? ((Number(d?.value) / deviceTotal) * 100).toFixed(1)
@@ -143,11 +143,13 @@ export function HourlyDeviceCharts({
                   background: DEVICE_COLORS[i % DEVICE_COLORS.length],
                 }}
               />
-              <div className="text-zinc-400">{deviceIcon(d.deviceType)}</div>
-              <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 capitalize flex-1">
+              <div className="text-muted-foreground">
+                {deviceIcon(d.deviceType)}
+              </div>
+              <span className="text-xs font-medium text-foreground capitalize flex-1">
                 {d.deviceType}
               </span>
-              <span className="text-[10px] font-mono text-zinc-400">
+              <span className="text-[10px] text-muted-foreground">
                 {deviceTotal > 0
                   ? ((d.count / deviceTotal) * 100).toFixed(1)
                   : 0}

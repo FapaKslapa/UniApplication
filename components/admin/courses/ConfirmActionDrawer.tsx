@@ -1,4 +1,5 @@
 import { ShieldCheck, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerContent,
@@ -36,44 +37,50 @@ export function ConfirmActionDrawer({
 }: ConfirmActionDrawerProps) {
   return (
     <Drawer open={open} onOpenChange={(o) => !o && onClose()}>
-      <DrawerContent>
-        <DrawerHeader className="items-center text-center">
-          <div className="w-12 h-12 rounded-2xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-4">
+      <DrawerContent className="bg-popover">
+        <DrawerHeader className="flex-row items-center gap-4">
+          <div
+            className={cn(
+              "flex size-11 shrink-0 items-center justify-center rounded-full elevation-1",
+              action === "delete"
+                ? "bg-destructive/15 text-destructive"
+                : "bg-foreground text-background",
+            )}
+          >
             {action === "delete" ? (
-              <Trash2 className="text-red-500" />
+              <Trash2 className="size-5" />
             ) : (
-              <ShieldCheck className="text-blue-500" />
+              <ShieldCheck className="size-5" />
             )}
           </div>
-          <DrawerTitle>Conferma operazione</DrawerTitle>
-          <DrawerDescription>
-            Stai per {action ? actionVerb[action] : ""} il corso{" "}
-            <span className="text-zinc-900 dark:text-white font-bold">
-              {course?.name}
-            </span>
-            .
-          </DrawerDescription>
+          <div className="min-w-0 flex-1 text-left">
+            <DrawerTitle className="text-xl">Conferma operazione</DrawerTitle>
+            <DrawerDescription>
+              Stai per {action ? actionVerb[action] : ""} il corso{" "}
+              <span className="font-semibold text-foreground">
+                {course?.name}
+              </span>
+              .
+            </DrawerDescription>
+          </div>
         </DrawerHeader>
         <DrawerFooter className="flex-row gap-2">
-          <button
+          <Button
             type="button"
+            variant="ghost"
             onClick={onClose}
-            className="flex-1 py-3 font-bold text-xs uppercase tracking-widest text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 rounded-2xl transition-colors"
+            className="flex-1"
           >
             Annulla
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
+            variant={action === "delete" ? "destructive" : "default"}
             onClick={onConfirm}
-            className={cn(
-              "flex-1 py-3 rounded-2xl font-bold text-xs uppercase tracking-widest text-white transition-transform active:scale-95 shadow-lg",
-              action === "delete"
-                ? "bg-red-500 shadow-red-500/20"
-                : "bg-zinc-900 dark:bg-white dark:text-black shadow-zinc-900/20",
-            )}
+            className="flex-1"
           >
             Conferma
-          </button>
+          </Button>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
