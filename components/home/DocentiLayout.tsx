@@ -11,7 +11,7 @@ export function DocentiLayout() {
   );
 
   return (
-    <div className="mx-auto flex h-full min-h-0 w-full flex-1 flex-col md:max-w-md">
+    <div className="mx-auto flex h-full min-h-0 w-full flex-1 flex-col md:max-w-md xl:max-w-none">
       <AnimatePresence mode="wait" initial={false}>
         {selectedProfessor ? (
           <m.div

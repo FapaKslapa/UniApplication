@@ -46,9 +46,9 @@ export function DocentiScreen({ onOpenProfessor }: DocentiScreenProps) {
 
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto px-3 pb-4">
         {isSearching ? (
-          <section className="space-y-1.5">
+          <section className="space-y-1.5 xl:grid xl:grid-cols-2 xl:gap-1.5 xl:space-y-0">
             {results.length === 0 && (
-              <p className="py-8 text-center text-sm text-muted-foreground">
+              <p className="py-8 text-center text-sm text-muted-foreground xl:col-span-2">
                 Nessun docente trovato.
               </p>
             )}
@@ -69,14 +69,16 @@ export function DocentiScreen({ onOpenProfessor }: DocentiScreenProps) {
                 <h2 className="px-1 text-xs font-semibold text-muted-foreground">
                   Preferiti
                 </h2>
-                {favoriteProfessors.map((name) => (
-                  <FavoriteProfessorRow
-                    key={name}
-                    name={name}
-                    onOpen={() => onOpenProfessor(name)}
-                    onToggleFavorite={() => toggleFavoriteProfessor(name)}
-                  />
-                ))}
+                <div className="space-y-1.5 xl:grid xl:grid-cols-2 xl:gap-1.5 xl:space-y-0">
+                  {favoriteProfessors.map((name) => (
+                    <FavoriteProfessorRow
+                      key={name}
+                      name={name}
+                      onOpen={() => onOpenProfessor(name)}
+                      onToggleFavorite={() => toggleFavoriteProfessor(name)}
+                    />
+                  ))}
+                </div>
               </section>
             )}
 
@@ -85,17 +87,19 @@ export function DocentiScreen({ onOpenProfessor }: DocentiScreenProps) {
                 <h2 className="px-1 text-xs font-semibold text-muted-foreground">
                   Recenti
                 </h2>
-                {recentProfessors
-                  .filter((name) => !isFavorite(name))
-                  .map((name) => (
-                    <ProfessorRow
-                      key={name}
-                      name={name}
-                      isFavorite={false}
-                      onOpen={() => onOpenProfessor(name)}
-                      onToggleFavorite={() => toggleFavoriteProfessor(name)}
-                    />
-                  ))}
+                <div className="space-y-1.5 xl:grid xl:grid-cols-2 xl:gap-1.5 xl:space-y-0">
+                  {recentProfessors
+                    .filter((name) => !isFavorite(name))
+                    .map((name) => (
+                      <ProfessorRow
+                        key={name}
+                        name={name}
+                        isFavorite={false}
+                        onOpen={() => onOpenProfessor(name)}
+                        onToggleFavorite={() => toggleFavoriteProfessor(name)}
+                      />
+                    ))}
+                </div>
               </section>
             )}
 
