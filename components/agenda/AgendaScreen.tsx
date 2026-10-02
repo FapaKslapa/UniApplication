@@ -91,65 +91,19 @@ export function AgendaScreen({
         />
       )}
 
-      {isLandscape ? (
-        <div className="grid min-h-0 flex-1 grid-cols-3 gap-4">
-          <div className="flex min-h-0 flex-col gap-2">
-            <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Oggi
-            </p>
-            <DayView
-              date={selectedDate}
-              events={selectedDay?.events ?? []}
-              now={now}
-              isToday={selectedDate.hasSame(now, "day")}
-              isPending={isPending}
-              direction={direction}
-              colorFor={colorFor}
-              variant={source.kind}
-              onShiftDay={shiftDay}
-            />
-          </div>
-          <div className="flex min-h-0 flex-col gap-2">
-            <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Settimana
-            </p>
-            <WeekAgenda
-              days={days}
-              selectedDate={selectedDate}
-              today={now}
-              isPending={isPending}
-              colorFor={colorFor}
-              onSelectDay={select}
-              onShiftWeek={shiftWeek}
-            />
-          </div>
-          <div className="flex min-h-0 flex-col gap-2">
-            <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Mese
-            </p>
-            <MonthGrid
-              currentDate={selectedDate}
-              selectedDate={selectedDate}
-              today={now}
-              eventsByDate={month.eventsByDate}
-              isPending={month.isPending}
-              direction={direction}
-              colorFor={month.colorFor}
-              onSelectDay={openDay}
-              onShiftMonth={shiftMonth}
-            />
-          </div>
-        </div>
-      ) : (
-        <AnimatePresence mode="popLayout" initial={false}>
-          {mode === "day" && (
-            <m.div
-              key="day"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="flex min-h-0 flex-1 flex-col"
-            >
+      <AnimatePresence mode="popLayout" initial={false}>
+        {isLandscape ? (
+          <m.div
+            key="landscape"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="grid min-h-0 flex-1 grid-cols-3 gap-4"
+          >
+            <div className="flex min-h-0 flex-col gap-2">
+              <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Oggi
+              </p>
               <DayView
                 date={selectedDate}
                 events={selectedDay?.events ?? []}
@@ -161,37 +115,25 @@ export function AgendaScreen({
                 variant={source.kind}
                 onShiftDay={shiftDay}
               />
-            </m.div>
-          )}
-
-          {mode === "week" && (
-            <m.div
-              key="week"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="flex min-h-0 flex-1 flex-col"
-            >
+            </div>
+            <div className="flex min-h-0 flex-col gap-2">
+              <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Settimana
+              </p>
               <WeekAgenda
                 days={days}
                 selectedDate={selectedDate}
                 today={now}
                 isPending={isPending}
                 colorFor={colorFor}
-                onSelectDay={openDay}
+                onSelectDay={select}
                 onShiftWeek={shiftWeek}
               />
-            </m.div>
-          )}
-
-          {mode === "month" && (
-            <m.div
-              key="month"
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              className="flex min-h-0 flex-1 flex-col"
-            >
+            </div>
+            <div className="flex min-h-0 flex-col gap-2">
+              <p className="shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                Mese
+              </p>
               <MonthGrid
                 currentDate={selectedDate}
                 selectedDate={selectedDate}
@@ -203,10 +145,56 @@ export function AgendaScreen({
                 onSelectDay={openDay}
                 onShiftMonth={shiftMonth}
               />
-            </m.div>
-          )}
-        </AnimatePresence>
-      )}
+            </div>
+          </m.div>
+        ) : (
+          <m.div
+            key={mode}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            {mode === "day" && (
+              <DayView
+                date={selectedDate}
+                events={selectedDay?.events ?? []}
+                now={now}
+                isToday={selectedDate.hasSame(now, "day")}
+                isPending={isPending}
+                direction={direction}
+                colorFor={colorFor}
+                variant={source.kind}
+                onShiftDay={shiftDay}
+              />
+            )}
+            {mode === "week" && (
+              <WeekAgenda
+                days={days}
+                selectedDate={selectedDate}
+                today={now}
+                isPending={isPending}
+                colorFor={colorFor}
+                onSelectDay={openDay}
+                onShiftWeek={shiftWeek}
+              />
+            )}
+            {mode === "month" && (
+              <MonthGrid
+                currentDate={selectedDate}
+                selectedDate={selectedDate}
+                today={now}
+                eventsByDate={month.eventsByDate}
+                isPending={month.isPending}
+                direction={direction}
+                colorFor={month.colorFor}
+                onSelectDay={openDay}
+                onShiftMonth={shiftMonth}
+              />
+            )}
+          </m.div>
+        )}
+      </AnimatePresence>
 
       <SubjectFilterSheet
         open={isFilterOpen}
