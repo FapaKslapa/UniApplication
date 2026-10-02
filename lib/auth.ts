@@ -1,5 +1,6 @@
-import { betterAuth } from "better-auth";
+import { APIError, betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { createAuthMiddleware } from "better-auth/api";
 import { db } from "@/lib/db";
 import { account, session, user, verification } from "@/lib/db/schema";
 
@@ -18,6 +19,15 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     autoSignIn: true,
+  },
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path === "/sign-up/email") {
+        throw new APIError("FORBIDDEN", {
+          message: "La registrazione pubblica non è consentita.",
+        });
+      }
+    }),
   },
 });
 

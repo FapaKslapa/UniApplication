@@ -65,28 +65,28 @@ export function AdminLoginDialog({
 
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DrawerContent>
-        <DrawerHeader className="items-center text-center">
-          <div className="mb-2 flex size-14 items-center justify-center rounded-md bg-foreground text-background">
-            <ShieldCheck className="size-7" />
+      <DrawerContent className="bg-popover">
+        <DrawerHeader className="flex-row items-center gap-4">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background elevation-1">
+            <ShieldCheck className="size-5" />
           </div>
-          <DrawerTitle>Pannello admin</DrawerTitle>
-          <DrawerDescription>Accesso riservato</DrawerDescription>
+          <div className="text-left">
+            <DrawerTitle className="text-xl">Pannello admin</DrawerTitle>
+            <DrawerDescription>Accesso riservato</DrawerDescription>
+          </div>
         </DrawerHeader>
 
-        <form onSubmit={handleLogin} className="flex flex-col gap-3 px-4 pb-8">
+        <form onSubmit={handleLogin} className="flex flex-col gap-3 px-5 pb-8">
           <Input
             type="password"
             placeholder="Password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             autoFocus
-            className="h-12 rounded-md text-center"
+            className="h-12 rounded-md bg-card"
           />
           {error && (
-            <p className="text-center text-xs font-semibold text-destructive">
-              {error}
-            </p>
+            <p className="text-xs font-semibold text-destructive">{error}</p>
           )}
           <Button type="submit" size="lg" disabled={isPending}>
             {isPending ? "Accesso..." : "Entra"}
