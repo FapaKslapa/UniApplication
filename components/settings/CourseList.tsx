@@ -1,11 +1,13 @@
 "use client";
 
+import { m } from "framer-motion";
 import { useState } from "react";
 import { SkeletonList } from "@/components/LoadingScreen";
 import { CourseRow } from "@/components/settings/CourseRow";
 import { EmptyNote } from "@/components/settings/EmptyNote";
 import { SearchInput } from "@/components/settings/SearchInput";
 import type { CourseDraft } from "@/components/settings/useCourseDraft";
+import { fadeUpVariants } from "@/lib/motion";
 
 type CourseListProps = { draft: CourseDraft };
 
@@ -31,15 +33,22 @@ export function CourseList({ draft }: CourseListProps) {
         {!isLoading && courses.length === 0 && (
           <EmptyNote>Nessun corso trovato.</EmptyNote>
         )}
-        {courses.map((course) => (
-          <CourseRow
+        {courses.map((course, index) => (
+          <m.div
             key={course.id}
-            course={course}
-            selected={draft.selectedCourses.some((c) => c.id === course.id)}
-            copied={draft.copiedKey === course.id}
-            onToggle={() => draft.toggleCourse(course)}
-            onCopyLink={() => draft.copyCourseLink(course)}
-          />
+            custom={index}
+            variants={fadeUpVariants}
+            initial="hidden"
+            animate="visible"
+          >
+            <CourseRow
+              course={course}
+              selected={draft.selectedCourses.some((c) => c.id === course.id)}
+              copied={draft.copiedKey === course.id}
+              onToggle={() => draft.toggleCourse(course)}
+              onCopyLink={() => draft.copyCourseLink(course)}
+            />
+          </m.div>
         ))}
       </div>
     </div>

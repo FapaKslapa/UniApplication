@@ -1,10 +1,30 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useActiveLinkIds, useAppStore } from "@/lib/store";
 
 const SETTINGS_REDIRECT_DELAY_MS = 300;
+
+function subscribeNever() {
+  return () => {};
+}
+
+function getClientSnapshot() {
+  return true;
+}
+
+function getServerSnapshot() {
+  return false;
+}
+
+function useIsClient() {
+  return useSyncExternalStore(
+    subscribeNever,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
+}
 
 export function useHomeBootstrap() {
   const router = useRouter();
@@ -17,7 +37,7 @@ export function useHomeBootstrap() {
     ensureUserId,
   } = useAppStore();
   const activeLinkIds = useActiveLinkIds();
-  const [isClient, setIsClient] = useState(false);
+  const isClient = useIsClient();
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
   const [isNotifIntroOpen, setIsNotifIntroOpen] = useState(false);
 
@@ -27,10 +47,6 @@ export function useHomeBootstrap() {
   useEffect(() => {
     ensureUserId();
   }, [ensureUserId]);
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const routerPush = router.push;
 

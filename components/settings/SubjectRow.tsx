@@ -1,6 +1,4 @@
-import { SelectIndicator } from "@/components/settings/SelectIndicator";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { cn } from "@/lib/utils";
 
 type SubjectRowProps = {
@@ -11,24 +9,20 @@ type SubjectRowProps = {
 
 export function SubjectRow({ subject, hidden, onToggle }: SubjectRowProps) {
   return (
-    <Button
-      variant="outline"
-      onClick={onToggle}
-      className={cn(
-        "h-auto w-full justify-start gap-3 rounded-md px-4 py-3.5 text-left",
-        hidden && "text-muted-foreground",
-      )}
-    >
-      <SelectIndicator selected={!hidden} shape="checkbox" />
+    <div className="flex h-14 items-center gap-3 rounded-md bg-card px-3">
       <span
         className={cn(
-          "flex-1 truncate text-sm font-semibold capitalize",
-          hidden && "line-through opacity-60",
+          "flex-1 truncate text-sm font-medium capitalize",
+          hidden && "text-muted-foreground",
         )}
       >
         {subject.toLowerCase()}
       </span>
-      {hidden && <Badge variant="secondary">Nascosta</Badge>}
-    </Button>
+      <Switch
+        checked={!hidden}
+        onCheckedChange={onToggle}
+        aria-label={`Mostra ${subject}`}
+      />
+    </div>
   );
 }

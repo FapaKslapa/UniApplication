@@ -7,6 +7,7 @@ import { GitHubIcon } from "@/components/settings/GitHubIcon";
 import { IconTile } from "@/components/settings/IconTile";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { springs } from "@/lib/motion";
 
 const REPO_URL = "https://github.com/FapaKslapa/UniApplication";
 
@@ -24,7 +25,7 @@ export function DevSection({
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="overflow-hidden rounded-lg bg-card elevation-1">
+    <m.div layout className="overflow-hidden rounded-lg bg-card elevation-1">
       <Button
         variant="ghost"
         onClick={() => setOpen((value) => !value)}
@@ -47,14 +48,14 @@ export function DevSection({
         </m.span>
       </Button>
 
-      <AnimatePresence initial={false}>
+      <AnimatePresence initial={false} mode="popLayout">
         {open && (
           <m.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="overflow-hidden"
+            key="dev-section-content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={springs.gentle}
           >
             <Separator />
             <Button
@@ -99,6 +100,6 @@ export function DevSection({
           </m.div>
         )}
       </AnimatePresence>
-    </div>
+    </m.div>
   );
 }

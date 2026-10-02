@@ -608,21 +608,22 @@ export const orarioRouter = createTRPCRouter({
           try {
             const rawEvents = await fetchCinecaEvents(id, startRange, endRange);
 
-            return rawEvents
-              .filter((e) => {
-                if (!input.professorName) return true;
+            const subjects: string[] = [];
+            for (const e of rawEvents) {
+              if (input.professorName) {
                 const prof = e.docenti?.[0]
                   ? toTitleCase(`${e.docenti[0].cognome} ${e.docenti[0].nome}`)
                   : "N/A";
-                return (
-                  prof.toLowerCase() === input.professorName?.toLowerCase()
-                );
-              })
-              .map((e) => {
-                const title = e.nome || "Lezione";
-                const aulaMatch = title.match(/^(.+?)Aula/);
-                return toTitleCase(aulaMatch ? aulaMatch[1].trim() : title);
-              });
+                if (prof.toLowerCase() !== input.professorName.toLowerCase())
+                  continue;
+              }
+              const title = e.nome || "Lezione";
+              const aulaMatch = title.match(/^(.+?)Aula/);
+              subjects.push(
+                toTitleCase(aulaMatch ? aulaMatch[1].trim() : title),
+              );
+            }
+            return subjects;
           } catch (error) {
             console.error(`Failed to fetch subjects for ${id}:`, error);
             return [];

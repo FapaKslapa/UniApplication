@@ -1,5 +1,6 @@
 "use client";
 
+import { BookOpen, Eye } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { AdminLoginDialog } from "@/components/admin/AdminLoginDialog";
@@ -18,6 +19,7 @@ import { useSubjectVisibility } from "@/components/settings/useSubjectVisibility
 import {
   Drawer,
   DrawerContent,
+  DrawerDescription,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
@@ -92,9 +94,17 @@ function SettingsContent() {
         onOpenChange={isSetup ? undefined : setCoursesOpen}
         dismissible={!isSetup}
       >
-        <DrawerContent className="flex h-[85vh] flex-col">
-          <DrawerHeader>
-            <DrawerTitle>I miei corsi</DrawerTitle>
+        <DrawerContent className="flex h-[85vh] flex-col bg-popover">
+          <DrawerHeader className="flex-row items-center gap-4">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background elevation-1">
+              <BookOpen className="size-5" />
+            </div>
+            <div className="text-left">
+              <DrawerTitle className="text-xl">I miei corsi</DrawerTitle>
+              <DrawerDescription>
+                Scegli i corsi da seguire in agenda
+              </DrawerDescription>
+            </div>
           </DrawerHeader>
           <CoursesScreen draft={draft} />
           {error && (
@@ -115,9 +125,17 @@ function SettingsContent() {
         onOpenChange={isSetup ? undefined : setSubjectsOpen}
         dismissible={!isSetup}
       >
-        <DrawerContent className="flex h-[85vh] flex-col">
-          <DrawerHeader>
-            <DrawerTitle>Materie visibili</DrawerTitle>
+        <DrawerContent className="flex h-[85vh] flex-col bg-popover">
+          <DrawerHeader className="flex-row items-center gap-4">
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background elevation-1">
+              <Eye className="size-5" />
+            </div>
+            <div className="text-left">
+              <DrawerTitle className="text-xl">Materie visibili</DrawerTitle>
+              <DrawerDescription>
+                Nascondi le materie che non vuoi vedere nell&apos;orario
+              </DrawerDescription>
+            </div>
           </DrawerHeader>
           <SubjectsScreen visibility={visibility} />
           <ScreenFooter

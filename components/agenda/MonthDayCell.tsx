@@ -52,8 +52,8 @@ export function MonthDayCell({
         {dotSubjects.map((materia, dotIndex) => (
           <m.span
             key={materia}
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
             transition={{ ...springs.gentle, delay: staggerDelay(dotIndex) }}
             className="size-1 rounded-full"
             style={{ backgroundColor: colorFor(materia) }}
