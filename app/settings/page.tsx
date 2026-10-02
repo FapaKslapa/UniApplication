@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Eye } from "lucide-react";
+import { ArrowLeft, BookOpen, Eye } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
 import { AdminLoginDialog } from "@/components/admin/AdminLoginDialog";
@@ -16,6 +16,7 @@ import {
 import { useCourseDraft } from "@/components/settings/useCourseDraft";
 import { useSaveSettings } from "@/components/settings/useSaveSettings";
 import { useSubjectVisibility } from "@/components/settings/useSubjectVisibility";
+import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerContent,
@@ -64,6 +65,20 @@ function SettingsContent() {
   return (
     <div className="fixed inset-0 flex flex-col bg-background text-foreground">
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+        {!isSetup && (
+          <div className="mx-auto hidden max-w-lg items-center gap-2 px-4 pt-5 md:flex">
+            <Button
+              variant="outline"
+              size="icon"
+              aria-label="Torna all'agenda"
+              onClick={() => router.push("/")}
+              className="rounded-full elevation-1"
+            >
+              <ArrowLeft className="size-4" />
+            </Button>
+            <h1 className="text-lg font-bold leading-none">Impostazioni</h1>
+          </div>
+        )}
         <MenuScreen
           hasConfig={draft.hasConfig}
           configSummary={configSummary}
