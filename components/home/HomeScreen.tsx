@@ -17,6 +17,7 @@ import type { AgendaMode } from "@/lib/agenda/types";
 import { api } from "@/lib/api";
 import { getCurrentItalianDateTime } from "@/lib/date-utils";
 import { useAppStore } from "@/lib/store";
+import { cn } from "@/lib/utils";
 
 const OWN_HEADER_VIEWS = new Set(["week", "docenti"]);
 
@@ -43,7 +44,12 @@ export function HomeScreen() {
   return (
     <div className="fixed inset-0 flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
       <main
-        className="mx-auto flex w-full max-w-screen-2xl flex-1 flex-col overflow-hidden px-4 py-3 portrait:py-4 md:px-6 md:pb-0 lg:px-8 lg:py-6"
+        className={cn(
+          "mx-auto flex w-full flex-1 flex-col overflow-hidden px-4 py-3 portrait:py-4 md:px-6 md:pb-0 lg:px-8 lg:py-6",
+          section === "admin"
+            ? "max-w-screen-2xl"
+            : "max-w-screen-2xl md:max-w-md",
+        )}
         style={{
           paddingBottom: "calc(72px + max(1rem, env(safe-area-inset-bottom)))",
         }}

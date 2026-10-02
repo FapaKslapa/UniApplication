@@ -25,7 +25,7 @@ export function BottomNav({
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-30 px-4"
+      className="fixed bottom-0 left-0 right-0 z-30 mx-auto max-w-2xl px-4"
       style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
     >
       <div className="flex items-stretch bg-card rounded-full elevation-2">
