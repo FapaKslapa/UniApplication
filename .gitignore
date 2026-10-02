@@ -49,6 +49,7 @@ node_modules
 
 # build & caches
 /.open-next/
+/doctor.config.ts
 
 .wrangler
 .dev.vars
