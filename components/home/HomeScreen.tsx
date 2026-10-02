@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BottomNav } from "@/components/BottomNav";
 import { HomeBody } from "@/components/home/HomeBody";
 import { HomeHeader } from "@/components/home/HomeHeader";
@@ -39,7 +39,14 @@ export function HomeScreen() {
   const refresh = () => utils.orario.getOrario.invalidate();
   const title = getHomeTitle({ activeView, courseNames });
 
+  useEffect(() => {
+    if (bootstrap.isClient && section === "admin" && !isAdmin) {
+      setActiveView("week");
+    }
+  }, [bootstrap.isClient, section, isAdmin, setActiveView]);
+
   if (!bootstrap.isClient) return null;
+  if (section === "admin" && !isAdmin) return null;
 
   return (
     <div className="fixed inset-0 flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
@@ -48,7 +55,7 @@ export function HomeScreen() {
           "mx-auto flex w-full flex-1 flex-col overflow-hidden px-4 py-3 portrait:py-4 md:px-6 md:pb-0 lg:px-8 lg:py-6",
           section === "admin"
             ? "max-w-screen-2xl"
-            : "max-w-screen-2xl md:max-w-md",
+            : "max-w-screen-2xl md:max-w-md xl:max-w-screen-2xl",
         )}
         style={{
           paddingBottom: "calc(72px + max(1rem, env(safe-area-inset-bottom)))",

@@ -15,6 +15,7 @@ type AgendaHeaderProps = {
   mode: AgendaMode;
   title: string;
   activeFilterCount: number;
+  hideModeToggle?: boolean;
   onModeChange: (mode: AgendaMode) => void;
   onDateChange: (date: DateTime) => void;
   onGoToday: () => void;
@@ -28,6 +29,7 @@ export function AgendaHeader({
   mode,
   title,
   activeFilterCount,
+  hideModeToggle = false,
   onModeChange,
   onDateChange,
   onGoToday,
@@ -100,7 +102,7 @@ export function AgendaHeader({
         )}
       </div>
 
-      <ModeToggle mode={mode} onChange={onModeChange} />
+      {!hideModeToggle && <ModeToggle mode={mode} onChange={onModeChange} />}
 
       <DatePickerDrawer
         open={isPickerOpen}
