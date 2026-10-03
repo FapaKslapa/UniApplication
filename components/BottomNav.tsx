@@ -1,7 +1,12 @@
 "use client";
 
 import { m } from "framer-motion";
-import { CalendarDays, Search, Settings, ShieldCheck } from "lucide-react";
+import {
+  CalendarDays,
+  GraduationCap,
+  Settings,
+  ShieldCheck,
+} from "lucide-react";
 import type React from "react";
 import type { HomeView } from "@/components/home/types";
 import { springs } from "@/lib/motion";
@@ -40,7 +45,7 @@ export function BottomNav({
           active={activeSection === "calendar" && activeView === "docenti"}
           onClick={() => onViewChange?.("docenti")}
           label="Docenti"
-          icon={<Search className="size-[18px]" />}
+          icon={<GraduationCap className="size-[18px]" />}
         />
 
         {isAdmin && (
@@ -55,7 +60,7 @@ export function BottomNav({
         <NavBtn
           active={activeSection === "settings"}
           onClick={() => onSettings?.()}
-          label="Impost"
+          label="Opzioni"
           icon={<Settings className="size-[18px]" />}
         />
       </div>
@@ -78,31 +83,34 @@ function NavBtn({
     <button
       type="button"
       onClick={onClick}
+      aria-current={active ? "page" : undefined}
       className={cn(
-        "relative flex flex-col items-center justify-center gap-1 flex-1 py-3.5 min-h-11 transition-all active:scale-95",
+        "flex min-h-12 min-w-11 flex-1 items-center justify-center rounded-full py-1.5 transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
         active ? "text-foreground" : "text-muted-foreground",
       )}
     >
-      {active && (
-        <m.div
-          layoutId="nav-active"
-          className="absolute inset-x-2 inset-y-1.5 bg-muted rounded-full"
-          transition={springs.smooth}
-        />
-      )}
-      <m.span
-        animate={active ? { scale: [1, 1.15, 1] } : { scale: 1 }}
-        transition={
-          active
-            ? { duration: 0.32, ease: "easeOut", times: [0, 0.5, 1] }
-            : springs.snappy
-        }
-        className="relative z-10"
-      >
-        {icon}
-      </m.span>
-      <span className="relative z-10 text-[10px] font-semibold leading-none">
-        {label}
+      <span className="relative flex flex-col items-center gap-1 rounded-full px-3.5 py-1.5">
+        {active && (
+          <m.span
+            layoutId="nav-active"
+            className="absolute inset-0 rounded-full bg-brand-soft"
+            transition={springs.smooth}
+          />
+        )}
+        <m.span
+          animate={active ? { scale: [1, 1.15, 1] } : { scale: 1 }}
+          transition={
+            active
+              ? { duration: 0.32, ease: "easeOut", times: [0, 0.5, 1] }
+              : springs.snappy
+          }
+          className="relative z-10"
+        >
+          {icon}
+        </m.span>
+        <span className="relative z-10 text-[11px] font-semibold leading-none">
+          {label}
+        </span>
       </span>
     </button>
   );

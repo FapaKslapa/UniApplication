@@ -34,15 +34,15 @@ export function ThemeToggle() {
     localStorage.setItem("theme", newTheme);
   };
 
-  if (!mounted) return <div className="w-10 h-10" />;
+  if (!mounted) return <div className="size-11" />;
 
   return (
     <Button
       variant="ghost"
       size="icon"
       onClick={toggleTheme}
-      className="rounded-full elevation-1 bg-white dark:bg-zinc-950 text-zinc-500 hover:text-zinc-900 dark:hover:text-white relative overflow-hidden"
-      aria-label="Toggle theme"
+      className="relative overflow-hidden rounded-full text-muted-foreground"
+      aria-label="Cambia tema"
     >
       <m.span
         whileTap={{ scale: 0.9 }}

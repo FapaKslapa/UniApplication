@@ -40,36 +40,6 @@ export function TRPCProvider({ children }: { children: ReactNode }) {
         httpBatchLink({
           url: "/api/trpc",
           transformer: superjson,
-          headers() {
-            if (typeof window === "undefined") return {};
-
-            const userIdRaw = localStorage.getItem("userId");
-            let userId: string | null = null;
-
-            if (userIdRaw) {
-              try {
-                userId = JSON.parse(userIdRaw);
-              } catch {
-                userId = userIdRaw;
-              }
-            }
-
-            if (!userId) {
-              try {
-                const zustand = localStorage.getItem("uni-app-storage");
-                if (zustand) {
-                  const parsed = JSON.parse(zustand);
-                  userId = parsed?.state?.userId ?? null;
-                }
-              } catch {
-                // ignore
-              }
-            }
-
-            return {
-              ...(userId ? { "x-user-id": String(userId) } : {}),
-            };
-          },
         }),
       ],
     }),

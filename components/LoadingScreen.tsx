@@ -4,24 +4,18 @@ import { m } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 
-export function ErrorScreen({
-  message,
-  onRetryAction,
-}: {
-  message: string;
-  onRetryAction?: () => void;
-}) {
+export function ErrorScreen({ onRetryAction }: { onRetryAction?: () => void }) {
   return (
-    <div className="fixed inset-0 bg-white dark:bg-black flex flex-col items-center justify-center p-6 gap-6">
+    <div className="flex h-full min-h-0 w-full flex-col items-center justify-center gap-6 p-6">
       <m.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25 }}
         className="flex flex-col items-center gap-4 text-center max-w-xs"
       >
-        <div className="w-14 h-14 rounded-lg bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/20 flex items-center justify-center">
+        <div className="w-14 h-14 rounded-lg bg-destructive/10 border border-destructive/20 flex items-center justify-center">
           <svg
-            className="w-6 h-6 text-red-500"
+            className="w-6 h-6 text-destructive"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -36,20 +30,16 @@ export function ErrorScreen({
           </svg>
         </div>
 
-        <div>
-          <p className="text-sm font-semibold text-zinc-900 dark:text-white mb-1">
-            Errore di caricamento
+        <div className="space-y-1">
+          <p className="text-base font-semibold text-foreground">
+            Orario non disponibile
           </p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
-            {message}
+          <p className="text-sm text-muted-foreground">
+            Controlla la connessione e riprova.
           </p>
         </div>
 
-        {onRetryAction && (
-          <Button onClick={onRetryAction} size="sm">
-            Riprova
-          </Button>
-        )}
+        {onRetryAction && <Button onClick={onRetryAction}>Riprova</Button>}
       </m.div>
     </div>
   );

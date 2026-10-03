@@ -6,8 +6,8 @@ export const springs = {
   gentle: { type: "spring", stiffness: 220, damping: 26, mass: 1 },
 } as const satisfies Record<string, Transition>;
 
-export const STAGGER_STEP = 0.035;
-export const STAGGER_MAX_ITEMS = 8;
+const STAGGER_STEP = 0.035;
+const STAGGER_MAX_ITEMS = 8;
 
 export function staggerDelay(index: number): number {
   return Math.min(index, STAGGER_MAX_ITEMS) * STAGGER_STEP;

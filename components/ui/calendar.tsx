@@ -1,16 +1,13 @@
 "use client";
 
-import dayjs from "dayjs";
-import "dayjs/locale/it";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import { DateTime } from "luxon";
 import * as React from "react";
 import { DayPicker } from "react-day-picker";
 import { it } from "react-day-picker/locale";
 import { Button } from "@/components/ui/button";
 import { buttonVariants } from "@/components/ui/button-variants";
 import { cn } from "@/lib/utils";
-
-dayjs.locale("it");
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
@@ -63,7 +60,9 @@ function Calendar({
 
   const months = React.useMemo(() => {
     return Array.from({ length: 12 }, (_, i) => {
-      return dayjs(new Date(2000, i, 1)).format("MMMM");
+      return DateTime.local(2000, i + 1, 1)
+        .setLocale("it")
+        .toFormat("LLLL");
     });
   }, []);
 
@@ -74,7 +73,7 @@ function Calendar({
           <>
             <Button
               variant="outline"
-              className="absolute left-0 top-0 h-8 w-8 p-0 bg-transparent z-10 rounded-full"
+              className="absolute left-0 inset-y-0 my-auto size-8 p-0 bg-transparent z-10 rounded-full before:absolute before:-inset-1.5 before:content-['']"
               onClick={() => {
                 const newDate = new Date(internalDate);
                 newDate.setMonth(newDate.getMonth() - 1);
@@ -85,7 +84,7 @@ function Calendar({
             </Button>
             <Button
               variant="outline"
-              className="absolute right-0 top-0 h-8 w-8 p-0 bg-transparent z-10 rounded-full"
+              className="absolute right-0 inset-y-0 my-auto size-8 p-0 bg-transparent z-10 rounded-full before:absolute before:-inset-1.5 before:content-['']"
               onClick={() => {
                 const newDate = new Date(internalDate);
                 newDate.setMonth(newDate.getMonth() + 1);
@@ -100,7 +99,7 @@ function Calendar({
         {view === "years" && (
           <Button
             variant="outline"
-            className="absolute left-0 top-0 h-8 w-8 p-0 bg-transparent z-10 rounded-full"
+            className="absolute left-0 inset-y-0 my-auto size-8 p-0 bg-transparent z-10 rounded-full before:absolute before:-inset-1.5 before:content-['']"
             onClick={() => setView("days")}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -110,7 +109,7 @@ function Calendar({
         {view === "months" && (
           <Button
             variant="ghost"
-            className="absolute left-0 top-0 h-8 w-auto p-2 text-sm font-normal z-10"
+            className="absolute left-0 top-0 h-11 w-auto p-2 text-sm font-normal z-10"
             onClick={() => setView("years")}
           >
             <ChevronLeft className="h-4 w-4 mr-1" />
@@ -122,10 +121,12 @@ function Calendar({
           {view === "days" && (
             <Button
               variant="ghost"
-              className="h-auto py-1 px-2 font-medium capitalize"
+              className="h-11 py-1 px-3 font-medium capitalize"
               onClick={() => setView("years")}
             >
-              {dayjs(internalDate).format("MMMM YYYY")}
+              {DateTime.fromJSDate(internalDate)
+                .setLocale("it")
+                .toFormat("LLLL yyyy")}
             </Button>
           )}
           {view === "years" && "Seleziona Anno"}
@@ -164,7 +165,7 @@ function Calendar({
             day_button: cn(
               buttonVariants({ variant: "ghost" }),
               "h-11 w-11 p-0 font-normal aria-selected:opacity-100 rounded-full",
-              "focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none",
+              "focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
             ),
             range_end: "day-range-end",
             range_start: "day-range-start",
@@ -195,7 +196,7 @@ function Calendar({
               variant={
                 year === internalDate.getFullYear() ? "default" : "ghost"
               }
-              className="h-9 w-full rounded-full"
+              className="h-11 w-full rounded-full"
               onClick={() => {
                 const newDate = new Date(internalDate);
                 newDate.setFullYear(year);
@@ -215,7 +216,7 @@ function Calendar({
             <Button
               key={month}
               variant={index === internalDate.getMonth() ? "default" : "ghost"}
-              className="h-9 w-full capitalize rounded-full"
+              className="h-11 w-full capitalize rounded-full"
               onClick={() => {
                 const newDate = new Date(internalDate);
                 newDate.setMonth(index);

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Onest } from "next/font/google";
 import "@/app/globals.css";
 import Script from "next/script";
@@ -14,17 +14,33 @@ const onest = Onest({
 });
 
 export const metadata: Metadata = {
-  title: "Orario Universitario",
-  description: "App per visualizzare l'orario delle lezioni universitarie",
+  metadataBase: new URL(process.env.BETTER_AUTH_URL || "http://localhost:3000"),
+  title: "UniOrario",
+  applicationName: "UniOrario",
+  description:
+    "Orario lezioni dell'Università dell'Insubria, sempre a portata di mano",
   icons: {
     icon: "/favicon.ico",
-    apple: "/favicon.ico",
+    apple: "/icons/apple-touch-icon.png",
   },
+  appleWebApp: {
+    capable: true,
+    title: "UniOrario",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f7f7f7" },
+    { media: "(prefers-color-scheme: dark)", color: "#090909" },
+  ],
 };
 
 const themeScript = `
   (function() {
-    const theme = localStorage.getItem('theme');
+    var theme = null;
+    try { theme = localStorage.getItem('theme'); } catch (e) {}
     if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       document.documentElement.classList.add('dark');
       document.documentElement.classList.remove('light');
@@ -47,9 +63,7 @@ export default function RootLayout({
           {themeScript}
         </Script>
       </head>
-      <body
-        className={`${onest.variable} font-sans antialiased bg-white dark:bg-black`}
-      >
+      <body className={`${onest.variable} font-sans antialiased bg-background`}>
         <TRPCProvider>
           <ServiceWorkerRegistration />
           <AnalyticsTracker />
