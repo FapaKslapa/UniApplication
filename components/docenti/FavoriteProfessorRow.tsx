@@ -20,6 +20,7 @@ export function FavoriteProfessorRow({
     <ProfessorRow
       name={name}
       status={status.label}
+      statusTone={status.tone}
       isFavorite
       onOpen={onOpen}
       onToggleFavorite={onToggleFavorite}

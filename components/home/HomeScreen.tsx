@@ -9,6 +9,7 @@ import { getHomeTitle, isAdminView } from "@/components/home/homeTitle";
 import { NotificationChangeDialog } from "@/components/home/NotificationChangeDialog";
 import { useHomeBootstrap } from "@/components/home/useHomeBootstrap";
 import { useHomeView } from "@/components/home/useHomeView";
+import { useIsRefreshing } from "@/components/home/useIsRefreshing";
 import { useTimetableChanges } from "@/components/home/useTimetableChanges";
 import { NotificationsIntroDialog } from "@/components/NotificationsIntroDialog";
 import { WelcomeDialog } from "@/components/WelcomeDialog";
@@ -36,6 +37,7 @@ export function HomeScreen() {
   const openSettings = () => router.push("/settings");
   const section = isAdminView(activeView) ? "admin" : "calendar";
   const hasOwnHeader = OWN_HEADER_VIEWS.has(activeView);
+  const isRefreshing = useIsRefreshing();
   const refresh = () => utils.orario.getOrario.invalidate();
   const title = getHomeTitle({ activeView, courseNames });
 
@@ -74,6 +76,7 @@ export function HomeScreen() {
           showRefresh={
             bootstrap.hasConfigured && section === "calendar" && !hasOwnHeader
           }
+          isRefreshing={isRefreshing}
           onViewChange={setActiveView}
           onRefresh={refresh}
           onOpenSettings={openSettings}

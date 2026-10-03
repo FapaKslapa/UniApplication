@@ -26,7 +26,9 @@ export function SubjectsScreen({ visibility }: SubjectsScreenProps) {
       <div className="flex-1 space-y-1.5 overflow-y-auto overscroll-contain px-4 pb-4">
         {isLoading && <SkeletonList rows={5} />}
         {!isLoading && !hasSubjects && (
-          <EmptyNote>Nessuna materia trovata per i prossimi 6 mesi.</EmptyNote>
+          <EmptyNote hint="Controlla di aver scelto il corso giusto in «I miei corsi».">
+            Nessuna lezione nei prossimi 6 mesi
+          </EmptyNote>
         )}
         {hasSubjects &&
           subjects.map((subject, index) => (

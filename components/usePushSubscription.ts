@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
 import { useAppStore } from "@/lib/store";
 
@@ -40,9 +40,12 @@ export function usePushSubscription(linkId: string) {
   const { hiddenSubjects } = useAppStore();
 
   const subscribeMutation = api.notifications.subscribe.useMutation();
+  const syncMutation = api.notifications.subscribe.useMutation();
   const unsubscribeMutation = api.notifications.unsubscribe.useMutation();
   const updateFiltersMutation =
     api.notifications.updateAllFilters.useMutation();
+
+  const syncedRef = useRef(false);
 
   const checkSubscription = useCallback(async () => {
     try {
@@ -53,10 +56,29 @@ export function usePushSubscription(linkId: string) {
       );
       const subscription = await registration.pushManager.getSubscription();
       setIsSubscribed(!!subscription);
+      const subJSON = subscription?.toJSON();
+      if (
+        subscription &&
+        !syncedRef.current &&
+        Notification.permission === "granted" &&
+        subJSON?.endpoint &&
+        subJSON.keys?.p256dh &&
+        subJSON.keys?.auth
+      ) {
+        syncedRef.current = true;
+        await syncMutation.mutateAsync({
+          linkId,
+          filters: hiddenSubjects,
+          subscription: {
+            endpoint: subJSON.endpoint,
+            keys: { p256dh: subJSON.keys.p256dh, auth: subJSON.keys.auth },
+          },
+        });
+      }
     } catch (e) {
       console.error("Check subscription failed:", e);
     }
-  }, []);
+  }, [linkId, hiddenSubjects, syncMutation.mutateAsync]);
 
   useEffect(() => {
     setIsSupported("serviceWorker" in navigator && "PushManager" in window);

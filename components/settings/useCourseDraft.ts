@@ -6,15 +6,15 @@ import { api } from "@/lib/api";
 import type { Course } from "@/lib/courses";
 import { useAppStore } from "@/lib/store";
 
-type Options = { userId: string; onEdit: () => void };
+type Options = { onEdit: () => void };
 
-export function useCourseDraft({ userId, onEdit }: Options) {
+export function useCourseDraft({ onEdit }: Options) {
   const { courseIds, storedCourseId } = useAppStore();
   const [selectedCourses, setSelectedCourses] = useState<Course[]>([]);
   const clipboard = useCopyFeedback();
 
   const { data: allCoursesData, refetch: refetchCourses } =
-    api.courses.getAll.useQuery({ userId });
+    api.courses.getAll.useQuery();
   const allCourses = useMemo(() => allCoursesData ?? [], [allCoursesData]);
 
   useEffect(() => {

@@ -38,20 +38,20 @@ export function PagesBrowserCharts({
           {(topPages ?? []).map((page, i) => (
             <div key={page.path}>
               <div className="flex items-center gap-2 mb-1.5">
-                <span className="text-[10px] font-bold text-muted-foreground/60 w-4 shrink-0">
+                <span className="text-[11px] font-bold text-muted-foreground/60 w-4 shrink-0">
                   {i + 1}
                 </span>
                 <span className="text-xs text-muted-foreground flex-1 truncate min-w-0">
                   {page.path}
                 </span>
-                <span className="text-[10px] text-muted-foreground shrink-0">
+                <span className="text-[11px] text-muted-foreground shrink-0">
                   {page.unique} unici
                 </span>
                 <span className="text-xs font-bold shrink-0">{page.count}</span>
               </div>
               <div className="h-1 rounded-full bg-muted ml-6">
                 <div
-                  className="h-full rounded-full bg-violet-500/60"
+                  className="h-full rounded-full bg-chart-1/60"
                   style={{
                     width: `${(page.count / maxPageCount) * 100}%`,
                   }}
@@ -75,13 +75,13 @@ export function PagesBrowserCharts({
               width={58}
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 10, fill: axisColor }}
+              tick={{ fontSize: 11, fill: axisColor }}
             />
             <XAxis
               type="number"
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 10, fill: axisColor }}
+              tick={{ fontSize: 11, fill: axisColor }}
               width={24}
             />
             <Tooltip
@@ -92,7 +92,7 @@ export function PagesBrowserCharts({
                     <p className="text-xs font-bold">
                       {payload[0]?.payload?.browser}
                     </p>
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       {Number(payload[0]?.value).toLocaleString()}
                     </p>
                   </div>
@@ -121,7 +121,7 @@ export function PagesBrowserCharts({
               <span className="text-[11px] text-muted-foreground truncate flex-1 min-w-0">
                 {b.browser}
               </span>
-              <span className="text-[10px] text-muted-foreground shrink-0">
+              <span className="text-[11px] text-muted-foreground shrink-0">
                 {browserTotal > 0
                   ? ((b.count / browserTotal) * 100).toFixed(0)
                   : 0}

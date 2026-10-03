@@ -1,28 +1,10 @@
-export const DEVICE_COLORS = ["#a78bfa", "#34d399", "#fb923c", "#60a5fa"];
+const chartVar = (n: number) => `var(--chart-${(n % 5) + 1})`;
 
-export const BROWSER_COLORS = [
-  "#a78bfa",
-  "#34d399",
-  "#fb923c",
-  "#60a5fa",
-  "#f472b6",
-  "#38bdf8",
-  "#facc15",
-  "#4ade80",
-];
+export const DEVICE_COLORS = [0, 1, 2, 3].map(chartVar);
 
-export const OS_COLORS = [
-  "#60a5fa",
-  "#f472b6",
-  "#34d399",
-  "#fb923c",
-  "#a78bfa",
-  "#38bdf8",
-  "#facc15",
-  "#4ade80",
-  "#e879f9",
-  "#94a3b8",
-];
+export const BROWSER_COLORS = [0, 1, 2, 3, 4, 5, 6, 7].map(chartVar);
+
+export const OS_COLORS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(chartVar);
 
 export const DATE_PRESETS = [
   { label: "7g", days: 7 },

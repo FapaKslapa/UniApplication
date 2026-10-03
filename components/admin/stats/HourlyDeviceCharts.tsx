@@ -55,14 +55,14 @@ export function HourlyDeviceCharts({
               dataKey="hour"
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 10, fill: axisColor }}
+              tick={{ fontSize: 11, fill: axisColor }}
               tickFormatter={(v) => `${v}h`}
               interval={3}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 10, fill: axisColor }}
+              tick={{ fontSize: 11, fill: axisColor }}
               width={28}
             />
             <Tooltip
@@ -71,7 +71,7 @@ export function HourlyDeviceCharts({
                 if (!active || !payload?.length) return null;
                 return (
                   <div className="rounded-lg bg-popover p-3 text-popover-foreground elevation-1">
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[11px] text-muted-foreground">
                       Ore {payload[0]?.payload?.hour}:00
                     </p>
                     <p className="text-sm font-bold">
@@ -120,7 +120,7 @@ export function HourlyDeviceCharts({
                   return (
                     <div className="rounded-lg bg-popover p-3 text-popover-foreground elevation-1">
                       <p className="text-xs font-bold capitalize">{d?.name}</p>
-                      <p className="text-[10px] text-muted-foreground">
+                      <p className="text-[11px] text-muted-foreground">
                         {Number(d?.value).toLocaleString()} ·{" "}
                         {deviceTotal > 0
                           ? ((Number(d?.value) / deviceTotal) * 100).toFixed(1)
@@ -149,7 +149,7 @@ export function HourlyDeviceCharts({
               <span className="text-xs font-medium text-foreground capitalize flex-1">
                 {d.deviceType}
               </span>
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-[11px] text-muted-foreground">
                 {deviceTotal > 0
                   ? ((d.count / deviceTotal) * 100).toFixed(1)
                   : 0}

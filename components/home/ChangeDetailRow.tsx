@@ -12,8 +12,11 @@ export function ChangeDetailRow({
 }: ChangeDetailRowProps) {
   return (
     <div className="flex items-start gap-3">
-      <Icon className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-      <div className="min-w-0 text-xs font-medium">{children}</div>
+      <Icon
+        className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+        aria-hidden
+      />
+      <div className="min-w-0 text-sm font-medium">{children}</div>
     </div>
   );
 }

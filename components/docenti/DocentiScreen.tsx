@@ -35,11 +35,15 @@ export function DocentiScreen({ onOpenProfessor }: DocentiScreenProps) {
       <h1 className="px-3 pt-1 text-lg font-bold leading-none">Docenti</h1>
 
       <div className="relative shrink-0 px-3">
-        <SearchIcon className="pointer-events-none absolute top-1/2 left-6 size-4 -translate-y-1/2 text-muted-foreground" />
+        <SearchIcon
+          aria-hidden
+          className="pointer-events-none absolute top-1/2 left-6 size-4 -translate-y-1/2 text-muted-foreground"
+        />
         <Input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Cerca un docente..."
+          placeholder="Cerca un docente per cognome…"
+          aria-label="Cerca un docente"
           className="h-11 rounded-full pl-10"
         />
       </div>
@@ -48,9 +52,15 @@ export function DocentiScreen({ onOpenProfessor }: DocentiScreenProps) {
         {isSearching ? (
           <section className="space-y-1.5 xl:grid xl:grid-cols-2 xl:gap-1.5 xl:space-y-0">
             {results.length === 0 && (
-              <p className="py-8 text-center text-sm text-muted-foreground xl:col-span-2">
-                Nessun docente trovato.
-              </p>
+              <div className="space-y-1 px-2 py-8 xl:col-span-2">
+                <p className="text-xl font-bold leading-tight tracking-tight">
+                  Nessun docente trovato.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Prova con il solo cognome di «{query.trim()}» o controlla come
+                  l'hai scritto.
+                </p>
+              </div>
             )}
             {results.map((name) => (
               <ProfessorRow
@@ -108,11 +118,13 @@ export function DocentiScreen({ onOpenProfessor }: DocentiScreenProps) {
             isLoading ? (
               <ProfessorRowSkeleton />
             ) : (
-              <div className="flex flex-1 flex-col items-center justify-center gap-2 py-10 text-center text-muted-foreground">
-                <SearchIcon className="size-8" strokeWidth={1.5} />
-                <p className="text-sm font-medium">Cerca un docente</p>
-                <p className="text-xs">
-                  Scopri in che aula si trova, adesso o alla prossima lezione.
+              <div className="space-y-1 px-2 py-8">
+                <p className="text-xl font-bold leading-tight tracking-tight">
+                  Trova un docente.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Scrivi un nome per vedere dove tiene lezione, adesso o alla
+                  prossima.
                 </p>
               </div>
             )}

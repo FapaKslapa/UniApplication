@@ -1,5 +1,10 @@
-import { Calendar } from "lucide-react";
+"use client";
+
+import { m } from "framer-motion";
+import { ArrowRight } from "lucide-react";
+import { NotConfiguredPreview } from "@/components/home/NotConfiguredPreview";
 import { Button } from "@/components/ui/button";
+import { fadeUpVariants } from "@/lib/motion";
 
 type NotConfiguredProps = {
   onConfigure: () => void;
@@ -7,20 +12,26 @@ type NotConfiguredProps = {
 
 export function NotConfigured({ onConfigure }: NotConfiguredProps) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center space-y-8 p-6 text-center">
-      <div className="flex size-24 items-center justify-center rounded-xl bg-muted elevation-1 animate-in zoom-in duration-500">
-        <Calendar className="size-10 text-muted-foreground" strokeWidth={1.5} />
-      </div>
-      <div className="max-w-xs space-y-3">
-        <h2 className="text-2xl font-bold">Nessun calendario</h2>
-        <p className="text-sm font-medium leading-relaxed text-muted-foreground">
-          Configura i tuoi corsi di studi per iniziare a visualizzare l'orario
-          delle lezioni.
+    <m.div
+      variants={fadeUpVariants}
+      initial="hidden"
+      animate="visible"
+      className="flex flex-1 flex-col items-center justify-center gap-8 overflow-y-auto p-6 text-center"
+    >
+      <NotConfiguredPreview />
+      <div className="max-w-xs space-y-2">
+        <h2 className="text-2xl font-bold tracking-tight">
+          Scegli il tuo corso
+        </h2>
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          Indica il tuo corso di laurea e l'anno: vedrai solo le tue lezioni, e
+          potrai cambiare scelta quando vuoi.
         </p>
       </div>
       <Button size="lg" onClick={onConfigure}>
-        Configura ora
+        Scegli il corso
+        <ArrowRight className="size-4" />
       </Button>
-    </div>
+    </m.div>
   );
 }

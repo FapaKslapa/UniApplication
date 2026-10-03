@@ -14,11 +14,11 @@ import { cn } from "@/lib/utils";
 
 const statusConfigMap = {
   pending: {
-    className: "bg-amber-500/15 text-amber-600 dark:text-amber-400",
+    className: "bg-warning/25 text-foreground",
     label: "Attesa",
   },
   approved: {
-    className: "bg-green-500/15 text-green-600 dark:text-green-400",
+    className: "bg-success/15 text-success",
     label: "Attivo",
   },
   rejected: {
@@ -28,9 +28,9 @@ const statusConfigMap = {
 } as const;
 
 const actionButtonColors: Record<string, string> = {
-  emerald: "text-green-600 dark:text-green-400",
-  blue: "text-blue-600 dark:text-blue-400",
-  amber: "text-amber-600 dark:text-amber-400",
+  emerald: "text-success",
+  blue: "text-brand",
+  amber: "text-foreground",
   red: "text-destructive",
 };
 
@@ -100,7 +100,7 @@ export function CourseCard({
               {statusConfig.label}
             </Badge>
             {course.verified && (
-              <Badge className="bg-blue-500/15 text-blue-600 dark:text-blue-400">
+              <Badge className="bg-brand-soft text-brand">
                 <ShieldCheck className="h-3 w-3" /> Verificato
               </Badge>
             )}
@@ -114,9 +114,9 @@ export function CourseCard({
           onClick={() => onCopyLink(course.linkId, course.id)}
           aria-label={isCopied ? "Link copiato" : "Copia link"}
           className={cn(
-            "size-9 shrink-0 rounded-full elevation-1",
+            "size-9 shrink-0 rounded-full elevation-1 relative before:absolute before:-inset-1 before:content-['']",
             isCopied &&
-              "border-transparent bg-green-500 text-white hover:bg-green-500 hover:text-white",
+              "border-transparent bg-success text-success-foreground hover:bg-success hover:text-success-foreground",
           )}
         >
           {isCopied ? (

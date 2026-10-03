@@ -28,6 +28,7 @@ export function DevSection({
     <m.div layout className="overflow-hidden rounded-lg bg-card elevation-1">
       <Button
         variant="ghost"
+        aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
         className="h-auto w-full justify-start gap-4 rounded-none px-4 py-3.5 text-left"
       >
@@ -87,11 +88,11 @@ export function DevSection({
               />
               <span className="min-w-0 flex-1">
                 <span className="block text-xs font-semibold">
-                  {isAdmin ? "Logout admin" : "Pannello admin"}
+                  {isAdmin ? "Esci da admin" : "Pannello admin"}
                 </span>
                 <span className="block text-xs font-normal text-muted-foreground">
                   {isAdmin
-                    ? "Disabilita privilegi amministrativi"
+                    ? "Esci dalla modalità amministratore"
                     : "Gestione corsi e statistiche"}
                 </span>
               </span>

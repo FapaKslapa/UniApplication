@@ -16,7 +16,9 @@ export function useSaveSettings({ draft, setError, onSaved }: Options) {
   return () => {
     const courses = draft.selectedCourses;
     if (courses.length === 0) {
-      setError("Seleziona almeno un corso.");
+      setError(
+        "Non hai scelto nessun corso. Attiva almeno un corso per continuare.",
+      );
       return;
     }
     setCalendarIds(courses.map((course) => course.linkId));

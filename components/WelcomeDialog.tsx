@@ -38,9 +38,17 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
     setCurrentSlide((prev) => prev - 1);
   };
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "ArrowRight" && !isLastSlide) handleNext();
+    if (event.key === "ArrowLeft" && currentSlide > 0) handleBack();
+  };
+
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onComplete()}>
-      <DrawerContent>
+      <DrawerContent
+        onKeyDown={handleKeyDown}
+        className="mx-auto w-full max-w-md"
+      >
         <DrawerTitle className="sr-only">Benvenuto</DrawerTitle>
         <div className="relative flex-1 px-8 pt-2 pb-8 flex flex-col items-center text-center">
           <AnimatePresence mode="wait">
@@ -49,20 +57,24 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+              transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-col items-center space-y-6 w-full"
             >
               <SlideBody slide={slide} />
             </m.div>
           </AnimatePresence>
 
-          <div className="flex gap-1.5 pt-10">
+          <div
+            role="img"
+            aria-label={`Passo ${currentSlide + 1} di ${slides.length}`}
+            className="flex gap-1.5 pt-10"
+          >
             {slides.map((s) => (
               <div
                 key={s.id}
                 className={cn(
                   "h-1 rounded-full transition-all duration-300",
-                  s.id === slide.id ? "w-6 bg-foreground" : "w-1.5 bg-muted",
+                  s.id === slide.id ? "w-6 bg-foreground" : "w-1.5 bg-border",
                 )}
               />
             ))}
@@ -80,7 +92,7 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
                 aria-label="Indietro"
                 className="shrink-0"
               >
-                <ChevronLeft className="w-4 h-4" />
+                <ChevronLeft className="size-4" aria-hidden />
               </Button>
             )}
             <Button
@@ -89,8 +101,8 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
               size="lg"
               className="flex-1"
             >
-              <span>{isLastSlide ? "Inizia Ora" : "Continua"}</span>
-              <ChevronRight className="w-4 h-4" />
+              <span>{isLastSlide ? "Inizia" : "Avanti"}</span>
+              <ChevronRight className="size-4" aria-hidden />
             </Button>
           </div>
 
@@ -101,7 +113,7 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
               onClick={onComplete}
               className="w-full text-muted-foreground"
             >
-              Salta Intro
+              Salta
             </Button>
           )}
         </div>

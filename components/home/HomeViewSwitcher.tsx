@@ -1,7 +1,7 @@
 import {
   CalendarDays,
+  GraduationCap,
   type LucideIcon,
-  Search,
   ShieldCheck,
 } from "lucide-react";
 import type { HomeView } from "@/components/home/types";
@@ -12,7 +12,7 @@ type ViewItem = { view: HomeView; label: string; icon: LucideIcon };
 
 const BASE_ITEMS: ViewItem[] = [
   { view: "week", label: "Agenda", icon: CalendarDays },
-  { view: "docenti", label: "Docenti", icon: Search },
+  { view: "docenti", label: "Docenti", icon: GraduationCap },
 ];
 
 const ADMIN_ITEM: ViewItem = {
@@ -45,13 +45,14 @@ export function HomeViewSwitcher({
             key={view}
             variant="ghost"
             size="sm"
+            aria-pressed={active}
             onClick={() => onViewChange(view)}
             className={cn(
               "gap-2 rounded-full px-4 text-xs font-semibold text-muted-foreground",
-              active && "bg-card text-foreground elevation-1",
+              active && "bg-brand-soft text-foreground",
             )}
           >
-            <Icon className="size-3.5" />
+            <Icon className="size-3.5" aria-hidden />
             <span>{label}</span>
           </Button>
         );

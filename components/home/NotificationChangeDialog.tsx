@@ -33,16 +33,17 @@ export function NotificationChangeDialog({
     <Drawer open onOpenChange={(open) => !open && onClose()}>
       <DrawerContent className="bg-popover">
         <DrawerHeader className="flex-row items-center gap-4">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background elevation-1">
-            <BellRing className="size-5" />
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground elevation-1">
+            <BellRing className="size-5" aria-hidden />
           </div>
           <div className="text-left">
-            <DrawerTitle className="text-xl">Aggiornamenti</DrawerTitle>
+            <DrawerTitle className="text-xl">
+              Il tuo orario è cambiato
+            </DrawerTitle>
             <DrawerDescription>
-              {changes.length}{" "}
               {changes.length === 1
-                ? "variazione rilevata"
-                : "variazioni rilevate"}
+                ? "1 modifica alle tue lezioni"
+                : `${changes.length} modifiche alle tue lezioni`}
             </DrawerDescription>
           </div>
         </DrawerHeader>
@@ -67,7 +68,7 @@ export function NotificationChangeDialog({
             onClick={() => onNavigate(weekOffsetForDate(changes[0].date))}
           >
             <Calendar className="size-4" />
-            Vai al giorno
+            {changes.length > 1 ? "Vai al primo giorno" : "Vai al giorno"}
           </Button>
           <Button onClick={onClose}>Ho capito</Button>
         </DrawerFooter>

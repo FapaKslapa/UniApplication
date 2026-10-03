@@ -41,7 +41,7 @@ export function MenuScreen({
           tone="neutral"
           title="I miei corsi"
           subtitle={configSummary}
-          badge={!hasConfig ? "Da configurare" : undefined}
+          badge={!hasConfig ? "Scegli" : undefined}
           onClick={onOpenCourses}
         />
         <MenuRow
@@ -49,7 +49,7 @@ export function MenuScreen({
           icon={Eye}
           tone="neutral"
           title="Materie visibili"
-          subtitle={subjectsSummary}
+          subtitle={hasConfig ? subjectsSummary : "Scegli prima un corso"}
           disabled={!hasConfig}
           onClick={() => hasConfig && onOpenSubjects()}
         />
@@ -65,7 +65,7 @@ export function MenuScreen({
         <MenuRow
           key="feedback"
           icon={Mail}
-          title="Suggerimenti"
+          title="Scrivici un suggerimento"
           subtitle={SUPPORT_EMAIL}
           hideChevron
           onClick={() => {

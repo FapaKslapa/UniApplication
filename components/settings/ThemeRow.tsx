@@ -7,7 +7,7 @@ export function ThemeRow() {
     <SettingRow
       icon={Moon}
       title="Tema"
-      subtitle="Chiaro / Scuro"
+      subtitle="Passa da chiaro a scuro"
       trailing={<ThemeToggle />}
     />
   );

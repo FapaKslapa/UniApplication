@@ -26,7 +26,7 @@ export function ScreenFooter({
         <Button
           variant="secondary"
           size="lg"
-          aria-label="Indietro"
+          aria-label="Torna indietro"
           onClick={onBack}
         >
           <ArrowLeft className="size-4" />

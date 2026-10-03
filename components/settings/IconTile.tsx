@@ -2,7 +2,7 @@ import { cn } from "@/lib/utils";
 
 const TONES = {
   neutral: "bg-muted text-muted-foreground",
-  success: "bg-green-500/15 text-green-600 dark:text-green-400",
+  success: "bg-success/15 text-success",
   destructive: "bg-destructive/15 text-destructive",
 } as const;
 

@@ -16,8 +16,8 @@ export function CourseNotifications({ courses }: CourseNotificationsProps) {
         <div className="flex items-center gap-3 p-4">
           <IconTile icon={BellRing} tone="success" />
           <p className="text-xs leading-relaxed text-muted-foreground">
-            Ricevi una notifica quando un corso cambia orario, aula o viene
-            annullato.
+            Ti avvisiamo quando una lezione cambia orario o aula, o viene
+            annullata.
           </p>
         </div>
         <Separator />

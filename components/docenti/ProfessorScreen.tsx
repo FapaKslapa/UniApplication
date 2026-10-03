@@ -36,7 +36,7 @@ export function ProfessorScreen({ name, onBack }: ProfessorScreenProps) {
         <Button
           variant="ghost"
           size="icon"
-          aria-label="Indietro"
+          aria-label="Torna all'elenco dei docenti"
           onClick={onBack}
           className="rounded-full"
         >
@@ -49,8 +49,11 @@ export function ProfessorScreen({ name, onBack }: ProfessorScreenProps) {
           variant="ghost"
           size="icon"
           aria-label={
-            isFavorite ? "Rimuovi dai preferiti" : "Aggiungi ai preferiti"
+            isFavorite
+              ? `Rimuovi ${name} dai preferiti`
+              : `Aggiungi ${name} ai preferiti`
           }
+          aria-pressed={isFavorite}
           onClick={() => toggleFavoriteProfessor(name)}
           className="rounded-full"
         >

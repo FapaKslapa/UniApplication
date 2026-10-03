@@ -131,7 +131,7 @@ export function VisitsTrendChart({
               dataKey="date"
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 10, fill: axisColor }}
+              tick={{ fontSize: 11, fill: axisColor }}
               interval={lineTickInterval}
               tickFormatter={(v) =>
                 new Date(v).toLocaleDateString("it-IT", {
@@ -143,7 +143,7 @@ export function VisitsTrendChart({
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fontSize: 10, fill: axisColor }}
+              tick={{ fontSize: 11, fill: axisColor }}
               width={30}
             />
             <Tooltip content={<CustomLineTooltip />} />
@@ -158,7 +158,7 @@ export function VisitsTrendChart({
             <Line
               type="monotone"
               dataKey="uniqueClients"
-              stroke="#a78bfa"
+              stroke="var(--chart-2)"
               strokeWidth={2}
               strokeDasharray="4 2"
               dot={false}
@@ -173,13 +173,13 @@ export function VisitsTrendChart({
             className="w-6 h-0.5 rounded-full"
             style={{ background: primaryStroke }}
           />
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-[11px] text-muted-foreground">
             Visite totali
           </span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="w-6 border-t-2 border-dashed border-[#a78bfa]" />
-          <span className="text-[10px] text-muted-foreground">
+          <div className="w-6 border-t-2 border-dashed border-chart-2" />
+          <span className="text-[11px] text-muted-foreground">
             Utenti unici
           </span>
         </div>

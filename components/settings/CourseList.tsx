@@ -24,14 +24,19 @@ export function CourseList({ draft }: CourseListProps) {
       <div className="shrink-0 px-4 pb-2">
         <SearchInput
           value={query}
-          placeholder="Cerca corso..."
+          placeholder="Cerca il tuo corso di laurea…"
           onChange={setQuery}
         />
       </div>
       <div className="flex-1 space-y-1.5 overflow-y-auto overscroll-contain px-4 pb-4">
         {isLoading && <SkeletonList rows={5} />}
         {!isLoading && courses.length === 0 && (
-          <EmptyNote>Nessun corso trovato.</EmptyNote>
+          <EmptyNote
+            hint="Controlla come hai scritto il nome o prova con meno parole."
+            action={{ label: "Cancella ricerca", onClick: () => setQuery("") }}
+          >
+            Nessun corso trovato per «{query}»
+          </EmptyNote>
         )}
         {courses.map((course, index) => (
           <m.div

@@ -1,5 +1,5 @@
-import { it } from "date-fns/locale";
 import { CalendarDays, TrendingDown, TrendingUp } from "lucide-react";
+import { it } from "react-day-picker/locale";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Drawer,
@@ -16,9 +16,9 @@ function TrendBadge({ value }: { value: number | null }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold",
+        "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold",
         up
-          ? "bg-green-500/10 text-green-600 dark:text-green-400"
+          ? "bg-success/10 text-success"
           : "bg-destructive/10 text-destructive",
       )}
     >
@@ -51,7 +51,7 @@ export function StatCard({
   return (
     <div className="rounded-xl bg-card p-4 sm:p-5 elevation-1">
       <div className="flex items-start justify-between mb-2 sm:mb-3">
-        <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground leading-tight flex-1 pr-2">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground leading-tight flex-1 pr-2">
           {title}
         </p>
         <div className={cn("p-2 rounded-xl shrink-0", iconColor)}>{icon}</div>
@@ -60,7 +60,7 @@ export function StatCard({
         {value.toLocaleString("it-IT")}
       </p>
       <div className="flex items-center gap-2 flex-wrap">
-        <p className="text-[10px] text-muted-foreground font-medium">
+        <p className="text-[11px] text-muted-foreground font-medium">
           {subtitle}
         </p>
         {trend !== undefined && <TrendBadge value={trend ?? null} />}
@@ -80,7 +80,7 @@ export function ChartCard({
 }) {
   return (
     <div className={cn("rounded-xl bg-card p-5 sm:p-6 elevation-2", className)}>
-      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-5 sm:mb-6">
+      <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-5 sm:mb-6">
         {title}
       </p>
       {children}
@@ -104,7 +104,7 @@ export function CustomLineTooltip({
   if (!active || !payload?.length) return null;
   return (
     <div className="rounded-lg bg-popover p-3 text-popover-foreground elevation-1">
-      <p className="text-[10px] text-muted-foreground mb-2">
+      <p className="text-[11px] text-muted-foreground mb-2">
         {label
           ? new Date(label).toLocaleDateString("it-IT", {
               day: "numeric",
@@ -116,7 +116,7 @@ export function CustomLineTooltip({
       {payload.map((p) => (
         <div key={p.name} className="flex items-center gap-2">
           <span className="text-xs font-bold">{p.value.toLocaleString()}</span>
-          <span className="text-[10px] text-muted-foreground">
+          <span className="text-[11px] text-muted-foreground">
             {p.name === "count"
               ? "visite"
               : p.name === "unique"

@@ -1,64 +1,34 @@
-import {
-  Bell,
-  CalendarDays,
-  CheckCircle2,
-  Heart,
-  type LucideIcon,
-  Search,
-  Sparkles,
-} from "lucide-react";
-
-export type WelcomeBullet = {
-  icon: LucideIcon;
-  text: string;
-};
+import { BellRing, Clock, ListFilter, type LucideIcon } from "lucide-react";
 
 export type WelcomeSlide = {
   id: string;
   icon: LucideIcon;
   title: string;
   description: string;
-  bullets?: WelcomeBullet[];
   note?: string;
 };
 
 export const slides: WelcomeSlide[] = [
   {
-    id: "welcome",
-    icon: Sparkles,
-    title: "Benvenuto su UniOrario",
+    id: "next-lesson",
+    icon: Clock,
+    title: "Sai sempre cosa viene dopo",
     description:
-      "L'orario di tutto l'Ateneo Insubria in un'unica app, con l'Agenda del tuo corso e un modo veloce per trovare un docente.",
+      "Apri l'app e vedi subito la prossima lezione: a che ora inizia, in quale aula e con quale docente.",
   },
   {
-    id: "how-it-works",
-    icon: CalendarDays,
-    title: "Come funziona",
+    id: "changes",
+    icon: BellRing,
+    title: "Se qualcosa cambia, lo sai",
     description:
-      "Seleziona i tuoi corsi dalle impostazioni e l'app costruirà la tua Agenda personalizzata: settimana e mese, con la lezione in corso, l'aula e il docente sempre in evidenza.",
-    bullets: [
-      { icon: CalendarDays, text: "Agenda settimanale e mensile" },
-      { icon: Search, text: "Cerca un docente nel tab Docenti" },
-      { icon: Bell, text: "Notifiche su cambi orario" },
-    ],
+      "Aula cambiata o lezione annullata? Ti arriva una notifica sul telefono, senza dover ricontrollare l'orario.",
   },
   {
-    id: "community",
-    icon: Heart,
-    title: "Progetto della community",
+    id: "your-subjects",
+    icon: ListFilter,
+    title: "Solo le tue materie",
     description:
-      "UniOrario è un progetto open source fatto da studenti per studenti, con il codice pubblico su GitHub.",
-    note: "Trovato un bug, manca il tuo corso o hai un'idea? Apri una issue su GitHub o scrivici.",
-  },
-  {
-    id: "ready",
-    icon: CheckCircle2,
-    title: "Tutto pronto",
-    description:
-      "Un'ultima cosa: scegli i tuoi corsi e potrai attivare le notifiche in tempo reale con un tap.",
-    bullets: [
-      { icon: CalendarDays, text: "Scegli i corsi che segui" },
-      { icon: Bell, text: "Attiva le notifiche quando vuoi" },
-    ],
+      "Scegli il tuo corso e nascondi quello che non ti serve: l'orario resta pulito, con dentro solo le tue lezioni.",
+    note: "UniOrario è open source, fatto da studenti. Se manca il tuo corso o hai un'idea, scrivici dalle impostazioni.",
   },
 ];

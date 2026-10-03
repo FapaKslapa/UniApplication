@@ -8,7 +8,6 @@ import { useCallback, useMemo, useState } from "react";
 import { StatsKpiGrids } from "@/components/admin/stats/StatsKpiGrids";
 import { StatsLoadingSkeleton } from "@/components/admin/stats/StatsLoadingSkeleton";
 import { SkeletonCard } from "@/components/admin/stats/StatsPrimitives";
-import { useIsDark } from "@/components/admin/stats/useIsDark";
 import { api } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -67,11 +66,10 @@ const OsPushCharts = dynamic(
 );
 
 export function AdminStatsView() {
-  const isDark = useIsDark();
   const queryClient = useQueryClient();
-  const axisColor = isDark ? "oklch(0.55 0 0)" : "oklch(0.55 0 0)";
-  const gridColor = isDark ? "oklch(0.25 0 0 / 0.4)" : "oklch(0.88 0 0 / 0.6)";
-  const primaryStroke = isDark ? "oklch(0.95 0 0)" : "oklch(0.12 0 0)";
+  const axisColor = "var(--muted-foreground)";
+  const gridColor = "color-mix(in oklab, var(--border) 70%, transparent)";
+  const primaryStroke = "var(--chart-1)";
 
   const [activeDays, setActiveDays] = useState(30);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -129,7 +127,7 @@ export function AdminStatsView() {
       className="space-y-6 pb-10"
     >
       <div className="flex items-center justify-between">
-        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
           Analytics
         </p>
         <button

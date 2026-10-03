@@ -1,7 +1,6 @@
-import { RefreshCw, Settings } from "lucide-react";
-import { HomeViewSwitcher } from "@/components/home/HomeViewSwitcher";
+import { RefreshCw } from "lucide-react";
+import { HeaderActions } from "@/components/home/HeaderActions";
 import type { HomeView } from "@/components/home/types";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +11,7 @@ type HomeHeaderProps = {
   activeView: HomeView;
   isAdmin: boolean;
   showRefresh: boolean;
+  isRefreshing: boolean;
   onViewChange: (view: HomeView) => void;
   onRefresh: () => void;
   onOpenSettings: () => void;
@@ -21,12 +21,10 @@ export function HomeHeader({
   title,
   subtitle,
   showTitle,
-  activeView,
-  isAdmin,
   showRefresh,
-  onViewChange,
+  isRefreshing,
   onRefresh,
-  onOpenSettings,
+  ...actions
 }: HomeHeaderProps) {
   return (
     <header
@@ -48,46 +46,28 @@ export function HomeHeader({
 
           {showRefresh && (
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               aria-label="Aggiorna orario"
+              title="Aggiorna orario"
+              aria-busy={isRefreshing}
               onClick={onRefresh}
-              className="rounded-full elevation-1 md:hidden"
+              className="rounded-full text-muted-foreground md:hidden"
             >
-              <RefreshCw className="size-4" />
+              <RefreshCw
+                className={cn("size-4", isRefreshing && "animate-spin")}
+              />
             </Button>
           )}
         </>
       )}
 
-      <div className="hidden items-center gap-2 md:flex">
-        <HomeViewSwitcher
-          activeView={activeView}
-          isAdmin={isAdmin}
-          onViewChange={onViewChange}
-        />
-        <ThemeToggle />
-        {showRefresh && (
-          <Button
-            variant="outline"
-            size="icon"
-            aria-label="Aggiorna orario"
-            onClick={onRefresh}
-            className="rounded-full elevation-1"
-          >
-            <RefreshCw className="size-4" />
-          </Button>
-        )}
-        <Button
-          variant="outline"
-          size="icon"
-          aria-label="Impostazioni"
-          onClick={onOpenSettings}
-          className="rounded-full elevation-1"
-        >
-          <Settings className="size-5" />
-        </Button>
-      </div>
+      <HeaderActions
+        {...actions}
+        showRefresh={showRefresh}
+        isRefreshing={isRefreshing}
+        onRefresh={onRefresh}
+      />
     </header>
   );
 }

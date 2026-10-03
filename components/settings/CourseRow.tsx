@@ -21,7 +21,12 @@ export function CourseRow({
   onCopyLink,
 }: CourseRowProps) {
   return (
-    <div className="flex min-h-14 items-center gap-3 rounded-md bg-card px-3 py-2.5">
+    <div
+      className={cn(
+        "flex min-h-14 items-center gap-3 rounded-md bg-card px-3 py-2.5 transition-colors",
+        selected && "bg-brand-soft",
+      )}
+    >
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold">{course.name}</p>
         {course.year && (
@@ -33,11 +38,12 @@ export function CourseRow({
         type="button"
         variant="ghost"
         size="icon"
-        aria-label="Copia link"
+        aria-label={`Copia il link dell'orario di ${course.name}`}
+        title="Copia il link dell'orario"
         onClick={onCopyLink}
         className={cn(
-          "size-9 shrink-0 rounded-full text-muted-foreground",
-          copied && "text-green-600 dark:text-green-400",
+          "relative size-9 shrink-0 rounded-full text-muted-foreground before:absolute before:-inset-1 before:content-['']",
+          copied && "text-success",
         )}
       >
         {copied ? <Check className="size-4" /> : <Link2 className="size-4" />}

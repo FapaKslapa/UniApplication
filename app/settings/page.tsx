@@ -40,15 +40,14 @@ function SettingsContent() {
   const searchParams = useSearchParams();
   const isSetup = searchParams.get("setup") === "true";
 
-  const { ensureUserId, isAdmin, setIsAdmin } = useAppStore();
+  const { isAdmin, setIsAdmin } = useAppStore();
 
   const [coursesOpen, setCoursesOpen] = useState(isSetup);
   const [subjectsOpen, setSubjectsOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAdminLoginOpen, setIsAdminLoginOpen] = useState(false);
-  const userId = ensureUserId();
 
-  const draft = useCourseDraft({ userId, onEdit: () => setError(null) });
+  const draft = useCourseDraft({ onEdit: () => setError(null) });
   const visibility = useSubjectVisibility();
   const save = useSaveSettings({
     draft,
@@ -111,13 +110,13 @@ function SettingsContent() {
       >
         <DrawerContent className="flex h-[85vh] flex-col bg-popover">
           <DrawerHeader className="flex-row items-center gap-4">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background elevation-1">
-              <BookOpen className="size-5" />
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground elevation-1">
+              <BookOpen className="size-5" aria-hidden />
             </div>
             <div className="text-left">
               <DrawerTitle className="text-xl">I miei corsi</DrawerTitle>
               <DrawerDescription>
-                Scegli i corsi da seguire in agenda
+                Scegli corso di laurea e anno: vedrai solo le loro lezioni
               </DrawerDescription>
             </div>
           </DrawerHeader>
@@ -142,13 +141,13 @@ function SettingsContent() {
       >
         <DrawerContent className="flex h-[85vh] flex-col bg-popover">
           <DrawerHeader className="flex-row items-center gap-4">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background elevation-1">
-              <Eye className="size-5" />
+            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-brand text-brand-foreground elevation-1">
+              <Eye className="size-5" aria-hidden />
             </div>
             <div className="text-left">
               <DrawerTitle className="text-xl">Materie visibili</DrawerTitle>
               <DrawerDescription>
-                Nascondi le materie che non vuoi vedere nell&apos;orario
+                Spegni le materie che non vuoi vedere nell&apos;orario
               </DrawerDescription>
             </div>
           </DrawerHeader>

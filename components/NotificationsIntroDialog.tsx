@@ -20,8 +20,8 @@ export function NotificationsIntroDialog({
       <DrawerContent>
         <DrawerTitle className="sr-only">Notifiche push</DrawerTitle>
         <div className="flex flex-col items-center px-8 pt-2 pb-6 text-center">
-          <div className="mb-6 flex size-16 items-center justify-center rounded-xl bg-muted">
-            <BellRing className="size-7 text-foreground" />
+          <div className="mb-6 flex size-16 items-center justify-center rounded-xl bg-muted text-foreground">
+            <BellRing className="size-7" aria-hidden />
           </div>
 
           <div className="space-y-3">
@@ -29,16 +29,15 @@ export function NotificationsIntroDialog({
               Attiva le notifiche
             </h2>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              Non perderti più un cambio d'aula o una lezione annullata. Attiva
-              le notifiche push per ricevere avvisi in tempo reale solo sulle
-              materie che segui.
+              Ti avvisiamo subito se cambia un'aula o salta una lezione, solo
+              per le materie che segui. Puoi attivarle dalle impostazioni.
             </p>
           </div>
         </div>
 
         <div className="flex flex-col gap-3 px-8 pb-8">
           <Button onClick={onConfigure} size="lg" className="w-full">
-            <span>Configura ora</span>
+            <span>Vai alle impostazioni</span>
             <ChevronRight className="size-4" />
           </Button>
 
@@ -47,7 +46,7 @@ export function NotificationsIntroDialog({
             variant="ghost"
             className="w-full text-muted-foreground"
           >
-            Magari più tardi
+            Non ora
           </Button>
         </div>
       </DrawerContent>
