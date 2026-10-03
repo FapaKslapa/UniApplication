@@ -14,6 +14,10 @@ L'orario dell'Università dell'Insubria, pensato per essere letto in piedi nel c
   <img src=".github/assets/desktop-agenda.png" alt="Agenda su desktop con oggi, settimana e mese affiancati" width="100%">
 </p>
 
+<p align="center">
+  <img src=".github/assets/desktop-settings.png" alt="Impostazioni su desktop a due colonne" width="100%">
+</p>
+
 Gli screenshot usano dati di esempio.
 
 ## Come ragiona
