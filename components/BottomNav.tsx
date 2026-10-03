@@ -3,6 +3,7 @@
 import { m } from "framer-motion";
 import {
   CalendarDays,
+  ClipboardCheck,
   GraduationCap,
   Settings,
   ShieldCheck,
@@ -46,6 +47,13 @@ export function BottomNav({
           onClick={() => onViewChange?.("docenti")}
           label="Docenti"
           icon={<GraduationCap className="size-[18px]" />}
+        />
+
+        <NavBtn
+          active={activeSection === "calendar" && activeView === "esami"}
+          onClick={() => onViewChange?.("esami")}
+          label="Esami"
+          icon={<ClipboardCheck className="size-[18px]" />}
         />
 
         {isAdmin && (

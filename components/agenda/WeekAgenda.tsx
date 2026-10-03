@@ -6,6 +6,7 @@ import { useEffect, useRef } from "react";
 import { WeekDaySection } from "@/components/agenda/WeekDaySection";
 import { WeekSkeleton } from "@/components/agenda/WeekSkeleton";
 import { startOfWeek } from "@/lib/agenda/dates";
+import { type DayExams, dayExamsOf } from "@/lib/agenda/exams";
 import type { DayEntry } from "@/lib/agenda/types";
 import { springs } from "@/lib/motion";
 
@@ -16,6 +17,7 @@ type WeekAgendaProps = {
   selectedDate: DateTime;
   today: DateTime;
   isPending: boolean;
+  examsByDay: Map<string, DayExams>;
   colorFor: (materia: string) => string;
   onSelectDay: (date: DateTime) => void;
   onShiftWeek: (delta: -1 | 1) => void;
@@ -26,6 +28,7 @@ export function WeekAgenda({
   selectedDate,
   today,
   isPending,
+  examsByDay,
   colorFor,
   onSelectDay,
   onShiftWeek,
@@ -71,6 +74,7 @@ export function WeekAgenda({
             now={today}
             isToday={day.date.hasSame(today, "day")}
             colorFor={colorFor}
+            dayExams={dayExamsOf(examsByDay, day.date)}
             onSelectDay={onSelectDay}
           />
         </div>

@@ -2,6 +2,7 @@ import type { DateTime } from "luxon";
 import dynamic from "next/dynamic";
 import { AgendaLayout } from "@/components/home/AgendaLayout";
 import { DocentiLayout } from "@/components/home/DocentiLayout";
+import { ExamsLayout } from "@/components/home/ExamsLayout";
 import { NotConfigured } from "@/components/home/NotConfigured";
 import type { HomeView } from "@/components/home/types";
 import type { AgendaMode } from "@/lib/agenda/types";
@@ -40,6 +41,9 @@ export function HomeBody({
   }
   if (activeView === "docenti") {
     return <DocentiLayout />;
+  }
+  if (activeView === "esami") {
+    return <ExamsLayout />;
   }
   if (!hasConfigured) {
     return <NotConfigured onConfigure={onConfigure} />;

@@ -1,19 +1,32 @@
 import { db } from "@/lib/db";
 import { checkUpdates } from "@/lib/jobs/check-updates";
 import { cleanupVisits } from "@/lib/jobs/cleanup-visits";
+import { examReminders } from "@/lib/jobs/exam-reminders";
 import { refreshProfessors } from "@/lib/jobs/refresh-professors";
 import { scrapeAllCourses } from "@/lib/jobs/scrape-courses";
+import { syncExams } from "@/lib/jobs/sync-exams";
 import { isCronRequestAuthorized } from "@/server/cron-auth";
 
 const jobs = {
   "check-updates": async () => {
     await checkUpdates();
+    try {
+      await examReminders();
+    } catch (error) {
+      console.error("Exam reminders failed:", error);
+    }
     return { ok: true };
   },
   "scrape-courses": () => scrapeAllCourses(db),
   "refresh-professors": async () => {
     await cleanupVisits();
-    return refreshProfessors();
+    const result = await refreshProfessors();
+    try {
+      await syncExams();
+    } catch (error) {
+      console.error("Exam sync failed:", error);
+    }
+    return result;
   },
 } as const;
 

@@ -20,7 +20,7 @@ import { getCurrentItalianDateTime } from "@/lib/date-utils";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-const OWN_HEADER_VIEWS = new Set(["week", "docenti"]);
+const OWN_HEADER_VIEWS = new Set(["week", "docenti", "esami"]);
 
 export function HomeScreen() {
   const router = useRouter();

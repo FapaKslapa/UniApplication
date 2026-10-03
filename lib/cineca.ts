@@ -1,4 +1,5 @@
 import type { DateTime } from "luxon";
+import { toTitleCase } from "@/lib/utils";
 
 export interface CinecaEvent {
   nome?: string;
@@ -107,3 +108,14 @@ export const fetchCinecaEvents = async (
     return [];
   }
 };
+
+export const cinecaSubject = (event: CinecaEvent): string => {
+  const rawTitle = event.nome || "Lezione";
+  const aulaMatch = rawTitle.match(/^(.+?)Aula/);
+  return toTitleCase(aulaMatch ? aulaMatch[1].trim() : rawTitle);
+};
+
+export const cinecaProfessor = (event: CinecaEvent): string | null =>
+  event.docenti?.[0]
+    ? toTitleCase(`${event.docenti[0].cognome} ${event.docenti[0].nome}`)
+    : null;

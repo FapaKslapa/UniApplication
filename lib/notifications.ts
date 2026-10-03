@@ -86,3 +86,47 @@ export async function sendPushNotification(
     }),
   );
 }
+
+export async function sendPushToUser(
+  userId: string,
+  title: string,
+  body: string,
+  data?: Record<string, unknown>,
+) {
+  configureVapid();
+
+  const rows = await db.query.pushSubscriptions.findMany({
+    where: eq(pushSubscriptions.userId, userId),
+  });
+  const byEndpoint = new Map(rows.map((row) => [row.endpoint, row]));
+
+  const results = await Promise.all(
+    [...byEndpoint.values()].map(async (sub) => {
+      try {
+        await webpush.sendNotification(
+          {
+            endpoint: sub.endpoint,
+            keys: { p256dh: sub.p256dh, auth: sub.auth },
+          },
+          JSON.stringify({ title, body, ...data }),
+        );
+        return true;
+      } catch (error) {
+        const statusCode = (error as { statusCode?: number }).statusCode;
+        if (statusCode === 410 || statusCode === 404) {
+          await db
+            .delete(pushSubscriptions)
+            .where(eq(pushSubscriptions.endpoint, sub.endpoint));
+        } else {
+          console.error("Push error:", error);
+        }
+        return false;
+      }
+    }),
+  );
+
+  return {
+    endpoints: byEndpoint.size,
+    delivered: results.filter(Boolean).length,
+  };
+}

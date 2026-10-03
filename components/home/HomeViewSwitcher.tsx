@@ -1,5 +1,6 @@
 import {
   CalendarDays,
+  ClipboardCheck,
   GraduationCap,
   type LucideIcon,
   Settings,
@@ -18,6 +19,7 @@ type ViewItem = { view: HomeView; label: string; icon: LucideIcon };
 const BASE_ITEMS: ViewItem[] = [
   { view: "week", label: "Agenda", icon: CalendarDays },
   { view: "docenti", label: "Docenti", icon: GraduationCap },
+  { view: "esami", label: "Esami", icon: ClipboardCheck },
 ];
 
 const ADMIN_ITEM: ViewItem = {

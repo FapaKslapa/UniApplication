@@ -7,6 +7,7 @@ import { DayTimeline } from "@/components/agenda/DayTimeline";
 import { EmptyDay } from "@/components/agenda/EmptyDay";
 import { NextLessonHero } from "@/components/agenda/NextLessonHero";
 import { minutesOfDay } from "@/lib/agenda/dates";
+import { type DayExams, EMPTY_DAY_EXAMS } from "@/lib/agenda/exams";
 import { gapsBefore, overlapFlags, pickHeroLesson } from "@/lib/agenda/lessons";
 import type { NextUp } from "@/lib/agenda/nextUp";
 import { slideVariants, springs } from "@/lib/motion";
@@ -25,6 +26,7 @@ export type DayViewProps = {
   variant: "courses" | "professor";
   nextUp: NextUp | null;
   onShiftDay: (delta: -1 | 1) => void;
+  dayExams?: DayExams;
 };
 
 export function DayView({
@@ -38,7 +40,9 @@ export function DayView({
   variant,
   nextUp,
   onShiftDay,
+  dayExams = EMPTY_DAY_EXAMS,
 }: DayViewProps) {
+  const hasExtras = dayExams.exams.length > 0 || dayExams.milestones.length > 0;
   const pick = pickHeroLesson(events, minutesOfDay(now), isToday);
   const flags = overlapFlags(events);
   const heroIndex = pick?.lesson ? events.indexOf(pick.lesson) : -1;
@@ -73,7 +77,7 @@ export function DayView({
       >
         {isPending ? (
           <AgendaSkeleton />
-        ) : events.length === 0 ? (
+        ) : events.length === 0 && !hasExtras ? (
           <EmptyDay now={now} nextUp={nextUp} colorFor={colorFor} />
         ) : (
           <>
@@ -87,7 +91,7 @@ export function DayView({
                 nextUp={nextUp}
               />
             )}
-            {restEvents.length > 0 && (
+            {(restEvents.length > 0 || hasExtras) && (
               <DayTimeline
                 events={restEvents}
                 overlapping={restFlags}
@@ -96,6 +100,7 @@ export function DayView({
                 isToday={isToday}
                 colorFor={colorFor}
                 showProfessor={variant === "courses"}
+                dayExams={dayExams}
               />
             )}
           </>

@@ -1,6 +1,7 @@
 import { adminRouter } from "@/server/api/routers/admin";
 import { analyticsRouter } from "@/server/api/routers/analytics";
 import { coursesRouter } from "@/server/api/routers/courses";
+import { examsRouter } from "@/server/api/routers/exams";
 import { notificationsRouter } from "@/server/api/routers/notifications";
 import { orarioRouter } from "@/server/api/routers/orario";
 import { statsRouter } from "@/server/api/routers/stats";
@@ -13,6 +14,7 @@ export const appRouter = createTRPCRouter({
   analytics: analyticsRouter,
   notifications: notificationsRouter,
   stats: statsRouter,
+  exams: examsRouter,
 });
 
 export type AppRouter = typeof appRouter;

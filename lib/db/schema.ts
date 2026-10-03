@@ -1,5 +1,12 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  index,
+  integer,
+  primaryKey,
+  sqliteTable,
+  text,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 
 export const visits = sqliteTable(
   "visits",
@@ -150,6 +157,78 @@ export const courseSnapshots = sqliteTable("course_snapshots", {
     .notNull()
     .default(sql`(unixepoch())`),
 });
+
+export const exams = sqliteTable(
+  "exams",
+  {
+    id: text("id").primaryKey(),
+    source: text("source").notNull(),
+    externalId: text("external_id").notNull(),
+    linkId: text("link_id").notNull(),
+    subject: text("subject").notNull(),
+    courseName: text("course_name"),
+    startsAt: integer("starts_at", { mode: "timestamp" }).notNull(),
+    endsAt: integer("ends_at", { mode: "timestamp" }),
+    kind: text("kind"),
+    aula: text("aula"),
+    professor: text("professor"),
+    regOpensAt: integer("reg_opens_at", { mode: "timestamp" }),
+    regClosesAt: integer("reg_closes_at", { mode: "timestamp" }),
+    regConfirmed: integer("reg_confirmed", { mode: "boolean" })
+      .notNull()
+      .default(false),
+    canceled: integer("canceled", { mode: "boolean" }).notNull().default(false),
+    updatedAt: integer("updated_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    uniqueIndex("idx_exams_source_external").on(table.source, table.externalId),
+    index("idx_exams_starts_at").on(table.startsAt),
+    index("idx_exams_link_id").on(table.linkId),
+  ],
+);
+
+export const examCalendars = sqliteTable(
+  "exam_calendars",
+  {
+    examId: text("exam_id").notNull(),
+    linkId: text("link_id").notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.examId, table.linkId] }),
+    index("idx_exam_calendars_link_id").on(table.linkId),
+  ],
+);
+
+export const examFollows = sqliteTable(
+  "exam_follows",
+  {
+    userId: text("user_id").notNull(),
+    examId: text("exam_id").notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [primaryKey({ columns: [table.userId, table.examId] })],
+);
+
+export const examRemindersSent = sqliteTable(
+  "exam_reminders_sent",
+  {
+    userId: text("user_id").notNull(),
+    examId: text("exam_id").notNull(),
+    kind: text("kind").notNull(),
+    sentAt: integer("sent_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    primaryKey({ columns: [table.userId, table.examId, table.kind] }),
+  ],
+);
+
+export type DbExam = typeof exams.$inferSelect;
 
 export type DbCourse = typeof courses.$inferSelect;
 export type NewDbCourse = typeof courses.$inferInsert;

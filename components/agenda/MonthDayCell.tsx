@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 type MonthDayCellProps = {
   date: DateTime;
   events: ParsedEvent[];
+  examCount: number;
   isCurrentMonth: boolean;
   isToday: boolean;
   isSelected: boolean;
@@ -19,6 +20,7 @@ type MonthDayCellProps = {
 export function MonthDayCell({
   date,
   events,
+  examCount,
   isCurrentMonth,
   isToday,
   isSelected,
@@ -32,7 +34,7 @@ export function MonthDayCell({
       variant="ghost"
       onClick={() => onSelect(date)}
       aria-current={isToday ? "date" : undefined}
-      aria-label={`${date.setLocale("it").toFormat("cccc d MMMM")}, ${events.length} lezioni`}
+      aria-label={`${date.setLocale("it").toFormat("cccc d MMMM")}, ${events.length} lezioni${examCount > 0 ? `, ${examCount} esami` : ""}`}
       className={cn(
         "relative h-full w-full flex-col items-center justify-center gap-1 rounded-md px-0 py-1 focus-visible:ring-inset focus-visible:ring-offset-0",
         !isCurrentMonth && "pointer-events-none opacity-0",
@@ -59,6 +61,16 @@ export function MonthDayCell({
             style={{ backgroundColor: colorFor(materia) }}
           />
         ))}
+        {examCount > 0 && (
+          <span
+            role="img"
+            aria-label="Esame"
+            className={cn(
+              "size-1.5 rounded-[1px] border",
+              isSelected ? "border-background" : "border-foreground",
+            )}
+          />
+        )}
       </span>
     </Button>
   );

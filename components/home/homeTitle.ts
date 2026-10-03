@@ -9,6 +9,7 @@ export function getHomeTitle({
   activeView,
   courseNames,
 }: HomeTitleInput): string {
+  if (activeView === "esami") return "Esami";
   if (activeView === "stats") return "Statistiche Sistema";
   if (activeView === "admin-courses") return "Gestione Corsi";
   if (courseNames.length === 0) return "Orario Insubria";

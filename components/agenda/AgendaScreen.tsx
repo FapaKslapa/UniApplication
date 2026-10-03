@@ -11,9 +11,11 @@ import { useAgendaNavigation } from "@/components/agenda/useAgendaNavigation";
 import { WeekAgenda } from "@/components/agenda/WeekAgenda";
 import { WeekStrip } from "@/components/agenda/WeekStrip";
 import { ErrorScreen } from "@/components/LoadingScreen";
+import { dayExamsOf } from "@/lib/agenda/exams";
 import { nextLessonAfter } from "@/lib/agenda/nextUp";
 import type { AgendaMode, AgendaSource } from "@/lib/agenda/types";
 import { useAgendaData } from "@/lib/agenda/useAgendaData";
+import { useAgendaExams } from "@/lib/agenda/useAgendaExams";
 import { useMonthData } from "@/lib/agenda/useMonthData";
 import { useNow } from "@/lib/agenda/useNow";
 import { useSubjectFilters } from "@/lib/agenda/useSubjectFilters";
@@ -50,6 +52,7 @@ export function AgendaScreen({
     source,
     mode === "month" || isLandscape,
   );
+  const { examsByDay } = useAgendaExams(selectedDate, source);
   const { hiddenSubjects, toggleSubject, resetFilters } = useSubjectFilters();
 
   if (error) {
@@ -116,6 +119,7 @@ export function AgendaScreen({
                 variant={source.kind}
                 nextUp={nextUp}
                 onShiftDay={shiftDay}
+                dayExams={dayExamsOf(examsByDay, selectedDate)}
               />
             </div>
             <div className="flex min-h-0 flex-col gap-2">
@@ -127,6 +131,7 @@ export function AgendaScreen({
                 selectedDate={selectedDate}
                 today={now}
                 isPending={isPending}
+                examsByDay={examsByDay}
                 colorFor={colorFor}
                 onSelectDay={select}
                 onShiftWeek={shiftWeek}
@@ -142,6 +147,7 @@ export function AgendaScreen({
                 today={now}
                 eventsByDate={month.eventsByDate}
                 isPending={month.isPending}
+                examsByDay={examsByDay}
                 direction={direction}
                 colorFor={month.colorFor}
                 onSelectDay={openDay}
@@ -169,6 +175,7 @@ export function AgendaScreen({
                 variant={source.kind}
                 nextUp={nextUp}
                 onShiftDay={shiftDay}
+                dayExams={dayExamsOf(examsByDay, selectedDate)}
               />
             )}
             {mode === "week" && (
@@ -177,6 +184,7 @@ export function AgendaScreen({
                 selectedDate={selectedDate}
                 today={now}
                 isPending={isPending}
+                examsByDay={examsByDay}
                 colorFor={colorFor}
                 onSelectDay={openDay}
                 onShiftWeek={shiftWeek}
@@ -189,6 +197,7 @@ export function AgendaScreen({
                 today={now}
                 eventsByDate={month.eventsByDate}
                 isPending={month.isPending}
+                examsByDay={examsByDay}
                 direction={direction}
                 colorFor={month.colorFor}
                 onSelectDay={openDay}

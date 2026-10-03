@@ -1,4 +1,10 @@
-const HOME_VIEWS = ["week", "docenti", "stats", "admin-courses"] as const;
+const HOME_VIEWS = [
+  "week",
+  "docenti",
+  "esami",
+  "stats",
+  "admin-courses",
+] as const;
 
 export type HomeView = (typeof HOME_VIEWS)[number];
 

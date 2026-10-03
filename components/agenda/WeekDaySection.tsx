@@ -2,11 +2,15 @@
 
 import { m } from "framer-motion";
 import type { DateTime } from "luxon";
+import { ExamMilestoneList } from "@/components/agenda/ExamMilestoneList";
+import { ExamRow } from "@/components/agenda/ExamRow";
 import { LessonRow } from "@/components/agenda/LessonRow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { minutesOfDay } from "@/lib/agenda/dates";
+import { type DayExams, EMPTY_DAY_EXAMS } from "@/lib/agenda/exams";
 import { lessonState, overlapFlags } from "@/lib/agenda/lessons";
+import { interleaveTimeline, isExamPast } from "@/lib/agenda/timeline";
 import { fadeUpVariants } from "@/lib/motion";
 import type { ParsedEvent } from "@/lib/orario-utils";
 import { cn } from "@/lib/utils";
@@ -18,6 +22,7 @@ type WeekDaySectionProps = {
   isToday: boolean;
   colorFor: (materia: string) => string;
   onSelectDay: (date: DateTime) => void;
+  dayExams?: DayExams;
 };
 
 export function WeekDaySection({
@@ -27,7 +32,9 @@ export function WeekDaySection({
   isToday,
   colorFor,
   onSelectDay,
+  dayExams = EMPTY_DAY_EXAMS,
 }: WeekDaySectionProps) {
+  const items = interleaveTimeline(events, dayExams.exams);
   const flags = overlapFlags(events);
   const nowMinutes = minutesOfDay(now);
 
@@ -51,28 +58,43 @@ export function WeekDaySection({
           {date.setLocale("it").toFormat("cccc d")}
         </span>
         <Badge variant={isToday ? "default" : "secondary"}>
-          {events.length}
+          {events.length + dayExams.exams.length}
         </Badge>
       </Button>
 
       <ul className="space-y-1.5">
-        {events.length === 0 ? (
+        <ExamMilestoneList milestones={dayExams.milestones} />
+        {items.length === 0 ? (
           <li className="rounded-md bg-card px-3 py-2.5 text-xs font-medium text-muted-foreground">
             Libero
           </li>
         ) : (
-          events.map((event, index) => (
-            <LessonRow
-              key={`${event.time}-${event.materia}`}
-              event={event}
-              index={index}
-              color={colorFor(event.materia)}
-              overlapping={flags[index]}
-              state={isToday ? lessonState(event.time, nowMinutes) : "upcoming"}
-              compact
-              showProfessor={false}
-            />
-          ))
+          items.map((item, position) =>
+            item.type === "exam" ? (
+              <ExamRow
+                key={item.exam.id}
+                exam={item.exam}
+                index={position}
+                past={isToday && isExamPast(item.exam, now.toMillis())}
+                compact
+              />
+            ) : (
+              <LessonRow
+                key={`${item.event.time}-${item.event.materia}`}
+                event={item.event}
+                index={item.index}
+                color={colorFor(item.event.materia)}
+                overlapping={flags[item.index]}
+                state={
+                  isToday
+                    ? lessonState(item.event.time, nowMinutes)
+                    : "upcoming"
+                }
+                compact
+                showProfessor={false}
+              />
+            ),
+          )
         )}
       </ul>
     </m.section>

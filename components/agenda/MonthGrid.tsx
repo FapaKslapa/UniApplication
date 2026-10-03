@@ -5,6 +5,7 @@ import type { DateTime } from "luxon";
 import { MonthDayCell } from "@/components/agenda/MonthDayCell";
 import { MonthSkeleton } from "@/components/agenda/MonthSkeleton";
 import { monthGridDays } from "@/lib/agenda/dates";
+import { type DayExams, dayExamsOf } from "@/lib/agenda/exams";
 import { slideVariants, springs } from "@/lib/motion";
 import type { ParsedEvent } from "@/lib/orario-utils";
 
@@ -25,6 +26,7 @@ type MonthGridProps = {
   today: DateTime;
   eventsByDate: Map<string, ParsedEvent[]>;
   isPending: boolean;
+  examsByDay: Map<string, DayExams>;
   direction: number;
   colorFor: (materia: string) => string;
   onSelectDay: (date: DateTime) => void;
@@ -37,6 +39,7 @@ export function MonthGrid({
   today,
   eventsByDate,
   isPending,
+  examsByDay,
   direction,
   colorFor,
   onSelectDay,
@@ -88,6 +91,7 @@ export function MonthGrid({
                   key={iso}
                   date={date}
                   events={eventsByDate.get(iso) ?? []}
+                  examCount={dayExamsOf(examsByDay, date).exams.length}
                   isCurrentMonth={date.hasSame(currentDate, "month")}
                   isToday={date.hasSame(today, "day")}
                   isSelected={date.hasSame(selectedDate, "day")}

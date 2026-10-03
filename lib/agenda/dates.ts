@@ -1,7 +1,7 @@
 import type { DateTime } from "luxon";
 import { getDayOfWeek } from "@/lib/date-utils";
 
-const ROME_ZONE = "Europe/Rome";
+export const ROME_ZONE = "Europe/Rome";
 
 export function startOfDay(date: DateTime): DateTime {
   return date.setZone(ROME_ZONE).startOf("day");
