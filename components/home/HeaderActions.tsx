@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 type HeaderActionsProps = {
-  activeView: HomeView;
+  activeView: HomeView | null;
+  settingsActive?: boolean;
   isAdmin: boolean;
   showRefresh: boolean;
   isRefreshing: boolean;
@@ -17,6 +18,7 @@ type HeaderActionsProps = {
 
 export function HeaderActions({
   activeView,
+  settingsActive = false,
   isAdmin,
   showRefresh,
   isRefreshing,
@@ -50,8 +52,12 @@ export function HeaderActions({
         size="icon"
         aria-label="Impostazioni"
         title="Impostazioni"
+        aria-current={settingsActive ? "page" : undefined}
         onClick={onOpenSettings}
-        className="rounded-full text-muted-foreground"
+        className={cn(
+          "rounded-full text-muted-foreground",
+          settingsActive && "bg-brand-soft text-foreground",
+        )}
       >
         <Settings className="size-5" />
       </Button>

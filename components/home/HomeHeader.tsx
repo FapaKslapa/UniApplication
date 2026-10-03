@@ -8,7 +8,8 @@ type HomeHeaderProps = {
   title: string;
   subtitle: string;
   showTitle: boolean;
-  activeView: HomeView;
+  activeView: HomeView | null;
+  settingsActive?: boolean;
   isAdmin: boolean;
   showRefresh: boolean;
   isRefreshing: boolean;

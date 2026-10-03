@@ -22,7 +22,7 @@ const ADMIN_ITEM: ViewItem = {
 };
 
 type HomeViewSwitcherProps = {
-  activeView: HomeView;
+  activeView: HomeView | null;
   isAdmin: boolean;
   onViewChange: (view: HomeView) => void;
 };
