@@ -31,6 +31,7 @@ export async function checkUpdates() {
     headers: new Headers(),
     isAdmin: true,
     userId: "system-job",
+    isNewIdentity: true,
   });
 
   const activeSubs = await db.query.pushSubscriptions.findMany({

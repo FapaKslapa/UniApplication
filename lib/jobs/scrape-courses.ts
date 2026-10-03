@@ -62,7 +62,7 @@ const ACCENTS: Record<string, string> = {
   u: "ù",
 };
 
-export interface FoundEntry {
+interface FoundEntry {
   linkId: string;
   label: string;
   year: number;
@@ -84,7 +84,7 @@ export interface ScrapeSummary {
   errors: number;
 }
 
-export function parseYear(label: string): number {
+function parseYear(label: string): number {
   const arabic = ARABIC_YEAR_RE.exec(label);
   if (arabic) return parseInt(arabic[1], 10);
   const roman = ROMAN_YEAR_RE.exec(label);
@@ -92,7 +92,7 @@ export function parseYear(label: string): number {
   return 1;
 }
 
-export function normalizeCourseName(raw: string): string {
+function normalizeCourseName(raw: string): string {
   const base = raw
     .replace(/^\[[^\]]*\]\s*/, "")
     .replace(/\s*\(abilitante[^)]*\)/i, "")
@@ -119,7 +119,7 @@ export function normalizeCourseName(raw: string): string {
     .join(" ");
 }
 
-export function getCurrentAcademicYear(): string {
+function getCurrentAcademicYear(): string {
   const now = new Date();
   const y = now.getFullYear();
   return now.getMonth() >= 8 ? `${y}/${y + 1}` : `${y - 1}/${y}`;
@@ -165,7 +165,7 @@ async function getCourseUrls(): Promise<string[]> {
   return Array.from(urls);
 }
 
-export function parseCoursePage(urlPath: string, html: string): CourseData {
+function parseCoursePage(urlPath: string, html: string): CourseData {
   const h1Match = H1_RE.exec(html);
   const slug = urlPath.split("/").pop() ?? "";
   const name = h1Match

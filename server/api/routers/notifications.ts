@@ -1,47 +1,55 @@
-import { TRPCError } from "@trpc/server";
 import { and, eq } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/lib/db";
 import { pushSubscriptions } from "@/lib/db/schema";
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
+import { enforceRateLimit } from "@/server/rate-limit";
+
+const filtersSchema = z.array(z.string().max(200)).max(200);
 
 export const notificationsRouter = createTRPCRouter({
   subscribe: publicProcedure
     .input(
       z.object({
-        linkId: z.string(),
-        filters: z.array(z.string()).optional(),
+        linkId: z.string().min(1).max(128),
+        filters: filtersSchema.optional(),
         subscription: z.object({
-          endpoint: z.string(),
+          endpoint: z.url().max(1024),
           keys: z.object({
-            p256dh: z.string(),
-            auth: z.string(),
+            p256dh: z.string().min(1).max(256),
+            auth: z.string().min(1).max(128),
           }),
         }),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      enforceRateLimit("notifications.subscribe", ctx.headers, 20);
       const { userId } = ctx;
+      const { endpoint, keys } = input.subscription;
+      const filters = JSON.stringify(input.filters || []);
 
-      if (!userId) {
-        throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "User ID non trovato",
-        });
+      const owned = await db.query.pushSubscriptions.findMany({
+        where: eq(pushSubscriptions.endpoint, endpoint),
+      });
+
+      const foreign = owned.filter((row) => row.userId !== userId);
+      if (foreign.length > 0) {
+        const holdsKeys = foreign.every(
+          (row) => row.p256dh === keys.p256dh && row.auth === keys.auth,
+        );
+        if (!holdsKeys) return { success: false };
+        await db
+          .update(pushSubscriptions)
+          .set({ userId })
+          .where(eq(pushSubscriptions.endpoint, endpoint));
       }
 
-      const existing = await db.query.pushSubscriptions.findFirst({
-        where: and(
-          eq(pushSubscriptions.userId, userId),
-          eq(pushSubscriptions.linkId, input.linkId),
-          eq(pushSubscriptions.endpoint, input.subscription.endpoint),
-        ),
-      });
+      const existing = owned.find((row) => row.linkId === input.linkId);
 
       if (existing) {
         await db
           .update(pushSubscriptions)
-          .set({ filters: JSON.stringify(input.filters || []) })
+          .set({ filters, p256dh: keys.p256dh, auth: keys.auth })
           .where(eq(pushSubscriptions.id, existing.id));
 
         return { success: true };
@@ -50,42 +58,34 @@ export const notificationsRouter = createTRPCRouter({
       await db.insert(pushSubscriptions).values({
         userId,
         linkId: input.linkId,
-        endpoint: input.subscription.endpoint,
-        p256dh: input.subscription.keys.p256dh,
-        auth: input.subscription.keys.auth,
-        filters: JSON.stringify(input.filters || []),
+        endpoint,
+        p256dh: keys.p256dh,
+        auth: keys.auth,
+        filters,
       });
 
       return { success: true };
     }),
 
   updateAllFilters: publicProcedure
-    .input(z.object({ filters: z.array(z.string()) }))
+    .input(z.object({ filters: filtersSchema }))
     .mutation(async ({ input, ctx }) => {
-      const { userId } = ctx;
-
-      if (!userId) return { success: false };
-
       await db
         .update(pushSubscriptions)
         .set({ filters: JSON.stringify(input.filters) })
-        .where(eq(pushSubscriptions.userId, userId));
+        .where(eq(pushSubscriptions.userId, ctx.userId));
 
       return { success: true };
     }),
 
   unsubscribe: publicProcedure
-    .input(z.object({ linkId: z.string() }))
+    .input(z.object({ linkId: z.string().min(1).max(128) }))
     .mutation(async ({ input, ctx }) => {
-      const { userId } = ctx;
-
-      if (!userId) return { success: false };
-
       await db
         .delete(pushSubscriptions)
         .where(
           and(
-            eq(pushSubscriptions.userId, userId),
+            eq(pushSubscriptions.userId, ctx.userId),
             eq(pushSubscriptions.linkId, input.linkId),
           ),
         );

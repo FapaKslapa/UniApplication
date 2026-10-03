@@ -4,7 +4,7 @@ import { coursesRouter } from "@/server/api/routers/courses";
 import { notificationsRouter } from "@/server/api/routers/notifications";
 import { orarioRouter } from "@/server/api/routers/orario";
 import { statsRouter } from "@/server/api/routers/stats";
-import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
+import { createTRPCRouter } from "@/server/api/trpc";
 
 export const appRouter = createTRPCRouter({
   orario: orarioRouter,
@@ -16,4 +16,3 @@ export const appRouter = createTRPCRouter({
 });
 
 export type AppRouter = typeof appRouter;
-export const createCaller = createCallerFactory(appRouter);

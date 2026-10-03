@@ -1,7 +1,9 @@
 import { db } from "@/lib/db";
 import { checkUpdates } from "@/lib/jobs/check-updates";
+import { cleanupVisits } from "@/lib/jobs/cleanup-visits";
 import { refreshProfessors } from "@/lib/jobs/refresh-professors";
 import { scrapeAllCourses } from "@/lib/jobs/scrape-courses";
+import { isCronRequestAuthorized } from "@/server/cron-auth";
 
 const jobs = {
   "check-updates": async () => {
@@ -9,15 +11,17 @@ const jobs = {
     return { ok: true };
   },
   "scrape-courses": () => scrapeAllCourses(db),
-  "refresh-professors": () => refreshProfessors(),
+  "refresh-professors": async () => {
+    await cleanupVisits();
+    return refreshProfessors();
+  },
 } as const;
 
 export async function POST(
   req: Request,
   { params }: { params: Promise<{ job: string }> },
 ) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret || req.headers.get("x-cron-secret") !== secret) {
+  if (!(await isCronRequestAuthorized(req))) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -30,8 +34,7 @@ export async function POST(
     const result = await jobs[job as keyof typeof jobs]();
     return Response.json(result);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Job failed";
     console.error(`Cron job ${job} failed:`, error);
-    return Response.json({ error: message }, { status: 500 });
+    return Response.json({ error: "Job failed" }, { status: 500 });
   }
 }

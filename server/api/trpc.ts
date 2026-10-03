@@ -5,18 +5,24 @@ import { ZodError } from "zod";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { analyticsUsers, apiLogs } from "@/lib/db/schema";
+import { resolveIdentity } from "@/server/identity";
 
-export const createTRPCContext = async (opts: { headers: Headers }) => {
+export const createTRPCContext = async (opts: {
+  headers: Headers;
+  resHeaders?: Headers;
+}) => {
   const session = await auth.api.getSession({ headers: opts.headers });
-  const adminEmail = process.env.NEXT_PUBLIC_ADMIN_EMAIL;
+  const adminEmail =
+    process.env.ADMIN_EMAIL || process.env.NEXT_PUBLIC_ADMIN_EMAIL;
   const isAdmin =
     !!session?.user && !!adminEmail && session.user.email === adminEmail;
-  const userId = opts.headers.get("x-user-id");
+  const { userId, isNew } = resolveIdentity(opts.headers, opts.resHeaders);
 
   return {
     headers: opts.headers,
     isAdmin,
     userId,
+    isNewIdentity: isNew,
   };
 };
 
@@ -50,7 +56,7 @@ const isAdminMiddleware = t.middleware(({ ctx, next }) => {
 });
 
 const analyticsMiddleware = t.middleware(async ({ ctx, next, path, type }) => {
-  if (ctx.userId) {
+  if (!ctx.isNewIdentity) {
     const userId = ctx.userId;
     void (async () => {
       try {

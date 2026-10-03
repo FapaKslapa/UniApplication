@@ -18,20 +18,6 @@ export interface DaySchedule {
   materiaColorMap?: Record<string, string>;
 }
 
-const giorni = [
-  "Lunedì",
-  "Martedì",
-  "Mercoledì",
-  "Giovedì",
-  "Venerdì",
-  "Sabato",
-  "Domenica",
-];
-
-export function getDayName(dayIndex: number): string {
-  return giorni[dayIndex] || `Giorno ${dayIndex}`;
-}
-
 export function parseEventTitle(title: string): {
   materia: string;
   aula: string;

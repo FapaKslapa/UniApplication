@@ -1,37 +1,34 @@
 import { orarioRouter } from "@/server/api/routers/orario";
 import { createTRPCContext } from "@/server/api/trpc";
+import { getOrarioBodySchema, jsonResponse } from "../schemas";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
-  "Access-Control-Allow-Headers": "Content-Type, Authorization, x-user-id",
+  "Access-Control-Allow-Headers": "Content-Type",
 };
 
 export async function POST(req: Request) {
+  let body: unknown;
   try {
-    const body = await req.json();
+    body = await req.json();
+  } catch {
+    return jsonResponse({ error: "Richiesta non valida" }, 400);
+  }
+
+  const parsed = getOrarioBodySchema.safeParse(body);
+  if (!parsed.success) {
+    return jsonResponse({ error: "Richiesta non valida" }, 400);
+  }
+
+  try {
     const ctx = await createTRPCContext({ headers: req.headers });
     const caller = orarioRouter.createCaller(ctx);
-    const result = await caller.getOrario({
-      name: body.name,
-      linkId: body.linkId,
-    });
-
-    return new Response(JSON.stringify(result), {
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-    });
+    const result = await caller.getOrario(parsed.data);
+    return jsonResponse(result);
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Errore interno";
-    return new Response(JSON.stringify({ error: message }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-        ...corsHeaders,
-      },
-    });
+    console.error("get-orario failed:", err);
+    return jsonResponse({ error: "Errore interno" }, 500);
   }
 }
 
