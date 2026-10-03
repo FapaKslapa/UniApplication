@@ -31,12 +31,12 @@ export function HomeHeader({
     <header
       className={cn(
         "flex shrink-0 items-center justify-between gap-4",
-        showTitle ? "mb-4 lg:mb-8" : "mb-0 md:mb-4 lg:mb-8",
+        showTitle ? "mb-4 md:flex-row-reverse lg:mb-8" : "mb-0 md:mb-4 lg:mb-8",
       )}
     >
       {showTitle && (
         <>
-          <div className="min-w-0 flex-1">
+          <div className="min-w-0 flex-1 md:text-right">
             <h1 className="truncate text-base font-bold leading-none lg:text-lg">
               {title}
             </h1>

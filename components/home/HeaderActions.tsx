@@ -1,4 +1,4 @@
-import { RefreshCw, Settings } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import { HomeViewSwitcher } from "@/components/home/HomeViewSwitcher";
 import type { HomeView } from "@/components/home/types";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -31,7 +31,9 @@ export function HeaderActions({
       <HomeViewSwitcher
         activeView={activeView}
         isAdmin={isAdmin}
+        settingsActive={settingsActive}
         onViewChange={onViewChange}
+        onOpenSettings={onOpenSettings}
       />
       <ThemeToggle />
       {showRefresh && (
@@ -47,20 +49,6 @@ export function HeaderActions({
           <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
         </Button>
       )}
-      <Button
-        variant="ghost"
-        size="icon"
-        aria-label="Impostazioni"
-        title="Impostazioni"
-        aria-current={settingsActive ? "page" : undefined}
-        onClick={onOpenSettings}
-        className={cn(
-          "rounded-full text-muted-foreground",
-          settingsActive && "bg-brand-soft text-foreground",
-        )}
-      >
-        <Settings className="size-5" />
-      </Button>
     </div>
   );
 }
