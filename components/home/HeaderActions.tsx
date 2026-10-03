@@ -1,7 +1,6 @@
 import { RefreshCw } from "lucide-react";
 import { HomeViewSwitcher } from "@/components/home/HomeViewSwitcher";
 import type { HomeView } from "@/components/home/types";
-import { ThemeToggle } from "@/components/ThemeToggle";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -35,7 +34,6 @@ export function HeaderActions({
         onViewChange={onViewChange}
         onOpenSettings={onOpenSettings}
       />
-      <ThemeToggle />
       {showRefresh && (
         <Button
           variant="ghost"
