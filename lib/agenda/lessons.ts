@@ -5,7 +5,7 @@ export type LessonWindow = {
   endMinutes: number;
 };
 
-export type HeroStatus = "current" | "next" | "first" | "finished";
+type HeroStatus = "current" | "next" | "first" | "finished";
 
 export type HeroPick<T> = {
   status: HeroStatus;
@@ -24,7 +24,7 @@ export function parseLessonWindow(time: string): LessonWindow | null {
   return { startMinutes, endMinutes };
 }
 
-export function isCancelled(time: string): boolean {
+function isCancelled(time: string): boolean {
   return time.toUpperCase().includes("ANNULLATO");
 }
 
@@ -122,4 +122,22 @@ export function dayDotSubjects<T extends { materia: string }>(
     0,
     max,
   );
+}
+
+export function lessonStart(time: string): string {
+  return time.split(" - ")[0]?.trim() ?? time;
+}
+
+export function lessonEnd(time: string): string | null {
+  return time.split(" - ")[1]?.trim() ?? null;
+}
+
+export function gapsBefore(lessons: { time: string }[], minGap = 15) {
+  const windows = lessons.map((lesson) => parseLessonWindow(lesson.time));
+  return windows.map((window, index) => {
+    const previous = index > 0 ? windows[index - 1] : null;
+    if (!window || !previous) return null;
+    const gap = window.startMinutes - previous.endMinutes;
+    return gap >= minGap ? gap : null;
+  });
 }

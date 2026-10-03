@@ -7,7 +7,8 @@ import { DayTimeline } from "@/components/agenda/DayTimeline";
 import { EmptyDay } from "@/components/agenda/EmptyDay";
 import { NextLessonHero } from "@/components/agenda/NextLessonHero";
 import { minutesOfDay } from "@/lib/agenda/dates";
-import { overlapFlags, pickHeroLesson } from "@/lib/agenda/lessons";
+import { gapsBefore, overlapFlags, pickHeroLesson } from "@/lib/agenda/lessons";
+import type { NextUp } from "@/lib/agenda/nextUp";
 import { slideVariants, springs } from "@/lib/motion";
 import type { ParsedEvent } from "@/lib/orario-utils";
 
@@ -22,6 +23,7 @@ export type DayViewProps = {
   direction: number;
   colorFor: (materia: string) => string;
   variant: "courses" | "professor";
+  nextUp: NextUp | null;
   onShiftDay: (delta: -1 | 1) => void;
 };
 
@@ -34,6 +36,7 @@ export function DayView({
   direction,
   colorFor,
   variant,
+  nextUp,
   onShiftDay,
 }: DayViewProps) {
   const pick = pickHeroLesson(events, minutesOfDay(now), isToday);
@@ -41,6 +44,10 @@ export function DayView({
   const heroIndex = pick?.lesson ? events.indexOf(pick.lesson) : -1;
   const restEvents = events.filter((_, index) => index !== heroIndex);
   const restFlags = flags.filter((_, index) => index !== heroIndex);
+  const gaps = gapsBefore(events).map((gap, index) =>
+    index === heroIndex + 1 && heroIndex >= 0 ? null : gap,
+  );
+  const restGaps = gaps.filter((_, index) => index !== heroIndex);
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     if (info.offset.x < -SWIPE_THRESHOLD) onShiftDay(1);
@@ -67,20 +74,24 @@ export function DayView({
         {isPending ? (
           <AgendaSkeleton />
         ) : events.length === 0 ? (
-          <EmptyDay />
+          <EmptyDay now={now} nextUp={nextUp} colorFor={colorFor} />
         ) : (
           <>
-            <NextLessonHero
-              pick={pick}
-              now={now}
-              colorFor={colorFor}
-              isOverlapping={heroIndex >= 0 ? flags[heroIndex] : false}
-              variant={variant}
-            />
+            {events.length > 0 && (
+              <NextLessonHero
+                pick={pick}
+                now={now}
+                colorFor={colorFor}
+                isOverlapping={heroIndex >= 0 ? flags[heroIndex] : false}
+                variant={variant}
+                nextUp={nextUp}
+              />
+            )}
             {restEvents.length > 0 && (
               <DayTimeline
                 events={restEvents}
                 overlapping={restFlags}
+                gaps={restGaps}
                 now={now}
                 isToday={isToday}
                 colorFor={colorFor}

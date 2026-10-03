@@ -1,9 +1,11 @@
 "use client";
 
 import { m } from "framer-motion";
-import { AlertTriangle, MapPin, User, Video } from "lucide-react";
+import { MapPin, User, Video } from "lucide-react";
+import { OverlapMark } from "@/components/agenda/OverlapMark";
 import { Badge } from "@/components/ui/badge";
 import type { LessonState } from "@/lib/agenda/lessons";
+import { formatSubjectName } from "@/lib/agenda/subjectName";
 import { fadeUpVariants } from "@/lib/motion";
 import type { ParsedEvent } from "@/lib/orario-utils";
 import { cn } from "@/lib/utils";
@@ -37,7 +39,7 @@ export function LessonRow({
       className={cn(
         "flex min-h-14 items-stretch gap-3 rounded-md bg-card",
         compact ? "p-2" : "p-3",
-        state === "past" && "opacity-55",
+        state === "past" && "bg-muted/50",
       )}
       style={
         state === "current"
@@ -48,17 +50,20 @@ export function LessonRow({
       }
     >
       <span
-        className="w-1 shrink-0 self-stretch rounded-full"
+        className={cn(
+          "w-1 shrink-0 self-stretch rounded-full",
+          state === "past" && "opacity-35",
+        )}
         style={{ backgroundColor: color }}
       />
       <div className="flex min-w-0 flex-1 items-center justify-between gap-3">
         <div className="min-w-0 space-y-0.5">
           <div className="flex items-center gap-1.5">
-            <span className="text-xs font-semibold tabular-nums text-muted-foreground">
+            <span className="num-display text-xs font-semibold text-muted-foreground">
               {event.time}
             </span>
             {state === "current" && (
-              <Badge className="h-4 px-1.5 text-[9px] leading-none">
+              <Badge className="h-5 px-1.5 text-[11px] leading-none">
                 In corso
               </Badge>
             )}
@@ -67,14 +72,15 @@ export function LessonRow({
             className={cn(
               "truncate font-semibold",
               compact ? "text-sm" : "text-base",
+              state === "past" && "text-muted-foreground",
             )}
           >
-            {event.materia}
+            {formatSubjectName(event.materia)}
           </p>
           {event.aula && !compact && (
             <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
               {event.isVideo ? (
-                <Video className="size-3 shrink-0 text-blue-500" />
+                <Video className="size-3 shrink-0 text-brand" />
               ) : (
                 <MapPin className="size-3 shrink-0" />
               )}
@@ -89,15 +95,7 @@ export function LessonRow({
             </div>
           )}
         </div>
-        {overlapping && (
-          <span
-            role="img"
-            aria-label="Sovrapposizione oraria"
-            className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning"
-          >
-            <AlertTriangle className="size-3.5" strokeWidth={2.5} />
-          </span>
-        )}
+        {overlapping && <OverlapMark className="size-6" />}
       </div>
     </m.li>
   );

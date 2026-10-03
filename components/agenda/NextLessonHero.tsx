@@ -1,33 +1,27 @@
 "use client";
 
-import { AnimatePresence, m } from "framer-motion";
-import { AlertTriangle, MapPin, User, Video } from "lucide-react";
+import { m } from "framer-motion";
+import { Video } from "lucide-react";
 import type { DateTime } from "luxon";
+import { HeroFinished } from "@/components/agenda/HeroFinished";
+import { HeroTimeStatus } from "@/components/agenda/HeroTimeStatus";
 import { MarqueeText } from "@/components/agenda/MarqueeText";
-import { Badge } from "@/components/ui/badge";
+import { OverlapMark } from "@/components/agenda/OverlapMark";
 import { minutesOfDay } from "@/lib/agenda/dates";
+import { formatMinutes } from "@/lib/agenda/format";
 import type { HeroPick } from "@/lib/agenda/lessons";
 import {
+  lessonEnd,
   lessonProgress,
+  lessonStart,
   minutesLeft,
   minutesUntil,
   parseLessonWindow,
 } from "@/lib/agenda/lessons";
+import type { NextUp } from "@/lib/agenda/nextUp";
+import { formatSubjectName } from "@/lib/agenda/subjectName";
 import { scaleInVariants, springs } from "@/lib/motion";
 import type { ParsedEvent } from "@/lib/orario-utils";
-
-const STATUS_LABEL: Record<string, { courses: string; professor: string }> = {
-  current: { courses: "In corso", professor: "In lezione ora" },
-  next: { courses: "Prossima", professor: "Prossima lezione" },
-  first: { courses: "Prima lezione", professor: "Prima lezione" },
-};
-
-function formatMinutes(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`;
-  const hours = Math.floor(minutes / 60);
-  const rest = minutes % 60;
-  return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
-}
 
 type NextLessonHeroProps = {
   pick: HeroPick<ParsedEvent> | null;
@@ -35,6 +29,7 @@ type NextLessonHeroProps = {
   colorFor: (materia: string) => string;
   isOverlapping: boolean;
   variant: "courses" | "professor";
+  nextUp: NextUp | null;
 };
 
 export function NextLessonHero({
@@ -43,22 +38,12 @@ export function NextLessonHero({
   colorFor,
   isOverlapping,
   variant,
+  nextUp,
 }: NextLessonHeroProps) {
   if (!pick) return null;
 
   if (pick.status === "finished") {
-    return (
-      <m.div
-        variants={scaleInVariants}
-        initial="hidden"
-        animate="visible"
-        className="flex h-24 shrink-0 items-center justify-center rounded-xl bg-muted p-4 text-center elevation-1"
-      >
-        <p className="text-sm font-semibold text-muted-foreground">
-          Lezioni finite per oggi
-        </p>
-      </m.div>
-    );
+    return <HeroFinished now={now} nextUp={nextUp} colorFor={colorFor} />;
   }
 
   const lesson = pick.lesson;
@@ -67,102 +52,80 @@ export function NextLessonHero({
   const color = colorFor(lesson.materia);
   const window = parseLessonWindow(lesson.time);
   const nowMinutes = minutesOfDay(now);
-  const label =
-    STATUS_LABEL[pick.status]?.[variant] ?? STATUS_LABEL.next[variant];
+  const end = lessonEnd(lesson.time);
+  const isCurrent = pick.status === "current" && window !== null;
+  const untilStart = window ? minutesUntil(window, nowMinutes) : 0;
+  const left = window ? minutesLeft(window, nowMinutes) : 0;
+
+  const timeRange = end
+    ? `${lessonStart(lesson.time)} – ${end}`
+    : lessonStart(lesson.time);
+
+  const status = isCurrent
+    ? `In corso · mancano ${formatMinutes(left)}`
+    : pick.status === "next"
+      ? `tra ${formatMinutes(untilStart)}`
+      : "Prima lezione";
+  const statusKey = isCurrent
+    ? left
+    : pick.status === "next"
+      ? untilStart
+      : pick.status;
 
   return (
     <m.div
       variants={scaleInVariants}
       initial="hidden"
       animate="visible"
-      className="relative flex shrink-0 flex-col gap-3 overflow-hidden rounded-xl p-4 elevation-2"
+      className="relative flex shrink-0 flex-col gap-5 overflow-hidden rounded-xl p-5 elevation-1"
       style={{
         backgroundColor: `color-mix(in oklab, ${color} 14%, var(--card))`,
       }}
     >
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-2xl font-bold tabular-nums leading-none">
-          {lesson.time}
-        </p>
-        <div className="flex shrink-0 items-center gap-1.5">
-          {isOverlapping && (
-            <span
-              role="img"
-              aria-label="Sovrapposizione oraria"
-              className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-warning/15 text-warning"
-            >
-              <AlertTriangle className="size-3.5" strokeWidth={2.5} />
-            </span>
-          )}
-          <Badge>{label}</Badge>
-        </div>
-      </div>
+      {isOverlapping && <OverlapMark className="absolute right-4 top-4" />}
 
-      <MarqueeText
-        text={lesson.materia}
-        className="text-base font-bold leading-tight"
+      <HeroTimeStatus
+        timeRange={timeRange}
+        status={status}
+        statusKey={statusKey}
       />
 
-      <div className="flex items-end justify-between gap-3">
-        <div className="min-w-0 space-y-0.5">
-          {variant === "professor" ? (
-            lesson.aula && (
-              <div className="flex items-center gap-1.5 text-sm font-semibold">
-                <MapPin className="size-3.5 shrink-0" />
-                <span className="truncate">{lesson.aula}</span>
-              </div>
-            )
-          ) : (
+      <div className="space-y-1">
+        <div
+          className="flex min-w-0 items-center gap-2"
+          style={{
+            color: `color-mix(in oklab, ${color} var(--hero-ink-mix), var(--foreground))`,
+          }}
+        >
+          <MarqueeText
+            text={formatSubjectName(lesson.materia)}
+            className="text-2xl font-bold leading-tight tracking-tight"
+          />
+        </div>
+        <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
+          {lesson.isVideo && (
+            <Video
+              className="size-3.5 shrink-0"
+              aria-label="Lezione in video"
+            />
+          )}
+          {lesson.aula && <span className="truncate">{lesson.aula}</span>}
+          {variant === "courses" && lesson.docente && (
             <>
-              {lesson.aula && (
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  {lesson.isVideo ? (
-                    <Video className="size-3 shrink-0 text-blue-500" />
-                  ) : (
-                    <MapPin className="size-3 shrink-0" />
-                  )}
-                  <span className="truncate">{lesson.aula}</span>
-                </div>
-              )}
-              {lesson.docente && (
-                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <User className="size-3 shrink-0" />
-                  <span className="truncate">{lesson.docente}</span>
-                </div>
-              )}
+              {lesson.aula && <span aria-hidden>·</span>}
+              <span className="truncate">{lesson.docente}</span>
             </>
           )}
         </div>
-
-        <AnimatePresence mode="wait">
-          {pick.status === "next" && window && (
-            <m.span
-              key={minutesUntil(window, nowMinutes)}
-              initial={{ opacity: 0, y: -4 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 4 }}
-              transition={springs.gentle}
-              className="shrink-0 text-sm font-semibold tabular-nums text-muted-foreground"
-            >
-              tra {formatMinutes(minutesUntil(window, nowMinutes))}
-            </m.span>
-          )}
-        </AnimatePresence>
       </div>
 
-      {pick.status === "current" && window && (
-        <div className="space-y-1">
-          <div className="h-1 overflow-hidden rounded-full bg-foreground/10">
-            <m.div
-              className="h-full origin-left rounded-full"
-              style={{ backgroundColor: color }}
-              animate={{ scaleX: lessonProgress(window, nowMinutes) }}
-              transition={springs.smooth}
-            />
-          </div>
-          <p className="text-right text-[10px] font-semibold text-muted-foreground">
-            mancano {formatMinutes(minutesLeft(window, nowMinutes))}
-          </p>
+      {isCurrent && window && (
+        <div className="h-1 overflow-hidden rounded-full bg-foreground/10">
+          <m.div
+            className="h-full origin-left rounded-full bg-brand"
+            animate={{ scaleX: lessonProgress(window, nowMinutes) }}
+            transition={springs.smooth}
+          />
         </div>
       )}
     </m.div>

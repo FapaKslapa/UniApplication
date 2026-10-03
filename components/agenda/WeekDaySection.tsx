@@ -43,7 +43,7 @@ export function WeekDaySection({
         variant="ghost"
         onClick={() => onSelectDay(date)}
         className={cn(
-          "sticky top-0 z-10 h-auto min-h-11 w-full justify-start gap-2 rounded-md bg-background/80 px-2 py-2 glass",
+          "sticky top-0 z-10 h-auto min-h-11 w-full justify-start gap-2 rounded-md bg-card px-2 py-2 elevation-1 hover:bg-accent",
           isToday && "text-foreground",
         )}
       >

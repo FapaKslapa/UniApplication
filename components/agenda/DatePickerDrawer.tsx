@@ -1,8 +1,8 @@
 "use client";
 
-import { it } from "date-fns/locale";
 import { CalendarDays } from "lucide-react";
 import type { DateTime } from "luxon";
+import { it } from "react-day-picker/locale";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {

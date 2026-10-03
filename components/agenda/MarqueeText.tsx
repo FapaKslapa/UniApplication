@@ -16,10 +16,18 @@ export function MarqueeText({
   const [offset, setOffset] = useState(0);
 
   useEffect(() => {
-    if (!containerRef.current || !textRef.current) return;
-    const overflow =
-      textRef.current.scrollWidth - containerRef.current.clientWidth;
-    setOffset(overflow > 0 ? overflow : 0);
+    const container = containerRef.current;
+    const label = textRef.current;
+    if (!container || !label) return;
+    const measure = () => {
+      const overflow = label.scrollWidth - container.clientWidth;
+      setOffset(overflow > 0 ? overflow : 0);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(container);
+    observer.observe(label);
+    return () => observer.disconnect();
   }, []);
 
   const style =

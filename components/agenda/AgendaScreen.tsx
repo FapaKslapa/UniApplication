@@ -11,6 +11,7 @@ import { useAgendaNavigation } from "@/components/agenda/useAgendaNavigation";
 import { WeekAgenda } from "@/components/agenda/WeekAgenda";
 import { WeekStrip } from "@/components/agenda/WeekStrip";
 import { ErrorScreen } from "@/components/LoadingScreen";
+import { nextLessonAfter } from "@/lib/agenda/nextUp";
 import type { AgendaMode, AgendaSource } from "@/lib/agenda/types";
 import { useAgendaData } from "@/lib/agenda/useAgendaData";
 import { useMonthData } from "@/lib/agenda/useMonthData";
@@ -52,12 +53,11 @@ export function AgendaScreen({
   const { hiddenSubjects, toggleSubject, resetFilters } = useSubjectFilters();
 
   if (error) {
-    return (
-      <ErrorScreen message={error.message} onRetryAction={() => refetch()} />
-    );
+    return <ErrorScreen onRetryAction={() => refetch()} />;
   }
 
   const selectedDay = days.find((day) => day.date.hasSame(selectedDate, "day"));
+  const nextUp = nextLessonAfter(days, selectedDate);
   const openDay = (date: DateTime) => {
     select(date);
     onModeChange("day");
@@ -72,6 +72,7 @@ export function AgendaScreen({
         title={title}
         activeFilterCount={hiddenSubjects.length}
         hideModeToggle={isLandscape}
+        secondaryTitle={source.kind === "professor"}
         onModeChange={onModeChange}
         onDateChange={select}
         onGoToday={() => goToday(now)}
@@ -113,6 +114,7 @@ export function AgendaScreen({
                 direction={direction}
                 colorFor={colorFor}
                 variant={source.kind}
+                nextUp={nextUp}
                 onShiftDay={shiftDay}
               />
             </div>
@@ -165,6 +167,7 @@ export function AgendaScreen({
                 direction={direction}
                 colorFor={colorFor}
                 variant={source.kind}
+                nextUp={nextUp}
                 onShiftDay={shiftDay}
               />
             )}

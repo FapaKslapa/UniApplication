@@ -16,6 +16,7 @@ type AgendaHeaderProps = {
   title: string;
   activeFilterCount: number;
   hideModeToggle?: boolean;
+  secondaryTitle?: boolean;
   onModeChange: (mode: AgendaMode) => void;
   onDateChange: (date: DateTime) => void;
   onGoToday: () => void;
@@ -30,12 +31,14 @@ export function AgendaHeader({
   title,
   activeFilterCount,
   hideModeToggle = false,
+  secondaryTitle = false,
   onModeChange,
   onDateChange,
   onGoToday,
   onOpenFilters,
   onRefresh,
 }: AgendaHeaderProps) {
+  const TitleTag = secondaryTitle ? "h2" : "h1";
   const [isPickerOpen, setIsPickerOpen] = useState(false);
   const isToday = selectedDate.hasSame(today, "day");
   const rangeStart = selectedDate.startOf("week").setLocale("it");
@@ -50,9 +53,9 @@ export function AgendaHeader({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="min-w-0 truncate text-lg font-bold leading-none">
+        <TitleTag className="min-w-0 truncate text-lg font-bold leading-none">
           {title}
-        </h1>
+        </TitleTag>
         <div className="flex shrink-0 items-center gap-2">
           <Button
             variant="outline"
@@ -72,7 +75,7 @@ export function AgendaHeader({
           >
             <SlidersHorizontal className="size-4" />
             {activeFilterCount > 0 && (
-              <Badge className="absolute -top-1 -right-1 size-4 justify-center rounded-full p-0 text-[10px]">
+              <Badge className="absolute -top-1 -right-1 size-5 justify-center rounded-full p-0 text-[11px]">
                 {activeFilterCount}
               </Badge>
             )}
@@ -85,7 +88,7 @@ export function AgendaHeader({
           variant="secondary"
           size="sm"
           onClick={() => setIsPickerOpen(true)}
-          className="h-8 min-w-0 flex-1 justify-start gap-1.5 rounded-full px-3"
+          className="h-8 min-w-0 flex-1 justify-start gap-1.5 rounded-full px-3 before:-inset-y-2"
         >
           <CalendarDays className="size-3.5 shrink-0" />
           <span className="truncate">{rangeLabel}</span>
@@ -95,7 +98,7 @@ export function AgendaHeader({
             variant="ghost"
             size="sm"
             onClick={onGoToday}
-            className="h-8 shrink-0 rounded-full px-2.5 text-xs text-muted-foreground"
+            className="h-8 shrink-0 rounded-full px-2.5 text-xs text-muted-foreground before:-inset-y-2"
           >
             Oggi
           </Button>

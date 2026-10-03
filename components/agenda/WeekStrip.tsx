@@ -81,7 +81,7 @@ export function WeekStrip({
                 )}
                 <span
                   className={cn(
-                    "text-[10px] font-semibold uppercase",
+                    "text-[11px] font-semibold uppercase",
                     isSelected ? "text-background/70" : "text-muted-foreground",
                   )}
                 >
@@ -89,7 +89,7 @@ export function WeekStrip({
                 </span>
                 <span
                   className={cn(
-                    "text-sm font-bold tabular-nums",
+                    "num-display text-sm font-bold",
                     isSelected && "text-background",
                   )}
                 >

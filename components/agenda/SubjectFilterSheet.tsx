@@ -9,6 +9,7 @@ import {
   DrawerTitle,
 } from "@/components/ui/drawer";
 import { Switch } from "@/components/ui/switch";
+import { formatSubjectName } from "@/lib/agenda/subjectName";
 import { fadeUpVariants } from "@/lib/motion";
 
 type SubjectFilterSheetProps = {
@@ -77,13 +78,13 @@ export function SubjectFilterSheet({
                     className="size-3 shrink-0 rounded-full"
                     style={{ backgroundColor: colorFor(subject) }}
                   />
-                  <span className="flex-1 truncate text-sm font-medium capitalize">
-                    {subject.toLowerCase()}
+                  <span className="flex-1 truncate text-sm font-medium">
+                    {formatSubjectName(subject)}
                   </span>
                   <Switch
                     checked={visible}
                     onCheckedChange={() => onToggle(subject)}
-                    aria-label={`Mostra ${subject}`}
+                    aria-label={`Mostra ${formatSubjectName(subject)}`}
                   />
                 </m.div>
               );
