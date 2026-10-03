@@ -171,7 +171,7 @@ export function DatePickerButton({
               <DrawerDescription>{placeholder}</DrawerDescription>
             </div>
           </DrawerHeader>
-          <div className="flex justify-center px-2 pb-6">
+          <div className="mx-auto w-full max-w-md px-4 pb-6">
             <Calendar
               mode="single"
               locale={it}

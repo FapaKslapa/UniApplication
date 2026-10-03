@@ -1,234 +1,110 @@
 "use client";
 
-import { ChevronLeft, ChevronRight } from "lucide-react";
-import { DateTime } from "luxon";
+import { AnimatePresence, m } from "framer-motion";
 import * as React from "react";
-import { DayPicker } from "react-day-picker";
-import { it } from "react-day-picker/locale";
-import { Button } from "@/components/ui/button";
-import { buttonVariants } from "@/components/ui/button-variants";
+import type { DayPicker } from "react-day-picker";
+import { CalendarDays } from "@/components/ui/calendar-days";
+import {
+  CalendarHeader,
+  type CalendarView,
+} from "@/components/ui/calendar-header";
+import { MonthGrid, YearGrid } from "@/components/ui/calendar-pickers";
+import { springs } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
+
+const monthIndex = (date: Date) => date.getFullYear() * 12 + date.getMonth();
 
 function Calendar({
   className,
   classNames,
   showOutsideDays = true,
+  month: monthProp,
+  defaultMonth,
+  onMonthChange,
   ...props
 }: CalendarProps) {
-  const [view, setView] = React.useState<"days" | "months" | "years">("days");
-
-  const [internalDate, setInternalDate] = React.useState<Date>(
-    props.month || props.defaultMonth || new Date(),
+  const [view, setView] = React.useState<CalendarView>("days");
+  const [direction, setDirection] = React.useState(1);
+  const [date, setDate] = React.useState<Date>(
+    monthProp || defaultMonth || new Date(),
   );
 
-  React.useEffect(() => {
-    if (props.month) {
-      setInternalDate(props.month);
-    }
-  }, [props.month]);
-
-  React.useEffect(() => {
-    if (view === "years") {
-      const timeoutId = setTimeout(() => {
-        const yearButton = document.getElementById(
-          `year-${internalDate.getFullYear()}`,
-        );
-        if (yearButton) {
-          yearButton.scrollIntoView({ block: "center", behavior: "auto" });
-        }
-      }, 10);
-      return () => clearTimeout(timeoutId);
-    }
-  }, [view, internalDate]);
-
-  const handleMonthChange = (date: Date) => {
-    setInternalDate(date);
-    props.onMonthChange?.(date);
-  };
-
-  const years = React.useMemo(() => {
-    const currentYear = new Date().getFullYear();
-    const startYear = currentYear - 100;
-    const endYear = currentYear + 100;
-    return Array.from(
-      { length: endYear - startYear + 1 },
-      (_, i) => startYear + i,
-    );
-  }, []);
-
-  const months = React.useMemo(() => {
-    return Array.from({ length: 12 }, (_, i) => {
-      return DateTime.local(2000, i + 1, 1)
-        .setLocale("it")
-        .toFormat("LLLL");
+  const moveTo = React.useCallback((next: Date) => {
+    setDate((current) => {
+      const diff = monthIndex(next) - monthIndex(current);
+      if (diff !== 0) setDirection(diff > 0 ? 1 : -1);
+      return next;
     });
   }, []);
 
+  React.useEffect(() => {
+    if (monthProp) moveTo(monthProp);
+  }, [monthProp, moveTo]);
+
+  const handleMonthChange = (next: Date) => {
+    moveTo(next);
+    onMonthChange?.(next);
+  };
+
+  const shift = (delta: number) => {
+    const next = new Date(date);
+    next.setDate(1);
+    next.setMonth(next.getMonth() + delta);
+    handleMonthChange(next);
+  };
+
+  const pickYear = (year: number) => {
+    const next = new Date(date);
+    next.setDate(1);
+    next.setFullYear(year);
+    setDate(next);
+    setView("months");
+  };
+
+  const pickMonth = (index: number) => {
+    const next = new Date(date);
+    next.setDate(1);
+    next.setMonth(index);
+    handleMonthChange(next);
+    setView("days");
+  };
+
   return (
-    <div className={cn("p-3 bg-card", className)}>
-      <div className="flex justify-center items-center relative mb-4">
-        {view === "days" && (
-          <>
-            <Button
-              variant="outline"
-              className="absolute left-0 inset-y-0 my-auto size-8 p-0 bg-transparent z-10 rounded-full before:absolute before:-inset-1.5 before:content-['']"
-              onClick={() => {
-                const newDate = new Date(internalDate);
-                newDate.setMonth(newDate.getMonth() - 1);
-                handleMonthChange(newDate);
-              }}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              className="absolute right-0 inset-y-0 my-auto size-8 p-0 bg-transparent z-10 rounded-full before:absolute before:-inset-1.5 before:content-['']"
-              onClick={() => {
-                const newDate = new Date(internalDate);
-                newDate.setMonth(newDate.getMonth() + 1);
-                handleMonthChange(newDate);
-              }}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </>
-        )}
-
-        {view === "years" && (
-          <Button
-            variant="outline"
-            className="absolute left-0 inset-y-0 my-auto size-8 p-0 bg-transparent z-10 rounded-full before:absolute before:-inset-1.5 before:content-['']"
-            onClick={() => setView("days")}
+    <div className={cn("w-full bg-card p-3", className)}>
+      <CalendarHeader
+        view={view}
+        date={date}
+        onView={setView}
+        onShift={shift}
+      />
+      <div className="relative h-[322px]">
+        <AnimatePresence mode="wait" initial={false}>
+          <m.div
+            key={view}
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.97 }}
+            transition={springs.snappy}
+            className="h-full"
           >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-        )}
-
-        {view === "months" && (
-          <Button
-            variant="ghost"
-            className="absolute left-0 top-0 h-11 w-auto p-2 text-sm font-normal z-10"
-            onClick={() => setView("years")}
-          >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            {internalDate.getFullYear()}
-          </Button>
-        )}
-
-        <div className="font-medium text-sm">
-          {view === "days" && (
-            <Button
-              variant="ghost"
-              className="h-11 py-1 px-3 font-medium capitalize"
-              onClick={() => setView("years")}
-            >
-              {DateTime.fromJSDate(internalDate)
-                .setLocale("it")
-                .toFormat("LLLL yyyy")}
-            </Button>
-          )}
-          {view === "years" && "Seleziona Anno"}
-          {view === "months" && "Seleziona Mese"}
-        </div>
+            {view === "days" && (
+              <CalendarDays
+                month={date}
+                direction={direction}
+                onShift={shift}
+                onMonthChange={handleMonthChange}
+                classNames={classNames}
+                showOutsideDays={showOutsideDays}
+                dayPickerProps={props as CalendarProps}
+              />
+            )}
+            {view === "years" && <YearGrid date={date} onPick={pickYear} />}
+            {view === "months" && <MonthGrid date={date} onPick={pickMonth} />}
+          </m.div>
+        </AnimatePresence>
       </div>
-
-      {view === "days" && (
-        <DayPicker
-          locale={it}
-          weekStartsOn={1}
-          showOutsideDays={showOutsideDays}
-          month={internalDate}
-          onMonthChange={handleMonthChange}
-          className="p-0"
-          classNames={{
-            months:
-              "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0 relative",
-            month: "space-y-4",
-            month_caption: "hidden",
-            nav: "hidden",
-            month_grid: "w-full border-collapse space-y-1",
-            weekdays: "flex",
-            weekday:
-              "text-muted-foreground rounded-md w-11 font-normal text-[0.8rem]",
-            week: "flex w-full mt-2",
-            day: cn(
-              "h-11 w-11 text-center text-sm p-0 relative",
-              "[&:has([aria-selected].day-range-end)]:rounded-r-full",
-              "[&:has([aria-selected].day-outside)]:bg-accent/50",
-              "[&:has([aria-selected])]:bg-accent",
-              "first:[&:has([aria-selected])]:rounded-l-full",
-              "last:[&:has([aria-selected])]:rounded-r-full",
-              "focus-within:relative focus-within:z-20",
-            ),
-            day_button: cn(
-              buttonVariants({ variant: "ghost" }),
-              "h-11 w-11 p-0 font-normal aria-selected:opacity-100 rounded-full",
-              "focus-visible:z-10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-0",
-            ),
-            range_end: "day-range-end",
-            range_start: "day-range-start",
-            selected: cn(
-              "bg-primary text-primary-foreground rounded-full",
-              "hover:bg-primary hover:text-primary-foreground",
-              "focus:bg-primary focus:text-primary-foreground",
-            ),
-            today: "bg-accent text-accent-foreground rounded-full",
-            outside:
-              "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
-            disabled: "text-muted-foreground opacity-50",
-            range_middle:
-              "aria-selected:bg-accent aria-selected:text-accent-foreground",
-            hidden: "invisible",
-            ...classNames,
-          }}
-          {...props}
-        />
-      )}
-
-      {view === "years" && (
-        <div className="grid grid-cols-4 gap-2 h-[280px] overflow-y-auto p-1 scroll-smooth">
-          {years.map((year) => (
-            <Button
-              key={year}
-              id={`year-${year}`}
-              variant={
-                year === internalDate.getFullYear() ? "default" : "ghost"
-              }
-              className="h-11 w-full rounded-full"
-              onClick={() => {
-                const newDate = new Date(internalDate);
-                newDate.setFullYear(year);
-                setInternalDate(newDate);
-                setView("months");
-              }}
-            >
-              {year}
-            </Button>
-          ))}
-        </div>
-      )}
-
-      {view === "months" && (
-        <div className="grid grid-cols-3 gap-2 py-4">
-          {months.map((month, index) => (
-            <Button
-              key={month}
-              variant={index === internalDate.getMonth() ? "default" : "ghost"}
-              className="h-11 w-full capitalize rounded-full"
-              onClick={() => {
-                const newDate = new Date(internalDate);
-                newDate.setMonth(index);
-                handleMonthChange(newDate);
-                setView("days");
-              }}
-            >
-              {month}
-            </Button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
