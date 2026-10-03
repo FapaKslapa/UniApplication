@@ -20,7 +20,10 @@ export const metadata: Metadata = {
   description:
     "Orario lezioni dell'Università dell'Insubria, sempre a portata di mano",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
     apple: "/icons/apple-touch-icon.png",
   },
   appleWebApp: {
