@@ -1,23 +1,24 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import {
-  BarChart3,
-  Calendar,
-  LayoutGrid,
+  CalendarDays,
+  GraduationCap,
   Settings,
   ShieldCheck,
 } from "lucide-react";
 import type React from "react";
+import type { HomeView } from "@/components/home/types";
+import { springs } from "@/lib/motion";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
-interface BottomNavProps {
-  activeView?: "week" | "month" | "stats" | "admin-courses";
-  onViewChange?: (v: "week" | "month" | "stats" | "admin-courses") => void;
+type BottomNavProps = {
+  activeView?: HomeView;
+  onViewChange?: (v: HomeView) => void;
   onSettings?: () => void;
   activeSection?: "calendar" | "settings" | "admin";
-}
+};
 
 export function BottomNav({
   activeView = "week",
@@ -32,45 +33,35 @@ export function BottomNav({
       className="md:hidden fixed bottom-0 left-0 right-0 z-30 px-4"
       style={{ paddingBottom: "max(1rem, env(safe-area-inset-bottom))" }}
     >
-      <div className="flex items-stretch bg-white dark:bg-black border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.12)] dark:shadow-[0_4px_24px_rgba(0,0,0,0.5)]">
+      <div className="flex items-stretch bg-card rounded-full elevation-2">
         <NavBtn
           active={activeSection === "calendar" && activeView === "week"}
           onClick={() => onViewChange?.("week")}
-          label="Settimana"
-          icon={<LayoutGrid className="w-[18px] h-[18px]" />}
+          label="Agenda"
+          icon={<CalendarDays className="size-[18px]" />}
         />
 
         <NavBtn
-          active={activeSection === "calendar" && activeView === "month"}
-          onClick={() => onViewChange?.("month")}
-          label="Mese"
-          icon={<Calendar className="w-[18px] h-[18px]" />}
+          active={activeSection === "calendar" && activeView === "docenti"}
+          onClick={() => onViewChange?.("docenti")}
+          label="Docenti"
+          icon={<GraduationCap className="size-[18px]" />}
         />
 
         {isAdmin && (
-          <>
-            <NavBtn
-              active={activeSection === "admin" && activeView === "stats"}
-              onClick={() => onViewChange?.("stats")}
-              label="Stats"
-              icon={<BarChart3 className="w-[18px] h-[18px]" />}
-            />
-            <NavBtn
-              active={
-                activeSection === "admin" && activeView === "admin-courses"
-              }
-              onClick={() => onViewChange?.("admin-courses")}
-              label="Corsi"
-              icon={<ShieldCheck className="w-[18px] h-[18px]" />}
-            />
-          </>
+          <NavBtn
+            active={activeSection === "admin"}
+            onClick={() => onViewChange?.("stats")}
+            label="Admin"
+            icon={<ShieldCheck className="size-[18px]" />}
+          />
         )}
 
         <NavBtn
           active={activeSection === "settings"}
           onClick={() => onSettings?.()}
-          label="Impost"
-          icon={<Settings className="w-[18px] h-[18px]" />}
+          label="Opzioni"
+          icon={<Settings className="size-[18px]" />}
         />
       </div>
     </nav>
@@ -92,23 +83,34 @@ function NavBtn({
     <button
       type="button"
       onClick={onClick}
+      aria-current={active ? "page" : undefined}
       className={cn(
-        "relative flex flex-col items-center justify-center gap-1 flex-1 py-3.5 transition-all active:scale-95",
-        active
-          ? "text-zinc-900 dark:text-white"
-          : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300",
+        "flex min-h-12 min-w-11 flex-1 items-center justify-center rounded-full py-1.5 transition-colors active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+        active ? "text-foreground" : "text-muted-foreground",
       )}
     >
-      {active && (
-        <motion.div
-          layoutId="nav-active"
-          className="absolute inset-x-3 inset-y-2 bg-zinc-100 dark:bg-zinc-800 rounded-xl"
-          transition={{ type: "spring", stiffness: 400, damping: 35 }}
-        />
-      )}
-      <span className="relative z-10">{icon}</span>
-      <span className="relative z-10 text-[9px] font-bold uppercase tracking-widest font-mono leading-none">
-        {label}
+      <span className="relative flex flex-col items-center gap-1 rounded-full px-3.5 py-1.5">
+        {active && (
+          <m.span
+            layoutId="nav-active"
+            className="absolute inset-0 rounded-full bg-brand-soft"
+            transition={springs.smooth}
+          />
+        )}
+        <m.span
+          animate={active ? { scale: [1, 1.15, 1] } : { scale: 1 }}
+          transition={
+            active
+              ? { duration: 0.32, ease: "easeOut", times: [0, 0.5, 1] }
+              : springs.snappy
+          }
+          className="relative z-10"
+        >
+          {icon}
+        </m.span>
+        <span className="relative z-10 text-[11px] font-semibold leading-none">
+          {label}
+        </span>
       </span>
     </button>
   );

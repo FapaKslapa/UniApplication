@@ -1,28 +1,23 @@
-/**
- * Zustand store con persist su localStorage.
- * Centralizza tutto lo stato utente dell'app.
- */
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-export interface AppState {
-  // Corsi studente
+const MAX_RECENT_PROFESSORS = 8;
+
+export type AppState = {
   calendarIds: string[];
   courseNames: string[];
   courseIds: string[];
-  // Legacy (singolo corso)
   calendarId: string;
   courseName: string;
   storedCourseId: string;
   calendarUrlStore: string;
   hiddenSubjects: string[];
-  userRole: "student" | "professor";
-  professorName: string;
+  favoriteProfessors: string[];
+  recentProfessors: string[];
   hasSeenWelcome: boolean;
   hasSeenNotifIntro: boolean;
   userId: string;
   isAdmin: boolean;
-  location: "Varese" | "Como" | "Tutte";
 
   setCalendarIds: (v: string[]) => void;
   setCourseNames: (v: string[]) => void;
@@ -32,14 +27,13 @@ export interface AppState {
   setStoredCourseId: (v: string) => void;
   setCalendarUrlStore: (v: string) => void;
   setHiddenSubjects: (v: string[]) => void;
-  setUserRole: (v: "student" | "professor") => void;
-  setProfessorName: (v: string) => void;
+  toggleFavoriteProfessor: (name: string) => void;
+  addRecentProfessor: (name: string) => void;
   setHasSeenWelcome: (v: boolean) => void;
   setHasSeenNotifIntro: (v: boolean) => void;
   ensureUserId: () => string;
   setIsAdmin: (v: boolean) => void;
-  setLocation: (v: "Varese" | "Como" | "Tutte") => void;
-}
+};
 
 function generateUserId(): string {
   return `user-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`;
@@ -56,13 +50,12 @@ export const useAppStore = create<AppState>()(
       storedCourseId: "",
       calendarUrlStore: "",
       hiddenSubjects: [],
-      userRole: "student",
-      professorName: "",
+      favoriteProfessors: [],
+      recentProfessors: [],
       hasSeenWelcome: false,
       hasSeenNotifIntro: false,
       userId: "",
       isAdmin: false,
-      location: "Varese",
 
       setCalendarIds: (v) => set({ calendarIds: v }),
       setCourseNames: (v) => set({ courseNames: v }),
@@ -72,8 +65,20 @@ export const useAppStore = create<AppState>()(
       setStoredCourseId: (v) => set({ storedCourseId: v }),
       setCalendarUrlStore: (v) => set({ calendarUrlStore: v }),
       setHiddenSubjects: (v) => set({ hiddenSubjects: v }),
-      setUserRole: (v) => set({ userRole: v }),
-      setProfessorName: (v) => set({ professorName: v }),
+      toggleFavoriteProfessor: (name) => {
+        const current = get().favoriteProfessors;
+        set({
+          favoriteProfessors: current.includes(name)
+            ? current.filter((n) => n !== name)
+            : [...current, name],
+        });
+      },
+      addRecentProfessor: (name) => {
+        const current = get().recentProfessors.filter((n) => n !== name);
+        set({
+          recentProfessors: [name, ...current].slice(0, MAX_RECENT_PROFESSORS),
+        });
+      },
       setHasSeenWelcome: (v) => set({ hasSeenWelcome: v }),
       setHasSeenNotifIntro: (v) => set({ hasSeenNotifIntro: v }),
       ensureUserId: () => {
@@ -84,7 +89,6 @@ export const useAppStore = create<AppState>()(
         return newId;
       },
       setIsAdmin: (v) => set({ isAdmin: v }),
-      setLocation: (v) => set({ location: v }),
     }),
     {
       name: "uni-app-storage",
@@ -120,13 +124,14 @@ export const useAppStore = create<AppState>()(
             const legacy = migrate("hiddenSubjects");
             if (legacy?.length) state.hiddenSubjects = legacy;
           }
-          if (!state.userRole || state.userRole === "student") {
-            const legacy = migrate("userRole");
-            if (legacy) state.userRole = legacy;
-          }
-          if (!state.professorName) {
-            const legacy = migrate("professorName");
-            if (legacy) state.professorName = legacy;
+          if (!state.favoriteProfessors.length) {
+            const legacyProfessorName = (
+              JSON.parse(localStorage.getItem("uni-app-storage") ?? "{}")
+                ?.state as { professorName?: string } | undefined
+            )?.professorName;
+            if (legacyProfessorName) {
+              state.favoriteProfessors = [legacyProfessorName];
+            }
           }
           if (!state.hasSeenWelcome) {
             const legacy = migrate("hasSeenWelcomeV2");
@@ -147,6 +152,7 @@ export const useAppStore = create<AppState>()(
 );
 
 export function useActiveLinkIds(): string[] {
-  const { calendarIds, calendarId } = useAppStore();
+  const calendarIds = useAppStore((state) => state.calendarIds);
+  const calendarId = useAppStore((state) => state.calendarId);
   return calendarIds.length > 0 ? calendarIds : calendarId ? [calendarId] : [];
 }

@@ -11,6 +11,8 @@ function resolveDb(): Database {
   const cached = instances.get(env.DB);
   if (cached) return cached;
   const instance = drizzle(env.DB, { schema });
+  instance.transaction = ((callback: (tx: Database) => unknown) =>
+    callback(instance)) as unknown as Database["transaction"];
   instances.set(env.DB, instance);
   return instance;
 }

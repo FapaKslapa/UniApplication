@@ -1,241 +1,85 @@
-<div align="center">
+# UniOrario
 
-# 📅 UniOrario — Insubria
+L'orario dell'Università dell'Insubria, pensato per essere letto in piedi nel corridoio: la prossima lezione, l'aula, il docente, e poco altro.
 
-**L'orario di tutto l'Ateneo Insubria in un'unica app.**
-Visualizza le lezioni, ricevi notifiche sui cambi orario e gestisci il tuo tempo in modo smart — per studenti e docenti.
+È un progetto personale, non ufficiale e non affiliato all'ateneo.
 
-[![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)](https://nextjs.org)
-[![tRPC](https://img.shields.io/badge/tRPC-11-blue)](https://trpc.io)
-[![Drizzle ORM](https://img.shields.io/badge/Drizzle-ORM-green)](https://orm.drizzle.team)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
+<p align="center">
+  <img src=".github/assets/mobile-light.png" alt="Agenda su telefono, tema chiaro" width="260">
+  &nbsp;
+  <img src=".github/assets/mobile-dark.png" alt="Agenda su telefono, tema scuro" width="260">
+</p>
 
-</div>
+<p align="center">
+  <img src=".github/assets/desktop-agenda.png" alt="Agenda su desktop con oggi, settimana e mese affiancati" width="100%">
+</p>
 
----
+<p align="center">
+  <img src=".github/assets/desktop-settings.png" alt="Impostazioni su desktop a due colonne" width="100%">
+</p>
 
-## 🗂 Indice
+Gli screenshot usano dati di esempio.
 
-- [Cos'è UniOrario](#cosè-uniorario)
-- [Funzionalità principali](#funzionalità-principali)
-- [Architettura](#architettura)
-- [Setup locale](#setup-locale)
-- [Variabili d'ambiente](#variabili-dambiente)
-- [Comandi utili](#comandi-utili)
-- [Deploy (Docker)](#deploy-docker)
-- [Contribuire](#contribuire)
+## Come ragiona
 
----
+**L'orario è già pubblico, ma scomodo.** Ogni corso e ogni anno ha un calendario pubblico su Cineca UniversityPlanner. UniOrario li legge, li ripulisce (nomi delle materie, aule, docenti, lezioni in videoconferenza) e mostra al centro la lezione che conta adesso: orario di inizio e fine in grande, quanto manca, dove e con chi.
 
-## Cos'è UniOrario
+**Niente account.** Gli studenti non si registrano: il server assegna un cookie anonimo e le preferenze stanno sul dispositivo. L'unico login è quello dell'amministratore.
 
-UniOrario è una **Progressive Web App (PWA)** open source che aggrega e presenta gli orari delle lezioni dell'**Università degli Studi dell'Insubria** (sedi di Varese e Como). I dati vengono recuperati in tempo reale dalle API pubbliche di **Cineca/ESSE3** e presentati in un'interfaccia moderna, ottimizzata per mobile.
+**I cambi di orario arrivano da soli.** Ogni 20 minuti un job rilegge i calendari dei corsi per cui qualcuno ha attivato le notifiche e li confronta con l'ultima copia salvata. Se una lezione cambia orario o aula, o viene annullata, chi ha attivato le notifiche per quel corso riceve un avviso con il prima e il dopo. Le modifiche già avvenute prima che tu scegliessi il corso non ti vengono mostrate.
 
-Il progetto nasce da un'esigenza concreta degli studenti: un portale semplice, veloce e sempre aggiornato — senza bisogno di navigare nei sistemi istituzionali.
+**Su desktop usa tutto lo spazio.** Oggi, settimana e mese stanno affiancati; le impostazioni diventano una pagina a due colonne invece di una lista verticale. Su telefono resta una colonna sola con la barra in basso.
 
----
+Il resto è quello che ti aspetti: filtro delle materie da nascondere, ricerca dei docenti con l'aula in cui si trovano ora, tema chiaro e scuro, installazione come app.
 
-## Funzionalità principali
+## Provarlo in locale
 
-| Feature | Descrizione |
-|---|---|
-| 📆 **Vista settimanale** | Scorri i giorni con swipe laterali, vedi tutti gli slot orari della settimana |
-| 🗓 **Vista mensile** | Panoramica del mese con evidenziazione dei giorni con lezioni |
-| ⚡ **Lezione in corso** | Card sempre visibile con la lezione attiva, l'aula e il docente |
-| 🔍 **Vista docente** | I professori possono cercare il proprio nome e vedere il loro orario aggregato su tutti i corsi |
-| ➕ **Aggiunta corsi** | Gli studenti possono aggiungere corsi non ancora presenti: vengono revisionati dall'admin e resi disponibili a tutti |
-| 🔔 **Notifiche push** | Avvisi automatici su smartphone quando l'orario di un corso cambia (lezione spostata, aula modificata, annullamento) |
-| 🎨 **Dark / Light mode** | Tema adattivo con toggle manuale |
-| 👤 **Ruolo studente / docente** | Onboarding guidato con scelta del ruolo per personalizzare la UI |
-| 🛡 **Pannello admin** | Gestione corsi, analytics utenti e richieste API (accesso protetto da token) |
-
----
-
-## Architettura
-
-```
-UniOrario/
-├── app/                    # Next.js App Router
-│   ├── page.tsx            # Home: vista principale con orario
-│   ├── admin/page.tsx      # Pannello amministrativo
-│   └── api/
-│       ├── trpc/           # Handler tRPC
-│       └── public/orario/  # Endpoint REST pubblici (orario + prossima lezione)
-│
-├── components/             # Componenti React (UI)
-│   ├── DayView             # Vista giornaliera dettagliata
-│   ├── MonthlyView         # Vista mensile
-│   ├── CalendarView        # Wrapper calendario settimanale
-│   ├── NextLessonCard      # Card lezione in corso / prossima
-│   ├── WelcomeDialog       # Onboarding a slide
-│   ├── SettingsDialog      # Impostazioni corsi, materie, notifiche
-│   └── PushNotificationManager
-│
-├── server/
-│   ├── api/
-│   │   ├── trpc.ts         # Contesto tRPC, middleware analytics
-│   │   ├── root.ts         # Router principale
-│   │   └── routers/
-│   │       ├── orario.ts   # Fetch + parsing orario da Cineca
-│   │       ├── courses.ts  # CRUD corsi (DB)
-│   │       ├── notifications.ts  # Gestione subscriptions push
-│   │       ├── analytics.ts      # Statistiche utenti e API
-│   │       └── admin.ts    # Login admin
-│   └── jobs/
-│       └── check-updates.ts  # Cron job: diff orario → notifiche push
-│
-├── lib/
-│   ├── db/schema.ts        # Schema DB MySQL con Drizzle ORM
-│   ├── courses.ts          # Logica CRUD corsi
-│   ├── notifications.ts    # WebPush (VAPID)
-│   ├── orario-utils.ts     # Parsing, colori materie, utility
-│   └── date-utils.ts       # Gestione timezone Italia (Luxon)
-│
-└── public/
-    └── sw.js               # Service Worker per notifiche push
-```
-
-### Stack tecnologico
-
-- **Frontend**: Next.js 16 (App Router) + React 19 + Tailwind CSS v4
-- **Backend**: tRPC v11 su Next.js API Routes
-- **Database**: MySQL + Drizzle ORM
-- **Animazioni**: Framer Motion
-- **Notifiche push**: Web Push API + VAPID (libreria `web-push`)
-- **Sorgente dati orari**: API pubblica Cineca/ESSE3 (`unins.prod.up.cineca.it`)
-- **Containerizzazione**: Docker + Docker Compose
-- **Package manager**: pnpm
-
-### Flusso dati orario
-
-```
-Client → tRPC (orario.getOrario) → Cineca API → processEvents() → Client
-                                                      ↓
-                                         Filtro sede (Varese / Como / Tutte)
-                                         Filtro docente
-                                         Deduplicazione
-```
-
-### Cron job notifiche
-
-Il job `check-updates.ts` viene eseguito ogni **20 minuti** (o manualmente via CLI). Per ogni corso con almeno un subscriber:
-1. Recupera l'orario mensile corrente
-2. Calcola un hash SHA-256 del dataset
-3. Confronta con lo snapshot salvato in DB
-4. Se ci sono cambi, individua le materie modificate e invia una push notification agli utenti iscritti (rispettando i loro filtri per materia)
-
----
-
-## Setup locale
-
-### Prerequisiti
-
-- Node.js ≥ 20
-- pnpm (`npm install -g pnpm`)
-- MySQL (locale o via Docker)
-
-### 1. Clona il repository
+Servono Node 20 o superiore e pnpm.
 
 ```bash
-git clone https://github.com/tuo-utente/UniApplication.git
-cd UniApplication
 pnpm install
-```
-
-### 2. Configura le variabili d'ambiente
-
-```bash
-cp .env.example .env.local
-```
-
-Modifica `.env.local` (vedi sezione [Variabili d'ambiente](#variabili-dambiente)).
-
-### 3. Crea e migra il database
-
-```bash
-pnpm db:push
-```
-
-### 4. Avvia il server di sviluppo
-
-```bash
+pnpm db:migrate
 pnpm dev
 ```
 
-Apri [http://localhost:3000](http://localhost:3000).
+L'app parte su http://localhost:3000. In sviluppo Next usa un database D1 locale in `.wrangler/`, quindi non tocca mai i dati di produzione.
 
----
+Crea un file `.env.local` con queste variabili:
 
-## Variabili d'ambiente
+- `BETTER_AUTH_SECRET`: una stringa casuale lunga, firma le sessioni
+- `BETTER_AUTH_URL`: l'indirizzo dell'app, in locale `http://localhost:3000`
+- `CRON_SECRET`: protegge le chiamate dei job
+- `VAPID_PRIVATE_KEY` e `NEXT_PUBLIC_VAPID_PUBLIC_KEY`: la coppia di chiavi per le notifiche push, che genera `npx web-push generate-vapid-keys`
+- `NEXT_PUBLIC_ADMIN_EMAIL`: l'email dell'amministratore
 
-| Variabile | Obbligatoria | Descrizione |
-|---|---|---|
-| `DATABASE_URL` | ✅ | Connection string MySQL (`mysql://user:pass@host:3306/db`) |
-| `ADMIN_PASSWORD` | ✅ | Password per accedere al pannello admin |
-| `ADMIN_TOKEN` | ✅ | Token segreto usato dal cron job per le chiamate admin |
-| `NEXT_PUBLIC_VAPID_PUBLIC_KEY` | ✅ (per notifiche) | Chiave pubblica VAPID per Web Push |
-| `VAPID_PRIVATE_KEY` | ✅ (per notifiche) | Chiave privata VAPID |
+Per riempire l'elenco dei corsi puoi lanciare `pnpm db:scrape-courses`. Gli altri comandi utili sono `pnpm lint`, `pnpm format` e `pnpm preview` (build per Cloudflare in anteprima).
 
-Per generare le chiavi VAPID:
+## Com'è fatto
 
-```bash
-npx web-push generate-vapid-keys
+Next.js 16 con App Router, React 19 e TypeScript, interfaccia in Tailwind CSS 4 con framer-motion. I dati passano da tRPC con validazione zod e TanStack Query. Il database è Cloudflare D1 con Drizzle; il login dell'amministratore usa better-auth; le notifiche sono Web Push con un service worker. Il tutto gira su Cloudflare Workers tramite OpenNext, con un secondo Worker che esegue i job pianificati. Lint e formattazione con Biome.
+
+```
+app/                 pagine, API route, manifest
+components/          agenda, home, impostazioni, docenti, admin, componenti base
+lib/                 store, utilità, accesso al database, job (lib/jobs)
+server/api/routers/  procedure tRPC: orario, corsi, notifiche, statistiche
+cron-worker/         il Worker che lancia i job
+drizzle/             migration di D1
+public/              service worker, icone, header di sicurezza
 ```
 
----
+I job sono tre: il controllo dei cambi di orario ogni 20 minuti, l'aggiornamento dell'elenco docenti ogni 6 ore e la lettura dell'elenco corsi dal sito dell'ateneo ogni domenica notte.
 
-## Comandi utili
+## Deploy
 
-```bash
-pnpm dev              # Avvia in sviluppo (Turbopack)
-pnpm build            # Build di produzione
-pnpm start            # Avvia il server di produzione
+1. Crea il database D1 e metti il suo id in `wrangler.jsonc`.
+2. Imposta i secret con `wrangler secret put` (gli stessi nomi di sopra; `CRON_SECRET` va impostato anche sul Worker dei cron, con `-c cron-worker/wrangler.jsonc`).
+3. `pnpm db:migrate:remote` per le migration, poi `pnpm deploy` per l'app e `pnpm deploy:cron` per i job.
 
-pnpm db:push          # Applica lo schema al DB
-pnpm db:generate      # Genera le migration Drizzle
-pnpm db:studio        # Apre Drizzle Studio (GUI DB)
+## Cosa manca
 
-pnpm lint             # Lint con Biome
-pnpm format           # Formatta il codice con Biome
+Gli appelli d'esame. Sono in ESSE3, che blocca ogni accesso automatico con una sfida Cloudflare e non espone una API pubblica per gli appelli. Sul branch `feature/esami` c'è una versione che usa i pochi esami pubblicati nei calendari Cineca; non è nella versione stabile.
 
-# Cron job notifiche (esecuzione singola)
-npx tsx server/jobs/check-updates.ts
+## Licenza
 
-# Cron job notifiche (modalità daemon, ogni 20 minuti)
-npx tsx server/jobs/check-updates.ts --cron
-```
-
----
-
-## Deploy (Docker)
-
-```bash
-docker compose up -d
-```
-
-Il `docker-compose.yml` avvia sia il server Next.js che il database MySQL. Per la configurazione completa consulta il file [`Dockerfile`](Dockerfile) e [`docker-compose.yml`](docker-compose.yml).
-
----
-
-## Contribuire
-
-UniOrario è un progetto **open source e community-driven**. Contributi di ogni tipo sono benvenuti!
-
-### Aggiungere un corso
-
-Se il tuo corso non è presente nell'app, puoi aggiungerlo direttamente dalla sezione **Impostazioni** nell'app. La richiesta verrà revisionata dall'admin e resa disponibile a tutti gli studenti.
-
-### Contribuire al codice
-
-1. **Fork** del repository
-2. Crea un branch descrittivo: `git checkout -b feature/nome-feature`
-3. Apporta le modifiche e committa: `git commit -m "feat: descrizione"`
-4. Apri una **Pull Request** verso `main`
-
-Per segnalare bug o proporre nuove funzionalità, apri una [Issue](../../issues).
-
----
-
-<div align="center">
-  Sviluppato da: Stefanomarocco0@gmail.com · <a href="LICENSE">MIT License</a>
-</div>
+Apache 2.0, vedi [LICENSE](LICENSE). Segnalazioni e idee: stefanomarocco0@gmail.com.

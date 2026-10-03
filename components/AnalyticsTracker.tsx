@@ -10,7 +10,9 @@ export function AnalyticsTracker() {
   const ensureUserId = useAppStore((s) => s.ensureUserId);
   const trackVisit = api.stats.trackVisit.useMutation();
   const mutateRef = useRef(trackVisit.mutate);
-  mutateRef.current = trackVisit.mutate;
+  useEffect(() => {
+    mutateRef.current = trackVisit.mutate;
+  });
 
   useEffect(() => {
     const clientId = ensureUserId();

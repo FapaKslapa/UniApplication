@@ -31,6 +31,7 @@ export async function checkUpdates() {
     headers: new Headers(),
     isAdmin: true,
     userId: "system-job",
+    isNewIdentity: true,
   });
 
   const activeSubs = await db.query.pushSubscriptions.findMany({
@@ -52,7 +53,6 @@ export async function checkUpdates() {
         linkId,
         year: now.getFullYear(),
         month: now.getMonth() + 1,
-        location: "Tutte",
       })) as TimetableEvent[];
 
       const newHash = generateCourseHash(orario);
@@ -124,8 +124,9 @@ export async function checkUpdates() {
             }
           }
 
+          const hiddenSet = new Set(hidden);
           const relevantChanges = changes.filter(
-            (c) => !hidden.includes(c.title),
+            (c) => !hiddenSet.has(c.title),
           );
 
           if (relevantChanges.length > 0) {

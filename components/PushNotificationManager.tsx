@@ -1,12 +1,29 @@
 "use client";
 
 import { Bell, BellRing } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
-import { api } from "@/lib/api";
-import { useAppStore } from "@/lib/store";
+import { usePushSubscription } from "@/components/usePushSubscription";
 import { cn } from "@/lib/utils";
 
-const VAPID_PUBLIC_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "";
+function PushStatusIcon({
+  loading,
+  isSubscribed,
+  className,
+}: {
+  loading: boolean;
+  isSubscribed: boolean;
+  className: string;
+}) {
+  if (loading) {
+    return (
+      <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+    );
+  }
+  return isSubscribed ? (
+    <BellRing className={className} />
+  ) : (
+    <Bell className={className} />
+  );
+}
 
 export function PushNotificationManager({
   linkId,
@@ -15,145 +32,34 @@ export function PushNotificationManager({
   linkId: string;
   compact?: boolean;
 }) {
-  const [isSubscribed, setIsSubscribed] = useState(false);
-  const [_permission, setPermission] =
-    useState<NotificationPermission>("default");
-  const [loading, setLoading] = useState(false);
-  const { hiddenSubjects } = useAppStore();
+  const { isSubscribed, loading, isSupported, subscribe, unsubscribe } =
+    usePushSubscription(linkId);
 
-  const subscribeMutation = api.notifications.subscribe.useMutation();
-  const unsubscribeMutation = api.notifications.unsubscribe.useMutation();
-  const updateFiltersMutation =
-    api.notifications.updateAllFilters.useMutation();
-
-  const checkSubscription = useCallback(async () => {
-    try {
-      if (!("serviceWorker" in navigator)) return;
-
-      const registration = await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise<null>((_, reject) =>
-          setTimeout(() => reject(new Error("Timeout SW")), 5000),
-        ),
-      ]);
-
-      if (!registration) return;
-
-      const subscription = await registration.pushManager.getSubscription();
-      setIsSubscribed(!!subscription);
-    } catch (e) {
-      console.error("Check subscription failed:", e);
-    }
-  }, []);
-
-  useEffect(() => {
-    if ("Notification" in window) {
-      setPermission(Notification.permission);
-      checkSubscription();
-    }
-  }, [checkSubscription]);
-
-  useEffect(() => {
-    if (isSubscribed && hiddenSubjects.length > 0) {
-      updateFiltersMutation.mutate({ filters: hiddenSubjects });
-    }
-  }, [isSubscribed, hiddenSubjects, updateFiltersMutation.mutate]);
-
-  const handleSubscribe = async () => {
-    if (!VAPID_PUBLIC_KEY) return;
-
-    setLoading(true);
-    try {
-      const result = await Notification.requestPermission();
-      setPermission(result);
-
-      if (result !== "granted") {
-        setLoading(false);
-        return;
-      }
-
-      const registration = await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise<ServiceWorkerRegistration>((_, reject) =>
-          setTimeout(() => reject(new Error("Timeout SW")), 5000),
-        ),
-      ]);
-
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-      });
-
-      const subJSON = subscription.toJSON();
-      if (subJSON.endpoint && subJSON.keys?.p256dh && subJSON.keys?.auth) {
-        await subscribeMutation.mutateAsync({
-          linkId,
-          filters: hiddenSubjects,
-          subscription: {
-            endpoint: subJSON.endpoint,
-            keys: {
-              p256dh: subJSON.keys.p256dh,
-              auth: subJSON.keys.auth,
-            },
-          },
-        });
-        setIsSubscribed(true);
-      }
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleUnsubscribe = async () => {
-    setLoading(true);
-    try {
-      const registration = await Promise.race([
-        navigator.serviceWorker.ready,
-        new Promise<ServiceWorkerRegistration>((_, reject) =>
-          setTimeout(() => reject(new Error("Timeout SW")), 5000),
-        ),
-      ]);
-
-      const subscription = await registration.pushManager.getSubscription();
-      if (subscription) {
-        await subscription.unsubscribe();
-      }
-      await unsubscribeMutation.mutateAsync({ linkId });
-      setIsSubscribed(false);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+  if (!isSupported) {
     return null;
   }
+
+  const onClick = isSubscribed ? unsubscribe : subscribe;
 
   if (compact) {
     return (
       <button
         type="button"
-        onClick={isSubscribed ? handleUnsubscribe : handleSubscribe}
+        onClick={onClick}
         disabled={loading}
         title={isSubscribed ? "Disattiva notifiche" : "Attiva notifiche"}
         className={cn(
-          "flex items-center justify-center w-8 h-8 rounded-xl border transition-all active:scale-90",
+          "relative flex items-center justify-center w-8 h-8 rounded-xl border transition-all active:scale-90 before:absolute before:-inset-1.5 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           isSubscribed
-            ? "border-green-300 dark:border-green-500/40 bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-500/20"
-            : "border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-900 text-zinc-400 dark:text-zinc-500 hover:border-zinc-300 dark:hover:border-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-300",
+            ? "border-success/40 bg-success/10 text-success hover:bg-success/20"
+            : "border-border bg-muted text-muted-foreground hover:border-input hover:text-foreground",
         )}
       >
-        {loading ? (
-          <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-        ) : isSubscribed ? (
-          <BellRing className="w-3.5 h-3.5" />
-        ) : (
-          <Bell className="w-3.5 h-3.5" />
-        )}
+        <PushStatusIcon
+          loading={loading}
+          isSubscribed={isSubscribed}
+          className="w-3.5 h-3.5"
+        />
       </button>
     );
   }
@@ -162,35 +68,22 @@ export function PushNotificationManager({
     <div className="flex items-center gap-2">
       <button
         type="button"
-        onClick={isSubscribed ? handleUnsubscribe : handleSubscribe}
+        onClick={onClick}
         disabled={loading}
         className={cn(
-          "flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all",
+          "relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           isSubscribed
-            ? "bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20"
-            : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500 hover:text-zinc-900 dark:hover:text-white",
+            ? "bg-success/10 text-success border border-success/20"
+            : "bg-muted text-muted-foreground hover:text-foreground",
         )}
       >
-        {loading ? (
-          <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-        ) : isSubscribed ? (
-          <BellRing className="w-3.5 h-3.5" />
-        ) : (
-          <Bell className="w-3.5 h-3.5" />
-        )}
+        <PushStatusIcon
+          loading={loading}
+          isSubscribed={isSubscribed}
+          className="w-3.5 h-3.5"
+        />
         {isSubscribed ? "Notifiche On" : "Attiva Notifiche"}
       </button>
     </div>
   );
-}
-
-function urlBase64ToUint8Array(base64String: string) {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = window.atob(base64);
-  const outputArray = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    outputArray[i] = rawData.charCodeAt(i);
-  }
-  return outputArray;
 }

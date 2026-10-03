@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
+import { domMax, LazyMotion, MotionConfig } from "framer-motion";
 import { type ReactNode, useEffect, useState } from "react";
 import superjson from "superjson";
 import { api } from "./api";
@@ -39,44 +40,20 @@ export function TRPCProvider({ children }: { children: ReactNode }) {
         httpBatchLink({
           url: "/api/trpc",
           transformer: superjson,
-          headers() {
-            if (typeof window === "undefined") return {};
-
-            const userIdRaw = localStorage.getItem("userId");
-            let userId: string | null = null;
-
-            if (userIdRaw) {
-              try {
-                userId = JSON.parse(userIdRaw);
-              } catch {
-                userId = userIdRaw;
-              }
-            }
-
-            if (!userId) {
-              try {
-                const zustand = localStorage.getItem("uni-app-storage");
-                if (zustand) {
-                  const parsed = JSON.parse(zustand);
-                  userId = parsed?.state?.userId ?? null;
-                }
-              } catch {
-                // ignore
-              }
-            }
-
-            return {
-              ...(userId ? { "x-user-id": String(userId) } : {}),
-            };
-          },
         }),
       ],
     }),
   );
 
   return (
-    <api.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </api.Provider>
+    <LazyMotion features={domMax} strict>
+      <MotionConfig reducedMotion="user">
+        <api.Provider client={trpcClient} queryClient={queryClient}>
+          <QueryClientProvider client={queryClient}>
+            {children}
+          </QueryClientProvider>
+        </api.Provider>
+      </MotionConfig>
+    </LazyMotion>
   );
 }

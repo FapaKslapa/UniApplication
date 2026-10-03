@@ -3,7 +3,7 @@ import { db } from "@/lib/db";
 import { courses } from "@/lib/db/schema";
 import { toTitleCase } from "@/lib/utils";
 
-export type CourseStatus = "pending" | "approved" | "rejected";
+type CourseStatus = "pending" | "approved" | "rejected";
 
 export interface Course {
   id: string;

@@ -1,8 +1,9 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { Moon, Sun } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -33,32 +34,37 @@ export function ThemeToggle() {
     localStorage.setItem("theme", newTheme);
   };
 
-  if (!mounted) return <div className="w-10 h-10" />;
+  if (!mounted) return <div className="size-11" />;
 
   return (
-    <motion.button
-      whileTap={{ scale: 0.9 }}
-      whileHover={{ scale: 1.05 }}
+    <Button
+      variant="ghost"
+      size="icon"
       onClick={toggleTheme}
-      className="p-2.5 bg-zinc-50 dark:bg-zinc-900 border border-zinc-100 dark:border-zinc-800 rounded-xl text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-all shadow-sm flex items-center justify-center relative overflow-hidden"
-      aria-label="Toggle theme"
-      type="button"
+      className="relative overflow-hidden rounded-full text-muted-foreground"
+      aria-label="Cambia tema"
     >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={theme}
-          initial={{ y: 20, opacity: 0, rotate: 45 }}
-          animate={{ y: 0, opacity: 1, rotate: 0 }}
-          exit={{ y: -20, opacity: 0, rotate: -45 }}
-          transition={{ duration: 0.2, ease: "easeInOut" }}
-        >
-          {theme === "light" ? (
-            <Sun className="w-5 h-5" />
-          ) : (
-            <Moon className="w-5 h-5" />
-          )}
-        </motion.div>
-      </AnimatePresence>
-    </motion.button>
+      <m.span
+        whileTap={{ scale: 0.9 }}
+        whileHover={{ scale: 1.05 }}
+        className="flex items-center justify-center"
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          <m.div
+            key={theme}
+            initial={{ y: 20, opacity: 0, rotate: 45 }}
+            animate={{ y: 0, opacity: 1, rotate: 0 }}
+            exit={{ y: -20, opacity: 0, rotate: -45 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+          >
+            {theme === "light" ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
+          </m.div>
+        </AnimatePresence>
+      </m.span>
+    </Button>
   );
 }

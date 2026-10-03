@@ -15,19 +15,12 @@ import {
   createTRPCRouter,
   publicProcedure,
 } from "@/server/api/trpc";
+import { enforceRateLimit } from "@/server/rate-limit";
 
 export const coursesRouter = createTRPCRouter({
-  getAll: publicProcedure
-    .input(
-      z
-        .object({
-          userId: z.string().optional(),
-        })
-        .optional(),
-    )
-    .query(async ({ input }) => {
-      return await getVisibleCourses(input?.userId);
-    }),
+  getAll: publicProcedure.query(async ({ ctx }) => {
+    return await getVisibleCourses(ctx.userId);
+  }),
 
   getAllForAdmin: adminProcedure.query(async () => {
     return await getAllCoursesForAdmin();
@@ -40,15 +33,15 @@ export const coursesRouter = createTRPCRouter({
   add: publicProcedure
     .input(
       z.object({
-        name: z.string().min(1),
-        linkId: z.string().min(1),
-        year: z.number().min(1).max(6).optional(),
-        academicYear: z.string().optional(),
-        userId: z.string().optional(),
-        addedBy: z.string().default("user"),
+        name: z.string().min(1).max(200),
+        linkId: z.string().min(1).max(128),
+        year: z.number().int().min(1).max(6).optional(),
+        academicYear: z.string().max(20).optional(),
+        addedBy: z.enum(["user", "admin"]).default("user"),
       }),
     )
     .mutation(async ({ input, ctx }) => {
+      if (!ctx.isAdmin) enforceRateLimit("courses.add", ctx.headers, 5);
       const isAdmin = ctx.isAdmin;
       const status =
         isAdmin && input.addedBy === "admin" ? "approved" : "pending";
@@ -56,6 +49,7 @@ export const coursesRouter = createTRPCRouter({
 
       return await addCourse({
         ...input,
+        userId: ctx.userId,
         status,
         verified,
       });
