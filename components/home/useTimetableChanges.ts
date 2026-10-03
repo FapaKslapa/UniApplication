@@ -2,11 +2,14 @@
 
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import {
+  baselineCourses,
+  collectUnseenChanges,
+  markChangesViewed,
+} from "@/components/home/changesSeen";
 import type { TimetableChange } from "@/components/home/types";
 import { api } from "@/lib/api";
 import { useActiveLinkIds } from "@/lib/store";
-
-const LAST_SEEN_KEY = "last_seen_timetable_update";
 
 export function useTimetableChanges(isClient: boolean) {
   const searchParams = useSearchParams();
@@ -22,12 +25,16 @@ export function useTimetableChanges(isClient: boolean) {
       const upcoming = decoded.filter((change) => change.date >= today);
       if (upcoming.length === 0) return;
       setChanges(upcoming);
-      localStorage.setItem(LAST_SEEN_KEY, Date.now().toString());
+      markChangesViewed();
       window.history.replaceState({}, "", window.location.pathname);
     } catch (error) {
       console.error("Failed to parse changes:", error);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    if (isClient) baselineCourses(activeLinkIds);
+  }, [isClient, activeLinkIds]);
 
   const { data: latestChanges } = api.orario.getLatestChanges.useQuery(
     { linkIds: activeLinkIds },
@@ -36,11 +43,8 @@ export function useTimetableChanges(isClient: boolean) {
 
   useEffect(() => {
     if (!latestChanges || !isClient || changes) return;
-    const lastSeen = localStorage.getItem(LAST_SEEN_KEY);
-    if (!lastSeen || parseInt(lastSeen, 10) < latestChanges.updatedAt) {
-      setChanges(latestChanges.changes);
-      localStorage.setItem(LAST_SEEN_KEY, latestChanges.updatedAt.toString());
-    }
+    const fresh = collectUnseenChanges(latestChanges.perLink ?? []);
+    if (fresh.length > 0) setChanges(fresh);
   }, [latestChanges, isClient, changes]);
 
   return { changes, dismiss: () => setChanges(null) };

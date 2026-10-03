@@ -34,26 +34,29 @@ export const getLatestChanges = publicProcedure
     if (snapshots.length === 0) return null;
 
     const today = new Date().toISOString().split("T")[0];
-    const snapshotsWithChanges = snapshots.filter((s) => s.lastChanges);
-    const allChanges = snapshotsWithChanges.flatMap((s) => {
+    const perLink = snapshots.flatMap((snapshot) => {
+      if (!snapshot.lastChanges) return [];
       try {
-        const lastChanges = s.lastChanges;
-        if (!lastChanges) return [];
-        const parsed = JSON.parse(lastChanges) as TimetableChange[];
-        return parsed.filter((c) => c.date >= today);
+        const parsed = JSON.parse(snapshot.lastChanges) as TimetableChange[];
+        const changes = parsed.filter((c) => c.date >= today);
+        if (changes.length === 0) return [];
+        return [
+          {
+            linkId: snapshot.linkId,
+            updatedAt: snapshot.lastUpdated.getTime(),
+            changes,
+          },
+        ];
       } catch {
         return [];
       }
     });
 
-    if (allChanges.length === 0) return null;
-
-    const latestUpdate = Math.max(
-      ...snapshotsWithChanges.map((s) => s.lastUpdated.getTime()),
-    );
+    if (perLink.length === 0) return null;
 
     return {
-      changes: allChanges,
-      updatedAt: latestUpdate,
+      changes: perLink.flatMap((entry) => entry.changes),
+      updatedAt: Math.max(...perLink.map((entry) => entry.updatedAt)),
+      perLink,
     };
   });
