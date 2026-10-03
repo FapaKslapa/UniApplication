@@ -11,7 +11,6 @@ export function useProfessorStatus(name: string) {
   const now = useNow(60_000);
   const { data, isLoading } = api.orario.getOrario.useQuery({
     name: "INFORMATICA",
-    location: "Tutte",
     dayOffset: 0,
     professorName: name,
   });

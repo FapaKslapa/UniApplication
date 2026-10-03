@@ -1,7 +1,6 @@
 import { BookOpen, Eye, Mail } from "lucide-react";
 import { CourseNotifications } from "@/components/settings/CourseNotifications";
 import { DevSection } from "@/components/settings/DevSection";
-import { LocationSwitcher } from "@/components/settings/LocationSwitcher";
 import { MenuRow } from "@/components/settings/MenuRow";
 import { SettingsGroup } from "@/components/settings/SettingsGroup";
 import { ThemeRow } from "@/components/settings/ThemeRow";
@@ -61,7 +60,6 @@ export function MenuScreen({
 
       <SettingsGroup label="Altro">
         <ThemeRow key="theme" />
-        <LocationSwitcher key="location" />
         <MenuRow
           key="feedback"
           icon={Mail}

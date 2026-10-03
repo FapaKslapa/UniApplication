@@ -12,7 +12,6 @@ import {
   dayOffsetSchema,
   linkIdSchema,
   linkIdsSchema,
-  locationSchema,
   nameSchema,
   professorNameSchema,
 } from "./schemas";
@@ -21,7 +20,6 @@ export const getOrario = publicProcedure
   .input(
     z.object({
       name: nameSchema,
-      location: locationSchema,
       dayOffset: dayOffsetSchema,
       linkId: linkIdSchema,
       linkIds: linkIdsSchema,
@@ -36,7 +34,7 @@ export const getOrario = publicProcedure
       const weekStart = targetDate
         .minus({ days: getDayOfWeek(targetDate) })
         .toISODate();
-      const cacheKey = `https://orario-cache.internal/orario/professor/${encodeURIComponent(input.professorName)}/${weekStart}/${input.location}`;
+      const cacheKey = `https://orario-cache.internal/orario/professor/${encodeURIComponent(input.professorName)}/${weekStart}`;
 
       return withEdgeCache(cacheKey, 15 * 60, async () => {
         const visibleCourses = await getVisibleCourses();
@@ -44,11 +42,7 @@ export const getOrario = publicProcedure
         const allRawEvents = await Promise.all(
           ids.map((id) => fetchRawEvents(input.dayOffset, id)),
         );
-        return processEvents(
-          allRawEvents.flat(),
-          input.location,
-          input.professorName,
-        );
+        return processEvents(allRawEvents.flat(), input.professorName);
       });
     }
 
@@ -63,5 +57,5 @@ export const getOrario = publicProcedure
       ids.map((id) => fetchRawEvents(input.dayOffset, id)),
     );
 
-    return processEvents(allRawEvents.flat(), input.location, undefined);
+    return processEvents(allRawEvents.flat(), undefined);
   });

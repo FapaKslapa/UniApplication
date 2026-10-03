@@ -23,7 +23,7 @@ export function useMonthData(
   source: AgendaSource,
   active: boolean,
 ) {
-  const { location, hiddenSubjects } = useAppStore();
+  const { hiddenSubjects } = useAppStore();
   const activeLinkIds = useActiveLinkIds();
   const professorName = source.kind === "professor" ? source.name : undefined;
   const linkIds =
@@ -40,7 +40,6 @@ export function useMonthData(
       month: currentDate.month,
       linkIds,
       professorName,
-      location,
     },
     { enabled, placeholderData: (previous) => previous },
   );

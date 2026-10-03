@@ -7,8 +7,6 @@ import {
 } from "@/lib/date-utils";
 import { toTitleCase } from "@/lib/utils";
 
-export type LocationFilter = "Varese" | "Como" | "Tutte";
-
 export type OrarioData = Array<{
   day: number;
   events: Array<{
@@ -46,11 +44,7 @@ export const professorName = (event: CinecaEvent) =>
     ? toTitleCase(`${event.docenti[0].cognome} ${event.docenti[0].nome}`)
     : "N/A";
 
-export const mapEvent = (
-  event: CinecaEvent,
-  locationFilter: LocationFilter,
-  professorFilter?: string,
-) => {
+export const mapEvent = (event: CinecaEvent, professorFilter?: string) => {
   const date = DateTime.fromISO(event.dataInizio).setZone("Europe/Rome");
   const title = subjectTitle(event);
   const professor = professorName(event);
@@ -61,44 +55,17 @@ export const mapEvent = (
   )
     return null;
 
-  const hasComoRooms = (event.aule || []).some(
-    (a) =>
-      (a.edificio?.comune || "").toUpperCase().includes("COMO") ||
-      a.descrizione.toUpperCase().includes("COMO"),
-  );
-
   const isVideoConference =
     ["VIDEOCONFERENZA", "TEAMS", "VIDEOCHIAMATA"].some((term) =>
       title.toUpperCase().includes(term),
     ) ||
-    hasComoRooms ||
     (event.aule || []).some((a) =>
       ["VIDEOCONFERENZA", "TEAMS"].some((term) =>
         a.descrizione.toUpperCase().includes(term),
       ),
     );
 
-  let matchesLocation = locationFilter === "Tutte" || isVideoConference;
-
-  const filteredAule = (event.aule || []).filter((aula) => {
-    if (locationFilter === "Tutte") return true;
-    const name = aula.descrizione.toUpperCase();
-    const city = (aula.edificio?.comune || "Unknown").toUpperCase();
-
-    if (locationFilter === "Varese") {
-      return city.includes("VARESE") || name.includes("VARESE");
-    }
-    if (locationFilter === "Como") {
-      return city.includes("COMO") || name.includes("COMO");
-    }
-    return true;
-  });
-
-  if (locationFilter !== "Tutte" && !matchesLocation) {
-    matchesLocation = filteredAule.length > 0;
-  }
-
-  if (!matchesLocation) return null;
+  const filteredAule = event.aule || [];
 
   const location =
     filteredAule
@@ -125,7 +92,6 @@ export const mapEvent = (
 
 export const processEvents = (
   events: CinecaEvent[],
-  locationFilter: LocationFilter,
   professorFilter?: string,
 ): OrarioData => {
   const result: OrarioData = Array.from({ length: 7 }, (_, d) => ({
@@ -134,7 +100,7 @@ export const processEvents = (
   }));
 
   const processed = events
-    .map((event) => mapEvent(event, locationFilter, professorFilter))
+    .map((event) => mapEvent(event, professorFilter))
     .filter((e): e is NonNullable<typeof e> => e !== null);
 
   for (const event of processed) {

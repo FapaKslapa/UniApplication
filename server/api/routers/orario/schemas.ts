@@ -1,9 +1,6 @@
 import { z } from "zod";
 import { getVisibleCourses } from "@/lib/courses";
 
-export const locationSchema = z
-  .enum(["Varese", "Como", "Tutte"])
-  .default("Tutte");
 export const nameSchema = z.string().max(100).default("INFORMATICA");
 export const dayOffsetSchema = z.number().int().min(-3700).max(3700).default(0);
 export const linkIdSchema = z.string().max(64).optional();

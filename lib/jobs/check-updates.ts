@@ -53,7 +53,6 @@ export async function checkUpdates() {
         linkId,
         year: now.getFullYear(),
         month: now.getMonth() + 1,
-        location: "Tutte",
       })) as TimetableEvent[];
 
       const newHash = generateCourseHash(orario);

@@ -12,7 +12,6 @@ import {
   dayOffsetSchema,
   linkIdSchema,
   linkIdsSchema,
-  locationSchema,
   nameSchema,
   professorNameSchema,
   resolveLinkIds,
@@ -23,7 +22,6 @@ export const getNextLesson = publicProcedure
     z.object({
       dayOffset: dayOffsetSchema,
       name: nameSchema,
-      location: locationSchema,
       linkId: linkIdSchema,
       linkIds: linkIdsSchema,
       professorName: professorNameSchema,
@@ -40,11 +38,7 @@ export const getNextLesson = publicProcedure
       ids.map((id) => fetchRawEvents(input.dayOffset, id)),
     );
 
-    const orarioData = processEvents(
-      allRawEvents.flat(),
-      input.location,
-      input.professorName,
-    );
+    const orarioData = processEvents(allRawEvents.flat(), input.professorName);
 
     const currentDate = getCurrentItalianDateTime();
     const targetDate = addDays(currentDate, input.dayOffset);

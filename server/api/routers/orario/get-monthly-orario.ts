@@ -6,7 +6,6 @@ import { mapEvent } from "./events";
 import {
   linkIdSchema,
   linkIdsSchema,
-  locationSchema,
   nameSchema,
   professorNameSchema,
   resolveLinkIds,
@@ -16,7 +15,6 @@ export const getMonthlyOrario = publicProcedure
   .input(
     z.object({
       name: nameSchema,
-      location: locationSchema,
       year: z.number(),
       month: z.number(),
       linkId: linkIdSchema,
@@ -41,7 +39,7 @@ export const getMonthlyOrario = publicProcedure
 
     const processed = allRawEvents
       .flat()
-      .map((event) => mapEvent(event, input.location, input.professorName))
+      .map((event) => mapEvent(event, input.professorName))
       .filter((e): e is NonNullable<typeof e> => e !== null);
 
     return processed.filter(
