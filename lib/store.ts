@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import type { AgendaMode } from "@/lib/agenda/types";
 
 const MAX_RECENT_PROFESSORS = 8;
 
@@ -14,6 +15,7 @@ export type AppState = {
   hiddenSubjects: string[];
   favoriteProfessors: string[];
   recentProfessors: string[];
+  defaultAgendaMode: AgendaMode;
   hasSeenWelcome: boolean;
   hasSeenNotifIntro: boolean;
   userId: string;
@@ -29,6 +31,7 @@ export type AppState = {
   setHiddenSubjects: (v: string[]) => void;
   toggleFavoriteProfessor: (name: string) => void;
   addRecentProfessor: (name: string) => void;
+  setDefaultAgendaMode: (v: AgendaMode) => void;
   setHasSeenWelcome: (v: boolean) => void;
   setHasSeenNotifIntro: (v: boolean) => void;
   ensureUserId: () => string;
@@ -52,6 +55,7 @@ export const useAppStore = create<AppState>()(
       hiddenSubjects: [],
       favoriteProfessors: [],
       recentProfessors: [],
+      defaultAgendaMode: "day",
       hasSeenWelcome: false,
       hasSeenNotifIntro: false,
       userId: "",
@@ -79,6 +83,7 @@ export const useAppStore = create<AppState>()(
           recentProfessors: [name, ...current].slice(0, MAX_RECENT_PROFESSORS),
         });
       },
+      setDefaultAgendaMode: (v) => set({ defaultAgendaMode: v }),
       setHasSeenWelcome: (v) => set({ hasSeenWelcome: v }),
       setHasSeenNotifIntro: (v) => set({ hasSeenNotifIntro: v }),
       ensureUserId: () => {

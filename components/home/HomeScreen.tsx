@@ -25,12 +25,13 @@ const OWN_HEADER_VIEWS = new Set(["week", "docenti", "esami"]);
 export function HomeScreen() {
   const router = useRouter();
   const utils = api.useUtils();
-  const { courseNames, isAdmin } = useAppStore();
+  const { courseNames, isAdmin, defaultAgendaMode } = useAppStore();
   const { activeView, setActiveView } = useHomeView();
   const [selectedDate, setSelectedDate] = useState(() =>
     startOfDay(getCurrentItalianDateTime()),
   );
-  const [agendaMode, setAgendaMode] = useState<AgendaMode>("day");
+  const [agendaChoice, setAgendaMode] = useState<AgendaMode | null>(null);
+  const agendaMode = agendaChoice ?? defaultAgendaMode;
   const bootstrap = useHomeBootstrap();
   const timetableChanges = useTimetableChanges(bootstrap.isClient);
 
