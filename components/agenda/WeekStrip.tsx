@@ -68,8 +68,10 @@ export function WeekStrip({
                 aria-current={isToday ? "date" : undefined}
                 aria-label={`${day.date.setLocale("it").toFormat("cccc d MMMM")}, ${day.events.length} lezioni`}
                 className={cn(
-                  "relative h-16 min-w-11 flex-col items-center justify-center gap-1.5 rounded-md px-0",
-                  isToday && !isSelected && "ring-1 ring-foreground/30",
+                  "relative h-16 min-w-11 flex-col items-center justify-center gap-1.5 rounded-md px-0 focus-visible:ring-inset focus-visible:ring-offset-0",
+                  isToday &&
+                    !isSelected &&
+                    "ring-1 ring-inset ring-foreground/30",
                 )}
               >
                 {isSelected && (
