@@ -88,16 +88,14 @@ export function OsPushCharts({
               <p className="text-2xl font-extrabold tracking-tighter text-foreground">
                 {(pushStats?.total ?? 0).toLocaleString("it-IT")}
               </p>
-              <p className="text-[11px] text-muted-foreground uppercase tracking-widest">
-                Iscrizioni attive
-              </p>
+              <p className="text-xs text-muted-foreground">Iscrizioni attive</p>
             </div>
           </div>
         </div>
 
         {(pushStats?.topCourses ?? []).length > 0 && (
           <div className="space-y-3">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+            <p className="text-xs font-semibold text-muted-foreground">
               Top corsi iscritti
             </p>
             {(pushStats?.topCourses ?? []).slice(0, 5).map((c, i) => {

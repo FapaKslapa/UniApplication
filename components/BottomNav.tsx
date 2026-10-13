@@ -38,14 +38,14 @@ export function BottomNav({
           active={activeSection === "calendar" && activeView === "week"}
           onClick={() => onViewChange?.("week")}
           label="Agenda"
-          icon={<CalendarDays className="size-[18px]" />}
+          icon={<CalendarDays className="size-5" />}
         />
 
         <NavBtn
           active={activeSection === "calendar" && activeView === "docenti"}
           onClick={() => onViewChange?.("docenti")}
           label="Docenti"
-          icon={<GraduationCap className="size-[18px]" />}
+          icon={<GraduationCap className="size-5" />}
         />
 
         {isAdmin && (
@@ -53,7 +53,7 @@ export function BottomNav({
             active={activeSection === "admin"}
             onClick={() => onViewChange?.("stats")}
             label="Admin"
-            icon={<ShieldCheck className="size-[18px]" />}
+            icon={<ShieldCheck className="size-5" />}
           />
         )}
 
@@ -61,7 +61,7 @@ export function BottomNav({
           active={activeSection === "settings"}
           onClick={() => onSettings?.()}
           label="Opzioni"
-          icon={<Settings className="size-[18px]" />}
+          icon={<Settings className="size-5" />}
         />
       </div>
     </nav>

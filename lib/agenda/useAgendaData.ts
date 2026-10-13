@@ -96,6 +96,8 @@ export function useAgendaData(
     colorFor,
     isPending: orario.isLoading || isPlaceholder,
     error: orario.error,
+    hasData: !!orario.data && !orario.isPlaceholderData,
+    dataUpdatedAt: orario.dataUpdatedAt,
     refetch: orario.refetch,
   };
 }

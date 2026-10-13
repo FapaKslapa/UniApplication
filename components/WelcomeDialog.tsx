@@ -64,20 +64,24 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
             </m.div>
           </AnimatePresence>
 
-          <div
-            role="img"
-            aria-label={`Passo ${currentSlide + 1} di ${slides.length}`}
-            className="flex gap-1.5 pt-10"
-          >
-            {slides.map((s) => (
-              <div
-                key={s.id}
-                className={cn(
-                  "h-1 rounded-full transition-all duration-300",
-                  s.id === slide.id ? "w-6 bg-foreground" : "w-1.5 bg-border",
-                )}
-              />
-            ))}
+          <div className="flex flex-col items-center gap-2 pt-10">
+            <div aria-hidden className="flex gap-1.5">
+              {slides.map((s) => (
+                <div
+                  key={s.id}
+                  className={cn(
+                    "h-1 rounded-full transition-all duration-300",
+                    s.id === slide.id ? "w-6 bg-foreground" : "w-1.5 bg-border",
+                  )}
+                />
+              ))}
+            </div>
+            <p
+              aria-live="polite"
+              className="text-[11px] font-semibold text-muted-foreground"
+            >
+              Passo {currentSlide + 1} di {slides.length}
+            </p>
           </div>
         </div>
 
@@ -92,7 +96,7 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
                 aria-label="Indietro"
                 className="shrink-0"
               >
-                <ChevronLeft className="size-4" aria-hidden />
+                <ChevronLeft aria-hidden />
               </Button>
             )}
             <Button
@@ -102,7 +106,7 @@ export function WelcomeDialog({ isOpen, onComplete }: WelcomeDialogProps) {
               className="flex-1"
             >
               <span>{isLastSlide ? "Inizia" : "Avanti"}</span>
-              <ChevronRight className="size-4" aria-hidden />
+              <ChevronRight aria-hidden />
             </Button>
           </div>
 

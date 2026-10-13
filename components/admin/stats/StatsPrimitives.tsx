@@ -1,13 +1,8 @@
 import { CalendarDays, TrendingDown, TrendingUp } from "lucide-react";
 import { it } from "react-day-picker/locale";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { DrawerHeading } from "@/components/ui/drawer-heading";
 import { cn } from "@/lib/utils";
 
 function TrendBadge({ value }: { value: number | null }) {
@@ -23,9 +18,9 @@ function TrendBadge({ value }: { value: number | null }) {
       )}
     >
       {up ? (
-        <TrendingUp className="w-3 h-3" />
+        <TrendingUp className="size-3" />
       ) : (
-        <TrendingDown className="w-3 h-3" />
+        <TrendingDown className="size-3" />
       )}
       {up ? "+" : ""}
       {value.toFixed(1)}%
@@ -51,7 +46,7 @@ export function StatCard({
   return (
     <div className="rounded-xl bg-card p-4 sm:p-5 elevation-1">
       <div className="flex items-start justify-between mb-2 sm:mb-3">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground leading-tight flex-1 pr-2">
+        <p className="text-xs font-semibold text-muted-foreground leading-tight flex-1 pr-2">
           {title}
         </p>
         <div className={cn("p-2 rounded-xl shrink-0", iconColor)}>{icon}</div>
@@ -80,7 +75,7 @@ export function ChartCard({
 }) {
   return (
     <div className={cn("rounded-xl bg-card p-5 sm:p-6 elevation-2", className)}>
-      <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground mb-5 sm:mb-6">
+      <p className="text-xs font-semibold text-muted-foreground mb-5 sm:mb-6">
         {title}
       </p>
       {children}
@@ -149,9 +144,9 @@ export function DatePickerButton({
       <button
         type="button"
         onClick={() => onOpenChange(true)}
-        className="flex items-center gap-1.5 whitespace-nowrap min-w-[72px] rounded-full bg-secondary px-3 py-1.5 text-[11px] font-bold text-secondary-foreground"
+        className="flex min-h-11 min-w-[72px] items-center gap-1.5 whitespace-nowrap rounded-full bg-secondary px-4 text-xs font-semibold text-secondary-foreground"
       >
-        <CalendarDays className="w-3 h-3 text-muted-foreground shrink-0" />
+        <CalendarDays className="size-4 text-muted-foreground shrink-0" />
         {date
           ? date.toLocaleDateString("it-IT", {
               day: "numeric",
@@ -162,15 +157,11 @@ export function DatePickerButton({
       </button>
       <Drawer open={open} onOpenChange={onOpenChange}>
         <DrawerContent className="bg-popover">
-          <DrawerHeader className="flex-row items-center gap-4">
-            <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background elevation-1">
-              <CalendarDays className="size-5" />
-            </div>
-            <div className="text-left">
-              <DrawerTitle className="text-xl">Scegli una data</DrawerTitle>
-              <DrawerDescription>{placeholder}</DrawerDescription>
-            </div>
-          </DrawerHeader>
+          <DrawerHeading
+            icon={CalendarDays}
+            title="Scegli una data"
+            description={placeholder}
+          />
           <div className="mx-auto w-full max-w-md px-4 pb-6">
             <Calendar
               mode="single"

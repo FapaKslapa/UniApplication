@@ -61,7 +61,7 @@ export function SettingsDesktop({
     <div className="fixed inset-0 hidden overflow-y-auto overscroll-contain bg-background text-foreground md:block">
       <main className="mx-auto w-full max-w-screen-2xl px-4 py-3 md:px-6 lg:px-8 lg:py-6">
         <HomeHeader
-          title="Impostazioni"
+          title="Opzioni"
           subtitle={
             isSetup ? "Scegli il tuo corso per iniziare" : "Orario Insubria"
           }

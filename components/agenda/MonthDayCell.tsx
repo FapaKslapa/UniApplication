@@ -1,5 +1,6 @@
 import { m } from "framer-motion";
 import type { DateTime } from "luxon";
+import { dayAriaLabel } from "@/components/agenda/dayLabel";
 import { Button } from "@/components/ui/button";
 import { dayDotSubjects } from "@/lib/agenda/lessons";
 import { springs, staggerDelay } from "@/lib/motion";
@@ -32,9 +33,9 @@ export function MonthDayCell({
       variant="ghost"
       onClick={() => onSelect(date)}
       aria-current={isToday ? "date" : undefined}
-      aria-label={`${date.setLocale("it").toFormat("cccc d MMMM")}, ${events.length} lezioni`}
+      aria-label={dayAriaLabel(date, events)}
       className={cn(
-        "relative h-full w-full flex-col items-center justify-center gap-1 rounded-md px-0 py-1 focus-visible:ring-inset focus-visible:ring-offset-0",
+        "relative h-full min-h-11 w-full flex-col items-center justify-center gap-1 rounded-md px-0 py-1 focus-visible:ring-inset focus-visible:ring-offset-0",
         !isCurrentMonth && "pointer-events-none opacity-0",
         isToday && !isSelected && "ring-1 ring-inset ring-foreground/30",
         isSelected && "bg-foreground",

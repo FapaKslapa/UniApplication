@@ -151,6 +151,22 @@ export const courseSnapshots = sqliteTable("course_snapshots", {
     .default(sql`(unixepoch())`),
 });
 
+export const changeLog = sqliteTable(
+  "change_log",
+  {
+    id: integer("id").primaryKey({ autoIncrement: true }),
+    linkId: text("link_id").notNull(),
+    changes: text("changes").notNull(),
+    detectedAt: integer("detected_at", { mode: "timestamp" })
+      .notNull()
+      .default(sql`(unixepoch())`),
+  },
+  (table) => [
+    index("idx_change_log_link_detected").on(table.linkId, table.detectedAt),
+    index("idx_change_log_detected").on(table.detectedAt),
+  ],
+);
+
 export type DbCourse = typeof courses.$inferSelect;
 export type NewDbCourse = typeof courses.$inferInsert;
 export type AnalyticsUser = typeof analyticsUsers.$inferSelect;

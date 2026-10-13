@@ -9,13 +9,13 @@ import { slideVariants, springs } from "@/lib/motion";
 import type { ParsedEvent } from "@/lib/orario-utils";
 
 const WEEKDAY_LABELS = [
-  { id: "mon", label: "L" },
-  { id: "tue", label: "M" },
-  { id: "wed", label: "M" },
-  { id: "thu", label: "G" },
-  { id: "fri", label: "V" },
-  { id: "sat", label: "S" },
-  { id: "sun", label: "D" },
+  { id: "mon", label: "Lun" },
+  { id: "tue", label: "Mar" },
+  { id: "wed", label: "Mer" },
+  { id: "thu", label: "Gio" },
+  { id: "fri", label: "Ven" },
+  { id: "sat", label: "Sab" },
+  { id: "sun", label: "Dom" },
 ];
 const SWIPE_THRESHOLD = 50;
 
@@ -53,11 +53,11 @@ export function MonthGrid({
   if (isPending) return <MonthSkeleton />;
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col rounded-xl bg-card p-3 elevation-1">
+    <div className="flex min-h-0 flex-1 flex-col rounded-xl bg-card p-2 elevation-1">
       <div className="grid shrink-0 grid-cols-7">
         {WEEKDAY_LABELS.map((weekday) => (
           <div key={weekday.id} className="py-2 text-center">
-            <span className="text-xs font-semibold text-muted-foreground/60">
+            <span className="text-xs font-semibold text-muted-foreground">
               {weekday.label}
             </span>
           </div>

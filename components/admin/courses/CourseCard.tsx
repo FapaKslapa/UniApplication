@@ -53,7 +53,7 @@ function ActionButton({
       aria-label={label}
       onClick={onClick}
       className={cn(
-        "size-9 rounded-full elevation-1",
+        "size-11 rounded-full elevation-1",
         actionButtonColors[color],
       )}
     >
@@ -114,15 +114,15 @@ export function CourseCard({
           onClick={() => onCopyLink(course.linkId, course.id)}
           aria-label={isCopied ? "Link copiato" : "Copia link"}
           className={cn(
-            "size-9 shrink-0 rounded-full elevation-1 relative before:absolute before:-inset-1 before:content-['']",
+            "size-11 shrink-0 rounded-full elevation-1",
             isCopied &&
               "border-transparent bg-success text-success-foreground hover:bg-success hover:text-success-foreground",
           )}
         >
           {isCopied ? (
-            <Check className="w-4 h-4" />
+            <Check className="size-4" />
           ) : (
-            <Copy className="w-4 h-4" />
+            <Copy className="size-4" />
           )}
         </Button>
       </div>
@@ -146,7 +146,7 @@ export function CourseCard({
           {onApprove && course.status !== "approved" && (
             <ActionButton
               onClick={onApprove}
-              icon={<CheckCircle2 className="w-3.5 h-3.5" />}
+              icon={<CheckCircle2 className="size-4" />}
               color="emerald"
               label="Approva corso"
             />
@@ -154,7 +154,7 @@ export function CourseCard({
           {onVerify && !course.verified && (
             <ActionButton
               onClick={onVerify}
-              icon={<ShieldCheck className="w-3.5 h-3.5" />}
+              icon={<ShieldCheck className="size-4" />}
               color="blue"
               label="Verifica corso"
             />
@@ -162,14 +162,14 @@ export function CourseCard({
           {onReject && course.status === "pending" && (
             <ActionButton
               onClick={onReject}
-              icon={<XCircle className="w-3.5 h-3.5" />}
+              icon={<XCircle className="size-4" />}
               color="amber"
               label="Rifiuta corso"
             />
           )}
           <ActionButton
             onClick={onDelete}
-            icon={<Trash2 className="w-3.5 h-3.5" />}
+            icon={<Trash2 className="size-4" />}
             color="red"
             label="Elimina corso"
           />

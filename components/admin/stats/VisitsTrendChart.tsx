@@ -74,7 +74,7 @@ export function VisitsTrendChart({
               setShowCustom(false);
             }}
             className={cn(
-              "px-3 py-1.5 rounded-full text-[11px] font-bold transition-colors",
+              "min-h-11 px-4 rounded-full text-xs font-semibold transition-colors",
               !showCustom && activeDays === p.days
                 ? "bg-foreground text-background"
                 : "bg-secondary text-secondary-foreground hover:text-foreground",
@@ -87,7 +87,7 @@ export function VisitsTrendChart({
           type="button"
           onClick={() => setShowCustom(true)}
           className={cn(
-            "px-3 py-1.5 rounded-full text-[11px] font-bold transition-colors",
+            "min-h-11 px-4 rounded-full text-xs font-semibold transition-colors",
             showCustom
               ? "bg-foreground text-background"
               : "bg-secondary text-secondary-foreground hover:text-foreground",
@@ -105,7 +105,7 @@ export function VisitsTrendChart({
               onSelect={setCustomFrom}
               disabledFn={customTo ? (d) => d > customTo : undefined}
             />
-            <ArrowRight className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
+            <ArrowRight className="size-4 text-muted-foreground shrink-0" />
             <DatePickerButton
               date={customTo}
               placeholder="Al"

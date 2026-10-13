@@ -40,7 +40,7 @@ const DAY_CLASSNAMES = {
   nav: "hidden",
   month_grid: "block w-full border-collapse [&>*]:block",
   weekdays: "grid grid-cols-7",
-  weekday: "py-1 text-center text-[0.8rem] font-normal text-muted-foreground",
+  weekday: "py-1 text-center text-xs font-medium text-muted-foreground",
   weeks: "block",
   week: "mt-1 grid grid-cols-7",
   day: "relative flex h-11 items-center justify-center p-0 text-center text-sm focus-within:z-20",

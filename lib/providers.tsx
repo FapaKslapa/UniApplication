@@ -7,6 +7,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import superjson from "superjson";
 import { api } from "./api";
 import { authClient } from "./auth-client";
+import { persistQueryClient } from "./queryPersist";
 import { useAppStore } from "./store";
 
 export function TRPCProvider({ children }: { children: ReactNode }) {
@@ -24,15 +25,18 @@ export function TRPCProvider({ children }: { children: ReactNode }) {
         defaultOptions: {
           queries: {
             staleTime: 1000 * 60 * 30,
-            gcTime: 1000 * 60 * 60,
+            gcTime: 1000 * 60 * 60 * 24 * 7,
+            networkMode: "offlineFirst",
             refetchOnWindowFocus: false,
-            refetchOnMount: false,
+            refetchOnMount: true,
             retry: 2,
             retryDelay: 1000,
           },
         },
       }),
   );
+
+  useEffect(() => persistQueryClient(queryClient), [queryClient]);
 
   const [trpcClient] = useState(() =>
     api.createClient({

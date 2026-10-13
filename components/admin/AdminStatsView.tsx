@@ -127,18 +127,14 @@ export function AdminStatsView() {
       className="space-y-6 pb-10"
     >
       <div className="flex items-center justify-between">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-          Analytics
-        </p>
+        <p className="text-xs font-semibold text-muted-foreground">Analytics</p>
         <button
           type="button"
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1.5 text-[11px] font-bold text-secondary-foreground transition-colors hover:text-foreground disabled:opacity-50"
+          className="flex min-h-11 items-center gap-1.5 rounded-full bg-secondary px-4 text-xs font-semibold text-secondary-foreground transition-colors hover:text-foreground disabled:opacity-50"
         >
-          <RefreshCw
-            className={cn("w-3 h-3", isRefreshing && "animate-spin")}
-          />
+          <RefreshCw className={cn("size-4", isRefreshing && "animate-spin")} />
           Aggiorna
         </button>
       </div>

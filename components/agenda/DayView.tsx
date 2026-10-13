@@ -5,6 +5,7 @@ import type { DateTime } from "luxon";
 import { AgendaSkeleton } from "@/components/agenda/AgendaSkeleton";
 import { DayTimeline } from "@/components/agenda/DayTimeline";
 import { EmptyDay } from "@/components/agenda/EmptyDay";
+import { LessonDetailProvider } from "@/components/agenda/LessonDetailProvider";
 import { NextLessonHero } from "@/components/agenda/NextLessonHero";
 import { minutesOfDay } from "@/lib/agenda/dates";
 import { gapsBefore, overlapFlags, pickHeroLesson } from "@/lib/agenda/lessons";
@@ -76,7 +77,7 @@ export function DayView({
         ) : events.length === 0 ? (
           <EmptyDay now={now} nextUp={nextUp} colorFor={colorFor} />
         ) : (
-          <>
+          <LessonDetailProvider date={date}>
             {events.length > 0 && (
               <NextLessonHero
                 pick={pick}
@@ -98,7 +99,7 @@ export function DayView({
                 showProfessor={variant === "courses"}
               />
             )}
-          </>
+          </LessonDetailProvider>
         )}
       </m.div>
     </AnimatePresence>

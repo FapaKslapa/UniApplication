@@ -5,7 +5,6 @@ import { Video } from "lucide-react";
 import type { DateTime } from "luxon";
 import { HeroFinished } from "@/components/agenda/HeroFinished";
 import { HeroTimeStatus } from "@/components/agenda/HeroTimeStatus";
-import { MarqueeText } from "@/components/agenda/MarqueeText";
 import { OverlapMark } from "@/components/agenda/OverlapMark";
 import { minutesOfDay } from "@/lib/agenda/dates";
 import { formatMinutes } from "@/lib/agenda/format";
@@ -20,6 +19,7 @@ import {
 } from "@/lib/agenda/lessons";
 import type { NextUp } from "@/lib/agenda/nextUp";
 import { formatSubjectName } from "@/lib/agenda/subjectName";
+import { useLessonDetail } from "@/lib/agenda/useLessonDetail";
 import { scaleInVariants, springs } from "@/lib/motion";
 import type { ParsedEvent } from "@/lib/orario-utils";
 
@@ -40,6 +40,8 @@ export function NextLessonHero({
   variant,
   nextUp,
 }: NextLessonHeroProps) {
+  const detail = useLessonDetail();
+
   if (!pick) return null;
 
   if (pick.status === "finished") {
@@ -77,7 +79,17 @@ export function NextLessonHero({
       variants={scaleInVariants}
       initial="hidden"
       animate="visible"
-      className="relative flex shrink-0 flex-col gap-5 overflow-hidden rounded-xl p-5 elevation-1"
+      role="button"
+      tabIndex={0}
+      aria-haspopup="dialog"
+      onClick={() => detail?.open({ event: lesson, color })}
+      onKeyDown={(keyEvent) => {
+        if (keyEvent.key === "Enter" || keyEvent.key === " ") {
+          keyEvent.preventDefault();
+          detail?.open({ event: lesson, color });
+        }
+      }}
+      className="relative flex shrink-0 cursor-pointer text-left outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background flex-col gap-5 overflow-hidden rounded-xl p-5 elevation-1"
       style={{
         backgroundColor: `color-mix(in oklab, ${color} 14%, var(--card))`,
       }}
@@ -97,10 +109,9 @@ export function NextLessonHero({
             color: `color-mix(in oklab, ${color} var(--hero-ink-mix), var(--foreground))`,
           }}
         >
-          <MarqueeText
-            text={formatSubjectName(lesson.materia)}
-            className="text-2xl font-bold leading-tight tracking-tight"
-          />
+          <p className="line-clamp-2 text-2xl font-bold leading-tight tracking-tight text-balance">
+            {formatSubjectName(lesson.materia)}
+          </p>
         </div>
         <div className="flex min-w-0 items-center gap-1.5 text-sm text-muted-foreground">
           {lesson.isVideo && (
