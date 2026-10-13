@@ -1,6 +1,14 @@
 "use client";
 
-import { CalendarPlus, Check, Copy, MapPin, User, Video } from "lucide-react";
+import {
+  CalendarPlus,
+  Check,
+  Copy,
+  MapPin,
+  Navigation,
+  User,
+  Video,
+} from "lucide-react";
 import type { DateTime } from "luxon";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -16,6 +24,7 @@ import { buildIcs, downloadIcs, lessonFilename } from "@/lib/agenda/ics";
 import { lessonEnd, lessonStart } from "@/lib/agenda/lessons";
 import { formatSubjectName } from "@/lib/agenda/subjectName";
 import type { LessonDetail } from "@/lib/agenda/useLessonDetail";
+import { mapsUrl, venueFor } from "@/lib/agenda/venue";
 
 type LessonDetailSheetProps = {
   detail: LessonDetail | null;
@@ -39,6 +48,7 @@ export function LessonDetailSheet({
   }, [copied]);
 
   const event = detail?.event;
+  const venue = event && !event.isVideo ? venueFor(event.aula) : null;
   const end = event ? lessonEnd(event.time) : null;
   const range = event
     ? end
@@ -92,7 +102,14 @@ export function LessonDetailSheet({
                     />
                   )}
                   <dt className="sr-only">Aula</dt>
-                  <dd className="min-w-0 flex-1 truncate">{event.aula}</dd>
+                  <dd className="min-w-0 flex-1">
+                    <span className="block truncate">{event.aula}</span>
+                    {venue && (
+                      <span className="block truncate text-xs text-muted-foreground">
+                        {venue.label}
+                      </span>
+                    )}
+                  </dd>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -117,6 +134,18 @@ export function LessonDetailSheet({
             </dl>
 
             <DrawerFooter>
+              {venue && (
+                <Button asChild variant="outline">
+                  <a
+                    href={mapsUrl(venue)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Navigation />
+                    {venue.exact ? "Indicazioni" : "Indicazioni per il campus"}
+                  </a>
+                </Button>
+              )}
               <Button onClick={addToCalendar}>
                 <CalendarPlus />
                 Aggiungi al calendario
