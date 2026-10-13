@@ -1,10 +1,10 @@
 "use client";
 
-import { CalendarDays, RefreshCw, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, RefreshCw, SlidersHorizontal } from "lucide-react";
 import type { DateTime } from "luxon";
 import { useState } from "react";
 import { DatePickerDrawer } from "@/components/agenda/DatePickerDrawer";
-import { ModeToggle } from "@/components/agenda/ModeToggle";
+import { dateHeadline } from "@/components/agenda/dateHeadline";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { AgendaMode } from "@/lib/agenda/types";
@@ -15,9 +15,7 @@ type AgendaHeaderProps = {
   mode: AgendaMode;
   title: string;
   activeFilterCount: number;
-  hideModeToggle?: boolean;
   secondaryTitle?: boolean;
-  onModeChange: (mode: AgendaMode) => void;
   onDateChange: (date: DateTime) => void;
   onGoToday: () => void;
   onOpenFilters: () => void;
@@ -30,9 +28,7 @@ export function AgendaHeader({
   mode,
   title,
   activeFilterCount,
-  hideModeToggle = false,
   secondaryTitle = false,
-  onModeChange,
   onDateChange,
   onGoToday,
   onOpenFilters,
@@ -40,29 +36,31 @@ export function AgendaHeader({
 }: AgendaHeaderProps) {
   const TitleTag = secondaryTitle ? "h2" : "h1";
   const [isPickerOpen, setIsPickerOpen] = useState(false);
-  const isToday = selectedDate.hasSame(today, "day");
-  const rangeStart = selectedDate.startOf("week").setLocale("it");
-  const rangeEnd = selectedDate.endOf("week").setLocale("it");
-  const rangeLabel =
-    mode === "month"
-      ? selectedDate.setLocale("it").toFormat("MMMM yyyy")
-      : rangeStart.month === rangeEnd.month
-        ? `${rangeStart.toFormat("d")} – ${rangeEnd.toFormat("d MMMM yyyy")}`
-        : `${rangeStart.toFormat("d MMM")} – ${rangeEnd.toFormat("d MMM yyyy")}`;
+  const headline = dateHeadline(selectedDate, mode);
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-1">
       <div className="flex items-center justify-between gap-2">
-        <TitleTag className="min-w-0 truncate text-lg font-bold leading-none">
+        <TitleTag className="min-w-0 truncate text-sm font-semibold text-muted-foreground">
           {title}
         </TitleTag>
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1">
+          {!selectedDate.hasSame(today, "day") && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onGoToday}
+              className="hidden rounded-full xl:inline-flex"
+            >
+              Oggi
+            </Button>
+          )}
           <Button
-            variant="outline"
+            variant="ghost"
             size="icon"
             aria-label="Aggiorna orario"
             onClick={onRefresh}
-            className="rounded-full elevation-1"
+            className="hidden rounded-full md:inline-flex"
           >
             <RefreshCw className="size-4" />
           </Button>
@@ -83,29 +81,17 @@ export function AgendaHeader({
         </div>
       </div>
 
-      <div className="flex min-w-0 items-center gap-2">
-        <Button
-          variant="secondary"
-          size="sm"
-          onClick={() => setIsPickerOpen(true)}
-          className="h-8 min-w-0 flex-1 justify-start gap-1.5 rounded-full px-3 before:-inset-y-2"
-        >
-          <CalendarDays className="size-3.5 shrink-0" />
-          <span className="truncate">{rangeLabel}</span>
-        </Button>
-        {!isToday && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onGoToday}
-            className="h-8 shrink-0 rounded-full px-2.5 text-xs text-muted-foreground before:-inset-y-2"
-          >
-            Oggi
-          </Button>
-        )}
-      </div>
-
-      {!hideModeToggle && <ModeToggle mode={mode} onChange={onModeChange} />}
+      <button
+        type="button"
+        onClick={() => setIsPickerOpen(true)}
+        aria-haspopup="dialog"
+        className="-mx-1 flex min-h-11 min-w-0 items-center gap-2 rounded-md px-1 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <span className="truncate text-2xl font-bold leading-tight tracking-tight">
+          {headline}
+        </span>
+        <ChevronDown className="size-5 shrink-0 text-muted-foreground" />
+      </button>
 
       <DatePickerDrawer
         open={isPickerOpen}
