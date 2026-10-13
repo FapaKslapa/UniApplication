@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 
 const HOLD_OFFSET = 52;
 const MIN_SPIN_MS = 300;
+const MAX_SPIN_MS = 1500;
 
 type PullToRefreshProps = {
   children: ReactNode;
@@ -35,12 +36,18 @@ export function PullToRefresh({
   });
 
   useEffect(() => {
+    if (!holding) return;
+    const cap = window.setTimeout(() => setHolding(false), MAX_SPIN_MS);
+    return () => window.clearTimeout(cap);
+  }, [holding]);
+
+  useEffect(() => {
     if (!holding || refreshing) return;
     const timer = window.setTimeout(() => setHolding(false), MIN_SPIN_MS);
     return () => window.clearTimeout(timer);
   }, [holding, refreshing]);
 
-  const spinning = holding || refreshing;
+  const spinning = holding;
   const progress = Math.min(1, pull / threshold);
   const armed = progress >= 1 || spinning;
   const offset = spinning ? HOLD_OFFSET : pull;
