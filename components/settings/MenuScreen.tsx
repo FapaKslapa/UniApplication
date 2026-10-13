@@ -1,4 +1,5 @@
 import { BookOpen, Eye, Mail } from "lucide-react";
+import { ChangeHistoryEntry } from "@/components/home/ChangeHistoryEntry";
 import { AgendaModeRow } from "@/components/settings/AgendaModeRow";
 import { CourseNotifications } from "@/components/settings/CourseNotifications";
 import { DevSection } from "@/components/settings/DevSection";
@@ -60,6 +61,7 @@ export function MenuScreen({
       )}
 
       <SettingsGroup label="Altro">
+        <ChangeHistoryEntry key="history" />
         <ThemeRow key="theme" />
         <AgendaModeRow key="agenda-mode" />
         <MenuRow

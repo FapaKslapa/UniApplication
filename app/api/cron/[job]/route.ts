@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
 import { checkUpdates } from "@/lib/jobs/check-updates";
+import { cleanupChangeLog } from "@/lib/jobs/cleanup-change-log";
 import { cleanupVisits } from "@/lib/jobs/cleanup-visits";
 import { refreshProfessors } from "@/lib/jobs/refresh-professors";
 import { scrapeAllCourses } from "@/lib/jobs/scrape-courses";
@@ -13,6 +14,7 @@ const jobs = {
   "scrape-courses": () => scrapeAllCourses(db),
   "refresh-professors": async () => {
     await cleanupVisits();
+    await cleanupChangeLog();
     return refreshProfessors();
   },
 } as const;

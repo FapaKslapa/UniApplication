@@ -1,9 +1,11 @@
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { courseSnapshots, pushSubscriptions } from "@/lib/db/schema";
+import { changeLog, courseSnapshots, pushSubscriptions } from "@/lib/db/schema";
 import { generateCourseHash, sendPushNotification } from "@/lib/notifications";
 import { appRouter } from "@/server/api/root";
 import { createCallerFactory } from "@/server/api/trpc";
+
+const MAX_LOGGED_CHANGES = 60;
 
 const createCaller = createCallerFactory(appRouter);
 
@@ -154,6 +156,11 @@ export async function checkUpdates() {
             lastUpdated: new Date(),
           })
           .where(eq(courseSnapshots.linkId, linkId));
+
+        await db.insert(changeLog).values({
+          linkId,
+          changes: JSON.stringify(changes.slice(0, MAX_LOGGED_CHANGES)),
+        });
       }
     } catch (err) {
       console.error(`Error for ${linkId}:`, err);

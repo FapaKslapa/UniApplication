@@ -56,3 +56,8 @@ export function collectUnseenChanges<T>(entries: CourseChanges<T>[]): T[] {
   writeSeen(seen);
   return fresh;
 }
+
+export function isUpdateSeen(linkId: string, updatedAt: number): boolean {
+  const seen = readSeen();
+  return updatedAt <= Math.max(seen[linkId] ?? 0, readGlobalSeen());
+}

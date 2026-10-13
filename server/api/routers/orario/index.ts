@@ -1,4 +1,5 @@
 import { createTRPCRouter } from "@/server/api/trpc";
+import { getChangeHistory } from "./get-change-history";
 import { getLatestChanges } from "./get-latest-changes";
 import { getMonthlyOrario } from "./get-monthly-orario";
 import { getNextLesson } from "./get-next-lesson";
@@ -13,4 +14,5 @@ export const orarioRouter = createTRPCRouter({
   getSubjects,
   getProfessors,
   getLatestChanges,
+  getChangeHistory,
 });

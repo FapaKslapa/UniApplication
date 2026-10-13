@@ -1,3 +1,4 @@
+import { ChangeHistoryButton } from "@/components/home/ChangeHistoryButton";
 import { AGENDA_MODE_OPTIONS } from "@/components/settings/agendaModeOptions";
 import { DesktopLine } from "@/components/settings/desktop/DesktopLine";
 import { DesktopPanel } from "@/components/settings/desktop/DesktopPanel";
@@ -21,6 +22,12 @@ export function PreferencesPanel() {
           value={defaultAgendaMode}
           onChange={setDefaultAgendaMode}
         />
+      </DesktopLine>
+      <DesktopLine
+        title="Cosa è cambiato"
+        hint="Cambi di orario degli ultimi 14 giorni"
+      >
+        <ChangeHistoryButton />
       </DesktopLine>
     </DesktopPanel>
   );
