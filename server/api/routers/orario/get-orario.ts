@@ -5,7 +5,8 @@ import {
   getCurrentItalianDateTime,
   getDayOfWeek,
 } from "@/lib/date-utils";
-import { withEdgeCache } from "@/lib/edge-cache";
+import { setEdgeCache, withEdgeCache } from "@/lib/edge-cache";
+import { FRESH_HEADER } from "@/lib/freshRequest";
 import { publicProcedure } from "@/server/api/trpc";
 import { fetchRawEvents, processEvents } from "./events";
 import {
@@ -15,6 +16,21 @@ import {
   nameSchema,
   professorNameSchema,
 } from "./schemas";
+
+const COURSES_TTL_SECONDS = 120;
+const PROFESSOR_TTL_SECONDS = 120;
+
+async function cached<T>(
+  key: string,
+  ttl: number,
+  wantsFresh: boolean,
+  compute: () => Promise<T>,
+): Promise<T> {
+  if (!wantsFresh) return withEdgeCache(key, ttl, compute);
+  const result = await compute();
+  await setEdgeCache(key, ttl, result);
+  return result;
+}
 
 export const getOrario = publicProcedure
   .input(
@@ -26,7 +42,8 @@ export const getOrario = publicProcedure
       professorName: professorNameSchema,
     }),
   )
-  .query(async ({ input }) => {
+  .query(async ({ input, ctx }) => {
+    const wantsFresh = ctx.headers.get(FRESH_HEADER) === "1";
     const explicitIds = input.linkIds || (input.linkId ? [input.linkId] : []);
 
     if (input.professorName) {
@@ -36,14 +53,21 @@ export const getOrario = publicProcedure
         .toISODate();
       const cacheKey = `https://orario-cache.internal/orario/professor/${encodeURIComponent(input.professorName)}/${weekStart}`;
 
-      return withEdgeCache(cacheKey, 15 * 60, async () => {
+      const computeProfessor = async () => {
         const visibleCourses = await getVisibleCourses();
         const ids = visibleCourses.map((c) => c.linkId);
         const allRawEvents = await Promise.all(
           ids.map((id) => fetchRawEvents(input.dayOffset, id)),
         );
         return processEvents(allRawEvents.flat(), input.professorName);
-      });
+      };
+
+      return cached(
+        cacheKey,
+        PROFESSOR_TTL_SECONDS,
+        wantsFresh,
+        computeProfessor,
+      );
     }
 
     const ids =
@@ -53,9 +77,16 @@ export const getOrario = publicProcedure
 
     if (ids.length === 0) return [];
 
-    const allRawEvents = await Promise.all(
-      ids.map((id) => fetchRawEvents(input.dayOffset, id)),
-    );
+    const targetDate = addDays(getCurrentItalianDateTime(), input.dayOffset);
+    const weekStart = targetDate
+      .minus({ days: getDayOfWeek(targetDate) })
+      .toISODate();
+    const cacheKey = `https://orario-cache.internal/orario/courses/${[...ids].sort().join(",")}/${weekStart}`;
 
-    return processEvents(allRawEvents.flat(), undefined);
+    return cached(cacheKey, COURSES_TTL_SECONDS, wantsFresh, async () => {
+      const allRawEvents = await Promise.all(
+        ids.map((id) => fetchRawEvents(input.dayOffset, id)),
+      );
+      return processEvents(allRawEvents.flat(), undefined);
+    });
   });

@@ -8,6 +8,7 @@ import { startOfDay } from "@/lib/agenda/dates";
 import type { AgendaMode } from "@/lib/agenda/types";
 import { api } from "@/lib/api";
 import { getCurrentItalianDateTime } from "@/lib/date-utils";
+import { withFreshData } from "@/lib/freshRequest";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -75,7 +76,9 @@ export function ProfessorScreen({ name, onBack }: ProfessorScreenProps) {
         title="Dove si trova"
         onSelectedDateChange={setSelectedDate}
         onModeChange={setMode}
-        onRefresh={() => utils.orario.getOrario.invalidate()}
+        onRefresh={() =>
+          withFreshData(() => utils.orario.getOrario.invalidate())
+        }
       />
     </div>
   );
