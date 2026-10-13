@@ -5,7 +5,8 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { usePullGesture } from "@/components/agenda/usePullGesture";
 import { cn } from "@/lib/utils";
 
-const HOLD_OFFSET = 52;
+const REST_TOP = 12;
+const HIDDEN_TOP = -40;
 const MIN_SPIN_MS = 300;
 const MAX_SPIN_MS = 1500;
 
@@ -50,7 +51,9 @@ export function PullToRefresh({
   const spinning = holding;
   const progress = Math.min(1, pull / threshold);
   const armed = progress >= 1 || spinning;
-  const offset = spinning ? HOLD_OFFSET : pull;
+  const top = spinning
+    ? REST_TOP
+    : HIDDEN_TOP + (REST_TOP - HIDDEN_TOP) * progress;
   const settle = dragging
     ? undefined
     : "transform 240ms cubic-bezier(0.22, 1, 0.36, 1)";
@@ -58,17 +61,14 @@ export function PullToRefresh({
   return (
     <div
       ref={ref}
-      className={cn(
-        "relative flex min-h-0 flex-1 flex-col overflow-y-clip",
-        className,
-      )}
+      className={cn("relative flex min-h-0 flex-1 flex-col", className)}
     >
       <div
         role="status"
         aria-live="polite"
-        className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center"
+        className="pointer-events-none absolute inset-x-0 top-0 z-30 flex justify-center"
         style={{
-          transform: `translateY(${offset / 2 - 18}px) scale(${spinning ? 1 : 0.6 + progress * 0.4})`,
+          transform: `translateY(${top}px) scale(${spinning ? 1 : 0.6 + progress * 0.4})`,
           opacity: spinning ? 1 : progress,
           transition: settle
             ? `${settle}, opacity 240ms cubic-bezier(0.22, 1, 0.36, 1)`
@@ -77,10 +77,10 @@ export function PullToRefresh({
       >
         <span
           className={cn(
-            "flex size-9 items-center justify-center rounded-full border transition-colors duration-200",
+            "flex size-9 items-center justify-center rounded-full elevation-2 transition-colors duration-200",
             armed
-              ? "border-foreground bg-foreground text-background"
-              : "border-border bg-card text-muted-foreground elevation-1",
+              ? "bg-foreground text-background"
+              : "bg-card text-muted-foreground",
           )}
         >
           {spinning ? (
@@ -94,15 +94,7 @@ export function PullToRefresh({
         </span>
         <span className="sr-only">{spinning ? "Aggiornamento…" : ""}</span>
       </div>
-      <div
-        className="flex min-h-0 flex-1 flex-col motion-reduce:!transition-none"
-        style={{
-          transform: offset > 0 ? `translateY(${offset}px)` : undefined,
-          transition: settle,
-        }}
-      >
-        {children}
-      </div>
+      <div className="flex min-h-0 flex-1 flex-col">{children}</div>
     </div>
   );
 }
