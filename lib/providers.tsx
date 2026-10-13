@@ -7,6 +7,7 @@ import { type ReactNode, useEffect, useState } from "react";
 import superjson from "superjson";
 import { api } from "./api";
 import { authClient } from "./auth-client";
+import { FRESH_HEADER, isFreshRequest } from "./freshRequest";
 import { persistQueryClient } from "./queryPersist";
 import { useAppStore } from "./store";
 
@@ -24,10 +25,10 @@ export function TRPCProvider({ children }: { children: ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 1000 * 60 * 30,
+            staleTime: 1000 * 60 * 2,
             gcTime: 1000 * 60 * 60 * 24 * 7,
             networkMode: "offlineFirst",
-            refetchOnWindowFocus: false,
+            refetchOnWindowFocus: true,
             refetchOnMount: true,
             retry: 2,
             retryDelay: 1000,
@@ -44,6 +45,7 @@ export function TRPCProvider({ children }: { children: ReactNode }) {
         httpBatchLink({
           url: "/api/trpc",
           transformer: superjson,
+          headers: () => (isFreshRequest() ? { [FRESH_HEADER]: "1" } : {}),
         }),
       ],
     }),

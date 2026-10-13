@@ -17,6 +17,7 @@ import { shiftDays, startOfDay } from "@/lib/agenda/dates";
 import type { AgendaMode } from "@/lib/agenda/types";
 import { api } from "@/lib/api";
 import { getCurrentItalianDateTime } from "@/lib/date-utils";
+import { withFreshData } from "@/lib/freshRequest";
 import { useAppStore } from "@/lib/store";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +40,8 @@ export function HomeScreen() {
   const section = isAdminView(activeView) ? "admin" : "calendar";
   const hasOwnHeader = OWN_HEADER_VIEWS.has(activeView);
   const isRefreshing = useIsRefreshing();
-  const refresh = () => utils.orario.getOrario.invalidate();
+  const refresh = () =>
+    withFreshData(() => utils.orario.getOrario.invalidate());
   const title = getHomeTitle({ activeView, courseNames });
 
   useEffect(() => {
