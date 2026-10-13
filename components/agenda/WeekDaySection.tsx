@@ -2,6 +2,7 @@
 
 import { m } from "framer-motion";
 import type { DateTime } from "luxon";
+import { LessonDetailProvider } from "@/components/agenda/LessonDetailProvider";
 import { LessonRow } from "@/components/agenda/LessonRow";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -55,26 +56,30 @@ export function WeekDaySection({
         </Badge>
       </Button>
 
-      <ul className="space-y-1.5">
-        {events.length === 0 ? (
-          <li className="rounded-md bg-card px-3 py-2.5 text-xs font-medium text-muted-foreground">
-            Libero
-          </li>
-        ) : (
-          events.map((event, index) => (
-            <LessonRow
-              key={`${event.time}-${event.materia}`}
-              event={event}
-              index={index}
-              color={colorFor(event.materia)}
-              overlapping={flags[index]}
-              state={isToday ? lessonState(event.time, nowMinutes) : "upcoming"}
-              compact
-              showProfessor={false}
-            />
-          ))
-        )}
-      </ul>
+      <LessonDetailProvider date={date}>
+        <ul className="space-y-1.5">
+          {events.length === 0 ? (
+            <li className="rounded-md bg-card px-3 py-2.5 text-xs font-medium text-muted-foreground">
+              Libero
+            </li>
+          ) : (
+            events.map((event, index) => (
+              <LessonRow
+                key={`${event.time}-${event.materia}`}
+                event={event}
+                index={index}
+                color={colorFor(event.materia)}
+                overlapping={flags[index]}
+                state={
+                  isToday ? lessonState(event.time, nowMinutes) : "upcoming"
+                }
+                compact
+                showProfessor={false}
+              />
+            ))
+          )}
+        </ul>
+      </LessonDetailProvider>
     </m.section>
   );
 }
