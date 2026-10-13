@@ -15,7 +15,7 @@ function PushStatusIcon({
 }) {
   if (loading) {
     return (
-      <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+      <div className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
     );
   }
   return isSubscribed ? (
@@ -49,7 +49,7 @@ export function PushNotificationManager({
         disabled={loading}
         title={isSubscribed ? "Disattiva notifiche" : "Attiva notifiche"}
         className={cn(
-          "relative flex items-center justify-center w-8 h-8 rounded-xl border transition-all active:scale-90 before:absolute before:-inset-1.5 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "flex size-11 items-center justify-center rounded-full border transition-all active:scale-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           isSubscribed
             ? "border-success/40 bg-success/10 text-success hover:bg-success/20"
             : "border-border bg-muted text-muted-foreground hover:border-input hover:text-foreground",
@@ -58,7 +58,7 @@ export function PushNotificationManager({
         <PushStatusIcon
           loading={loading}
           isSubscribed={isSubscribed}
-          className="w-3.5 h-3.5"
+          className="size-4"
         />
       </button>
     );
@@ -71,7 +71,7 @@ export function PushNotificationManager({
         onClick={onClick}
         disabled={loading}
         className={cn(
-          "relative flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-wider transition-all before:absolute before:inset-x-0 before:-inset-y-2 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+          "flex min-h-11 items-center gap-2 rounded-md px-4 text-xs font-semibold transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
           isSubscribed
             ? "bg-success/10 text-success border border-success/20"
             : "bg-muted text-muted-foreground hover:text-foreground",
@@ -80,9 +80,9 @@ export function PushNotificationManager({
         <PushStatusIcon
           loading={loading}
           isSubscribed={isSubscribed}
-          className="w-3.5 h-3.5"
+          className="size-4"
         />
-        {isSubscribed ? "Notifiche On" : "Attiva Notifiche"}
+        {isSubscribed ? "Notifiche On" : "Attiva notifiche"}
       </button>
     </div>
   );

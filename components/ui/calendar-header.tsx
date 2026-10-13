@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 export type CalendarView = "days" | "months" | "years";
 
 const NAV_BUTTON =
-  "absolute inset-y-0 my-auto size-8 p-0 bg-transparent z-10 rounded-full before:absolute before:-inset-1.5 before:content-['']";
+  "absolute inset-y-0 my-auto size-11 p-0 bg-transparent z-10 rounded-full";
 
 type CalendarHeaderProps = {
   view: CalendarView;
@@ -32,7 +32,7 @@ export function CalendarHeader({
             className={`${NAV_BUTTON} left-0`}
             onClick={() => onShift(-1)}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="size-4" />
           </Button>
           <Button
             variant="outline"
@@ -40,7 +40,7 @@ export function CalendarHeader({
             className={`${NAV_BUTTON} right-0`}
             onClick={() => onShift(1)}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="size-4" />
           </Button>
         </>
       )}
@@ -52,7 +52,7 @@ export function CalendarHeader({
           className={`${NAV_BUTTON} left-0`}
           onClick={() => onView("days")}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className="size-4" />
         </Button>
       )}
 
@@ -63,7 +63,7 @@ export function CalendarHeader({
           className="absolute left-0 top-0 z-10 h-11 w-auto p-2 text-sm font-normal"
           onClick={() => onView("years")}
         >
-          <ChevronLeft className="mr-1 h-4 w-4" />
+          <ChevronLeft className="mr-1 size-4" />
           {date.getFullYear()}
         </Button>
       )}

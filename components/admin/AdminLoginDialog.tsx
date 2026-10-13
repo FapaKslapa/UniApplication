@@ -4,13 +4,8 @@ import { Eye, EyeOff, ShieldCheck } from "lucide-react";
 import type { FormEvent } from "react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent } from "@/components/ui/drawer";
+import { DrawerHeading } from "@/components/ui/drawer-heading";
 import { Input } from "@/components/ui/input";
 import { authClient } from "@/lib/auth-client";
 import { useAppStore } from "@/lib/store";
@@ -59,15 +54,11 @@ export function AdminLoginDialog({
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DrawerContent className="bg-popover">
-        <DrawerHeader className="flex-row items-center gap-4">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background elevation-1">
-            <ShieldCheck className="size-5" />
-          </div>
-          <div className="text-left">
-            <DrawerTitle className="text-xl">Pannello admin</DrawerTitle>
-            <DrawerDescription>Accesso riservato</DrawerDescription>
-          </div>
-        </DrawerHeader>
+        <DrawerHeading
+          icon={ShieldCheck}
+          title="Pannello admin"
+          description="Accesso riservato"
+        />
 
         <form onSubmit={handleLogin} className="flex flex-col gap-3 px-5 pb-8">
           <Input
@@ -77,7 +68,7 @@ export function AdminLoginDialog({
             onChange={(event) => setEmail(event.target.value)}
             autoFocus
             autoComplete="username"
-            className="h-12 rounded-md bg-card"
+            className="h-12 bg-card"
           />
           <div className="relative">
             <Input
@@ -86,7 +77,7 @@ export function AdminLoginDialog({
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
-              className="h-12 rounded-md bg-card pr-11"
+              className="h-12 bg-card pr-12"
             />
             <Button
               type="button"
@@ -96,7 +87,7 @@ export function AdminLoginDialog({
               aria-label={
                 showPassword ? "Nascondi password" : "Mostra password"
               }
-              className="absolute top-1/2 right-1 size-9 -translate-y-1/2 rounded-full text-muted-foreground"
+              className="absolute top-1/2 right-0.5 size-11 -translate-y-1/2 rounded-full text-muted-foreground"
             >
               {showPassword ? (
                 <EyeOff className="size-4" />

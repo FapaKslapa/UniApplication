@@ -2,6 +2,7 @@
 
 import { AnimatePresence, m, type PanInfo } from "framer-motion";
 import type { DateTime } from "luxon";
+import { dayAriaLabel } from "@/components/agenda/dayLabel";
 import { Button } from "@/components/ui/button";
 import { startOfWeek } from "@/lib/agenda/dates";
 import { dayDotSubjects } from "@/lib/agenda/lessons";
@@ -9,7 +10,7 @@ import type { DayEntry } from "@/lib/agenda/types";
 import { slideVariants, springs, staggerDelay } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-const WEEKDAY_LETTERS = ["L", "M", "M", "G", "V", "S", "D"];
+const WEEKDAY_LABELS = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
 const SWIPE_THRESHOLD = 50;
 
 type WeekStripProps = {
@@ -53,7 +54,7 @@ export function WeekStrip({
           dragConstraints={{ left: 0, right: 0 }}
           dragElastic={0.15}
           onDragEnd={handleDragEnd}
-          className="grid grid-cols-7 gap-1"
+          className="grid grid-cols-7 gap-0.5"
         >
           {days.map((day, index) => {
             const isToday = day.date.hasSame(today, "day");
@@ -66,7 +67,7 @@ export function WeekStrip({
                 variant="ghost"
                 onClick={() => onSelect(day.date)}
                 aria-current={isToday ? "date" : undefined}
-                aria-label={`${day.date.setLocale("it").toFormat("cccc d MMMM")}, ${day.events.length} lezioni`}
+                aria-label={dayAriaLabel(day.date, day.events)}
                 className={cn(
                   "relative h-16 min-w-11 flex-col items-center justify-center gap-1.5 rounded-md px-0 focus-visible:ring-inset focus-visible:ring-offset-0",
                   isToday &&
@@ -83,11 +84,11 @@ export function WeekStrip({
                 )}
                 <span
                   className={cn(
-                    "text-[11px] font-semibold uppercase",
+                    "text-[11px] font-semibold",
                     isSelected ? "text-background/70" : "text-muted-foreground",
                   )}
                 >
-                  {WEEKDAY_LETTERS[index]}
+                  {WEEKDAY_LABELS[index]}
                 </span>
                 <span
                   className={cn(

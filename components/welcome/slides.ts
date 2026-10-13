@@ -29,6 +29,6 @@ export const slides: WelcomeSlide[] = [
     title: "Solo le tue materie",
     description:
       "Scegli il tuo corso e nascondi quello che non ti serve: l'orario resta pulito, con dentro solo le tue lezioni.",
-    note: "UniOrario è open source, fatto da studenti. Se manca il tuo corso o hai un'idea, scrivici dalle impostazioni.",
+    note: "UniOrario è open source, fatto da studenti. Se manca il tuo corso o hai un'idea, scrivici dalle opzioni.",
   },
 ];

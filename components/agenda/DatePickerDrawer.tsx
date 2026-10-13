@@ -5,14 +5,8 @@ import type { DateTime } from "luxon";
 import { it } from "react-day-picker/locale";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "@/components/ui/drawer";
+import { Drawer, DrawerContent, DrawerFooter } from "@/components/ui/drawer";
+import { DrawerHeading } from "@/components/ui/drawer-heading";
 
 type DatePickerDrawerProps = {
   open: boolean;
@@ -36,17 +30,11 @@ export function DatePickerDrawer({
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent className="bg-popover">
-        <DrawerHeader className="flex-row items-center gap-4">
-          <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-foreground text-background elevation-1">
-            <CalendarDays className="size-5" />
-          </div>
-          <div className="text-left">
-            <DrawerTitle className="text-xl">Vai alla data</DrawerTitle>
-            <DrawerDescription>
-              Scegli un giorno per saltare direttamente all&apos;agenda
-            </DrawerDescription>
-          </div>
-        </DrawerHeader>
+        <DrawerHeading
+          icon={CalendarDays}
+          title="Vai alla data"
+          description="Scegli un giorno per saltare direttamente all'agenda"
+        />
         <div className="mx-auto w-full max-w-md px-4 pb-2">
           <Calendar
             mode="single"

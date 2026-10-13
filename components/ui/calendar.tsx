@@ -12,7 +12,7 @@ import { MonthGrid, YearGrid } from "@/components/ui/calendar-pickers";
 import { springs } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>;
+type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 const monthIndex = (date: Date) => date.getFullYear() * 12 + date.getMonth();
 
